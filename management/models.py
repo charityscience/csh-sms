@@ -3,6 +3,43 @@ from django.db import models
 # Create your models here.
 class Contact(models.Model):
 	name = models.CharField(max_length=50)
+	# phone_number = FIX ME
+	# alt_phone_number = FIX ME
+	date_of_birth = models.DateField()
+	date_of_sign_up = models.DateField()
+	delay_in_days = models.SmallIntegerField()
+	functional_date_of_birth = models.DateField()
+	mother_tongue = models.CharField(max_length=50)
+	gender = models.CharField(max_length=2)
+	contact_id = models.CharField(max_length=20)
+	telerivet_contact_id = models.CharField(max_length=50)
+	trial_id = models.CharField(max_length=20)
+	trial_group = models.CharField(max_length=20)
+	state = models.CharField(max_length=20)
+	division = models.CharField(max_length=20)
+	district = models.CharField(max_length=20)
+	city = models.CharField(max_length=20)
+	monthly_income_rupees = models.IntegerField()
+	religion = models.CharField(max_length=20)
+	children_previously_vaccinated = models.NullBooleanField()
+	not_vaccinated_why = models.CharField(max_length=100)
+	method_of_sign_up = models.CharField(max_length=20)
+	org_sign_up = models.CharField(max_length=20)
+	hospital_name = models.CharField(max_length=30)
+	mother_first_name = models.CharField(max_length=30)
+	mother_last_name = models.CharField(max_length=30)
+	doctor_name = models.CharField(max_length=30)
+	url_information = models.URLField(max_length=200)
+	telerivet_sender_phone = models.CharField(max_length=100)
+
+
+	# def languages_allowed():
+		
+	# 	all_lang = []
+	# 	english = "English"
+	# 	hindi = "Hindi"
+	# 	gujarati = "Gujarati"
+
 
 	def __str__(self):
 		return self.name
@@ -12,8 +49,37 @@ class Contact(models.Model):
 
 """
 List of variables Contacts should have
+---------------
 
-Name	Telerivet Contact ID	Phone Number	Alternative Phone	Date of Birth	Date of Sign Up	Delay in days	Functional DoB	Mother Tongue	Language Preference	Script Selection	Gender	Preferred Time	Contact ID	Trial ID	Trial Group	State	Division	District	City	Monthly Income	Religion	Previously had children vaccinated	If not vaccinated why	Method of Sign Up	Org Sign Up	Hospital Name	Mother's First	Mother's Last	Doctor Name	URL information	Phone Number	Groups	Sender Phone	Incoming Messages	Outgoing Messages	Last Heard From	Last Contacted	Time Created	Standard 6 weeks	Standard 9 months	Standard 10 weeks	Standard 14 weeks	Standard 16 months	Standard 5 years	Functional 6 weeks	Functional 10 weeks	Functional 14 weeks	Functional 9 months	Functional 16 months	Functional 5 years
+
+Language Preference
+Script Selection
+
+Preferred Time
+
+Last Heard From
+Last Contacted
+Time Created
+
+
+URL information
+Groups
+
+Incoming Messages
+Outgoing Messages
+
+Standard 6 weeks
+Standard 9 months
+Standard 10 weeks
+Standard 14 weeks
+Standard 16 months
+Standard 5 years
+Functional 6 weeks
+Functional 10 weeks
+Functional 14 weeks
+Functional 9 months
+Functional 16 months
+Functional 5 years
 """
 
 class Group(models.Model):
