@@ -94,7 +94,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'US/Pacific'
 
 USE_I18N = True
 
@@ -107,3 +107,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Set test runner to color to django rainbowtests
+TEST_RUNNER = 'rainbowtests.test.runner.RainbowDiscoverRunner'
+
+
+# Set test runner to color to colour runner
+# TEST_RUNNER = 'polls.tests.MyTestRunner'
