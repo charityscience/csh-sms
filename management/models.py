@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import RegexValidator
 import datetime
+from modules import visit_date_helper
 
 # Create your models here.
 class Contact(models.Model):
@@ -83,6 +84,37 @@ class Contact(models.Model):
 	telerivet_time_created = models.DateField(auto_now=False, auto_now_add=False,
 		default=datetime.date.today)
 
+	# Visit Dates
+	def set_visit_dates(self):
+		standard_dates = visit_date_helper.get_modified_dates(self.date_of_birth)
+		
+
+		self.standard_six_weeks = models.DateField(auto_now=False, auto_now_add=False,
+			default=standard_dates["six_weeks"], blank=True)
+		self.standard_ten_weeks = models.DateField(auto_now=False, auto_now_add=False,
+			default=standard_dates["ten_weeks"], blank=True)
+		self.standard_fourteen_weeks = models.DateField(auto_now=False, auto_now_add=False,
+			default=standard_dates["fourteen_weeks"], blank=True)
+		self.standard_nine_months = models.DateField(auto_now=False, auto_now_add=False,
+			default=standard_dates["nine_months"], blank=True)
+		self.standard_sixteen_months = models.DateField(auto_now=False, auto_now_add=False,
+			default=standard_dates["sixteen_months"], blank=True)
+		self.standard_five_years = models.DateField(auto_now=False, auto_now_add=False,
+			default=standard_dates["five_years"], blank=True)
+
+		functional_dates = visit_date_helper.get_modified_dates(self.functional_date_of_birth)
+		self.functional_six_weeks = models.DateField(auto_now=False, auto_now_add=False,
+			default=functional_dates["six_weeks"], blank=True)
+		self.functional_ten_weeks = models.DateField(auto_now=False, auto_now_add=False,
+			default=functional_dates["ten_weeks"], blank=True)
+		self.functional_fourteen_weeks = models.DateField(auto_now=False, auto_now_add=False,
+			default=functional_dates["fourteen_weeks"], blank=True)
+		self.functional_nine_months = models.DateField(auto_now=False, auto_now_add=False,
+			default=functional_dates["nine_months"], blank=True)
+		self.functional_sixteen_months = models.DateField(auto_now=False, auto_now_add=False,
+			default=functional_dates["sixteen_months"], blank=True)
+		self.functional_five_years = models.DateField(auto_now=False, auto_now_add=False,
+			default=functional_dates["five_years"], blank=True)
 
 
 	def __str__(self):
