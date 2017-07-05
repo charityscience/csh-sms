@@ -45,7 +45,8 @@ class Contact(models.Model):
 
 	def has_been_born(self):
 		today = datetime.date.today()
-		return today - self.date_of_birth >= 0
+		diff = today - self.date_of_birth
+		return  diff >= datetime.timedelta(0)
 
 
 	# System Identification
