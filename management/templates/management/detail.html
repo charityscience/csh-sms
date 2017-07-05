@@ -1,0 +1,6 @@
+<h1>{{ contact.name }}</h1>
+<ul>
+{% for group in contact.group_set.all %}
+    <li>Group: {{ group.name }}</li>
+{% endfor %}
+</ul>
