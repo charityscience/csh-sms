@@ -44,8 +44,8 @@ class Contact(models.Model):
 
 
 	def has_been_born(self):
-		now = timezone.now()
-		return now - self.date_of_birth
+		today = datetime.date.today()
+		return today - self.date_of_birth >= 0
 
 
 	# System Identification
