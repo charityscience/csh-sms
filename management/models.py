@@ -105,11 +105,6 @@ Last Heard From
 Last Contacted
 
 
-Groups
-
-Incoming Messages
-Outgoing Messages
-
 Standard 6 weeks
 Standard 9 months
 Standard 10 weeks
@@ -213,3 +208,17 @@ class VisitDate(models.Model):
 	# 	default=functional_dates["sixteen_months"], blank=True)
 	# functional_five_years = models.DateField(auto_now=False, auto_now_add=False,
 	# 	default=functional_dates["five_years"], blank=True)
+
+class Message(models.Model):
+	body = models.CharField(max_length=300)
+	contacts = models.ManyToManyField(Contact)
+
+	# Message direction is Incoming or Outgoing
+	direction = models.CharField(max_length=10)
+
+
+	def __str__(self):
+		return self.name
+
+	class Meta:
+		ordering = ('name',)
