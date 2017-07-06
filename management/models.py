@@ -64,6 +64,13 @@ class Contact(models.Model):
 	contact_id = models.CharField(max_length=20, unique=True, default=contact_id_default)
 	
 
+	def set_visit_dates(self):
+		standard_dates = visit_date_helper.get_modified_dates(self.date_of_birth)
+		functional_dates = visit_date_helper.get_modified_dates(self.functional_date_of_birth)
+
+		return standard_dates, functional_dates
+
+
 	# Language Choices
 	ENGLISH = "ENG"
 	HINDI = "HIN"
@@ -83,39 +90,6 @@ class Contact(models.Model):
 	telerivet_sender_phone = models.CharField(max_length=100, blank=True)
 	telerivet_time_created = models.DateField(auto_now=False, auto_now_add=False,
 		default=datetime.date.today)
-
-	# Visit Dates
-	def set_visit_dates(self):
-		standard_dates = visit_date_helper.get_modified_dates(self.date_of_birth)
-		
-
-		self.standard_six_weeks = models.DateField(auto_now=False, auto_now_add=False,
-			default=standard_dates["six_weeks"], blank=True)
-		self.standard_ten_weeks = models.DateField(auto_now=False, auto_now_add=False,
-			default=standard_dates["ten_weeks"], blank=True)
-		self.standard_fourteen_weeks = models.DateField(auto_now=False, auto_now_add=False,
-			default=standard_dates["fourteen_weeks"], blank=True)
-		self.standard_nine_months = models.DateField(auto_now=False, auto_now_add=False,
-			default=standard_dates["nine_months"], blank=True)
-		self.standard_sixteen_months = models.DateField(auto_now=False, auto_now_add=False,
-			default=standard_dates["sixteen_months"], blank=True)
-		self.standard_five_years = models.DateField(auto_now=False, auto_now_add=False,
-			default=standard_dates["five_years"], blank=True)
-
-		functional_dates = visit_date_helper.get_modified_dates(self.functional_date_of_birth)
-		self.functional_six_weeks = models.DateField(auto_now=False, auto_now_add=False,
-			default=functional_dates["six_weeks"], blank=True)
-		self.functional_ten_weeks = models.DateField(auto_now=False, auto_now_add=False,
-			default=functional_dates["ten_weeks"], blank=True)
-		self.functional_fourteen_weeks = models.DateField(auto_now=False, auto_now_add=False,
-			default=functional_dates["fourteen_weeks"], blank=True)
-		self.functional_nine_months = models.DateField(auto_now=False, auto_now_add=False,
-			default=functional_dates["nine_months"], blank=True)
-		self.functional_sixteen_months = models.DateField(auto_now=False, auto_now_add=False,
-			default=functional_dates["sixteen_months"], blank=True)
-		self.functional_five_years = models.DateField(auto_now=False, auto_now_add=False,
-			default=functional_dates["five_years"], blank=True)
-
 
 	def __str__(self):
 		return self.name
@@ -196,3 +170,46 @@ Text Sign Ups - English - ENG
 Text Sign Ups - English - ENG - Text Default Time
 Text Sign Ups - Hindi
 """
+
+class VisitDate(models.Model):
+	contact = models.ForeignKey(Contact, on_delete=models.CASCADE)
+	name = models.CharField(max_length=50, blank=True)
+	date = models.DateField(auto_now=False, auto_now_add=False)
+
+	def __str__(self):
+		return " - ".join(self.name, self.date)
+
+	class Meta:
+		ordering = ('name',)
+	
+
+	# Visit Dates
+	# standard_dates = visit_date_helper.get_modified_dates(contact.date_of_birth)
+	# functional_dates = visit_date_helper.get_modified_dates(contact.functional_date_of_birth)
+		
+
+	# standard_six_weeks = models.DateField(auto_now=False, auto_now_add=False,
+	# 	default=standard_dates["six_weeks"], blank=True)
+	# standard_ten_weeks = models.DateField(auto_now=False, auto_now_add=False,
+	# 	default=standard_dates["ten_weeks"], blank=True)
+	# standard_fourteen_weeks = models.DateField(auto_now=False, auto_now_add=False,
+	# 	default=standard_dates["fourteen_weeks"], blank=True)
+	# standard_nine_months = models.DateField(auto_now=False, auto_now_add=False,
+	# 	default=standard_dates["nine_months"], blank=True)
+	# standard_sixteen_months = models.DateField(auto_now=False, auto_now_add=False,
+	# 	default=standard_dates["sixteen_months"], blank=True)
+	# standard_five_years = models.DateField(auto_now=False, auto_now_add=False,
+	# 	default=standard_dates["five_years"], blank=True)
+
+	# functional_six_weeks = models.DateField(auto_now=False, auto_now_add=False,
+	# 	default=functional_dates["six_weeks"], blank=True)
+	# functional_ten_weeks = models.DateField(auto_now=False, auto_now_add=False,
+	# 	default=functional_dates["ten_weeks"], blank=True)
+	# functional_fourteen_weeks = models.DateField(auto_now=False, auto_now_add=False,
+	# 	default=functional_dates["fourteen_weeks"], blank=True)
+	# functional_nine_months = models.DateField(auto_now=False, auto_now_add=False,
+	# 	default=functional_dates["nine_months"], blank=True)
+	# functional_sixteen_months = models.DateField(auto_now=False, auto_now_add=False,
+	# 	default=functional_dates["sixteen_months"], blank=True)
+	# functional_five_years = models.DateField(auto_now=False, auto_now_add=False,
+	# 	default=functional_dates["five_years"], blank=True)
