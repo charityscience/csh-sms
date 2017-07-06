@@ -104,19 +104,6 @@ List of variables Contacts should have
 Last Heard From
 Last Contacted
 
-
-Standard 6 weeks
-Standard 9 months
-Standard 10 weeks
-Standard 14 weeks
-Standard 16 months
-Standard 5 years
-Functional 6 weeks
-Functional 10 weeks
-Functional 14 weeks
-Functional 9 months
-Functional 16 months
-Functional 5 years
 """
 
 class Group(models.Model):
@@ -220,5 +207,5 @@ class Message(models.Model):
 	def __str__(self):
 		return self.name
 
-	class Meta:
-		ordering = ('name',)
+	# class Meta:
+	# 	ordering = ('name',)
