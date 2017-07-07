@@ -161,7 +161,7 @@ class VisitDate(models.Model):
 
 class Message(models.Model):
 	body = models.CharField(max_length=300)
-	contacts = models.ManyToManyField(Contact)
+	contact = models.ForeignKey(Contact, on_delete=models.CASCADE)
 
 	# Message direction is Incoming or Outgoing
 	direction = models.CharField(max_length=10)
