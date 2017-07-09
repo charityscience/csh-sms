@@ -91,8 +91,8 @@ class Contact(models.Model):
 	telerivet_sender_phone = models.CharField(max_length=100, blank=True)
 	telerivet_time_created = models.DateField(auto_now=False, auto_now_add=False,
 		default=datetime.date.today)
-	last_heard_from = models.DateTimeField(auto_now=False, auto_now_add=False, default=timezone.now())
-	last_contacted = models.DateTimeField(auto_now=False, auto_now_add=False,default=timezone.now())
+	last_heard_from = models.DateTimeField(auto_now=False, auto_now_add=False, default=timezone.now)
+	last_contacted = models.DateTimeField(auto_now=False, auto_now_add=False,default=timezone.now)
 
 	def __str__(self):
 		return self.name
@@ -160,8 +160,8 @@ class VisitDate(models.Model):
 		ordering = ('name',)
 
 class Message(models.Model):
+	contact = models.ForeignKey(Contact, on_delete=models.CASCADE, null=True)
 	body = models.CharField(max_length=300)
-	contact = models.ForeignKey(Contact, on_delete=models.CASCADE)
 
 	# Message direction is Incoming or Outgoing
 	direction = models.CharField(max_length=10)
