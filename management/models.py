@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import RegexValidator
+from django.utils import timezone
 import datetime
 from modules import visit_date_helper
 
@@ -90,6 +91,8 @@ class Contact(models.Model):
 	telerivet_sender_phone = models.CharField(max_length=100, blank=True)
 	telerivet_time_created = models.DateField(auto_now=False, auto_now_add=False,
 		default=datetime.date.today)
+	last_heard_from = models.DateTimeField(auto_now=False, auto_now_add=False, default=timezone.now)
+	last_contacted = models.DateTimeField(auto_now=False, auto_now_add=False,default=timezone.now)
 
 	def __str__(self):
 		return self.name
@@ -97,32 +100,6 @@ class Contact(models.Model):
 	class Meta:
 		ordering = ('name',)
 
-"""
-List of variables Contacts should have
----------------
-
-Last Heard From
-Last Contacted
-
-
-Groups
-
-Incoming Messages
-Outgoing Messages
-
-Standard 6 weeks
-Standard 9 months
-Standard 10 weeks
-Standard 14 weeks
-Standard 16 months
-Standard 5 years
-Functional 6 weeks
-Functional 10 weeks
-Functional 14 weeks
-Functional 9 months
-Functional 16 months
-Functional 5 years
-"""
 
 class Group(models.Model):
 	name = models.CharField(max_length=50)
@@ -181,35 +158,15 @@ class VisitDate(models.Model):
 
 	class Meta:
 		ordering = ('name',)
-	
 
-	# Visit Dates
-	# standard_dates = visit_date_helper.get_modified_dates(contact.date_of_birth)
-	# functional_dates = visit_date_helper.get_modified_dates(contact.functional_date_of_birth)
-		
+class Message(models.Model):
+	contact = models.ForeignKey(Contact, on_delete=models.CASCADE, null=True)
+	body = models.CharField(max_length=300)
 
-	# standard_six_weeks = models.DateField(auto_now=False, auto_now_add=False,
-	# 	default=standard_dates["six_weeks"], blank=True)
-	# standard_ten_weeks = models.DateField(auto_now=False, auto_now_add=False,
-	# 	default=standard_dates["ten_weeks"], blank=True)
-	# standard_fourteen_weeks = models.DateField(auto_now=False, auto_now_add=False,
-	# 	default=standard_dates["fourteen_weeks"], blank=True)
-	# standard_nine_months = models.DateField(auto_now=False, auto_now_add=False,
-	# 	default=standard_dates["nine_months"], blank=True)
-	# standard_sixteen_months = models.DateField(auto_now=False, auto_now_add=False,
-	# 	default=standard_dates["sixteen_months"], blank=True)
-	# standard_five_years = models.DateField(auto_now=False, auto_now_add=False,
-	# 	default=standard_dates["five_years"], blank=True)
+	# Message direction is Incoming or Outgoing
+	direction = models.CharField(max_length=10)
 
-	# functional_six_weeks = models.DateField(auto_now=False, auto_now_add=False,
-	# 	default=functional_dates["six_weeks"], blank=True)
-	# functional_ten_weeks = models.DateField(auto_now=False, auto_now_add=False,
-	# 	default=functional_dates["ten_weeks"], blank=True)
-	# functional_fourteen_weeks = models.DateField(auto_now=False, auto_now_add=False,
-	# 	default=functional_dates["fourteen_weeks"], blank=True)
-	# functional_nine_months = models.DateField(auto_now=False, auto_now_add=False,
-	# 	default=functional_dates["nine_months"], blank=True)
-	# functional_sixteen_months = models.DateField(auto_now=False, auto_now_add=False,
-	# 	default=functional_dates["sixteen_months"], blank=True)
-	# functional_five_years = models.DateField(auto_now=False, auto_now_add=False,
-	# 	default=functional_dates["five_years"], blank=True)
+
+
+	def __str__(self):
+		return self.name
