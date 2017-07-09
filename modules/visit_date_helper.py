@@ -23,7 +23,7 @@ def get_modified_dates(date_of_birth):
 
 	modified_dates = {"six_weeks": six_weeks,
 					  "ten_weeks": ten_weeks,
-					  "fourteen_weeks": ten_weeks,
+					  "fourteen_weeks": fourteen_weeks,
 					  "nine_months": nine_months,
 					  "sixteen_months": sixteen_months,
 					  "five_years": five_years}
