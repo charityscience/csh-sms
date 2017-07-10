@@ -7,15 +7,14 @@ from .models import Contact, Group
 
 # Create your views here.
 class IndexView(generic.ListView):
-	template_name = 'management/index.html'
-	context_object_name = 'latest_contact_list'
+    template_name = 'management/index.html'
+    context_object_name = 'latest_contact_list'
 
-	def get_queryset(self):
-		"""
-		Return the 5 most recent sign ups
-		"""
-		return Contact.objects.order_by('-date_of_sign_up')[:5]
-
+    def get_queryset(self):
+        """
+        Return the 5 most recent sign ups
+        """
+        return Contact.objects.order_by('-date_of_sign_up')[:5]
 
 
 class DetailView(generic.DetailView):
