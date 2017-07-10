@@ -16,6 +16,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='contact',
             name='contact_id',
-            field=models.CharField(default=management.models.Contact.contact_id_default, max_length=20, unique=True),
+            field=models.CharField(max_length=20, unique=True),
         ),
     ]

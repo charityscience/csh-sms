@@ -1,0 +1,5 @@
+Django==1.11.3
+python-dateutil==2.6.0
+pytz==2017.2
+six==1.10.0
+psycopg2==2.7.1
