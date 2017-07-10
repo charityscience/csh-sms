@@ -10,7 +10,10 @@ Within Postgres:
 CREATE DATABASE cshsms;
 CREATE ROLE cshsmsadmin;
 ALTER ROLE cshsmsadmin WITH LOGIN;
+ALTER ROLE cshsmsadmin CREATEDB;
 GRANT ALL PRIVILEGES ON DATABASE cshsms TO cshsmsadmin;
+CREATE DATABASE test_cshsms;
+ALTER DATABASE test_cshsms OWNER TO cshsmsadmin;
 ```
 
 Then initialize Django:
@@ -27,4 +30,10 @@ Run Postgres then...
 
 ```
 python manage.py runserver
+```
+
+To run tests...
+
+```
+python manage.py test
 ```
