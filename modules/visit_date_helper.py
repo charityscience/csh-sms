@@ -28,10 +28,3 @@ def get_modified_dates(date_of_birth):
 					  "five_years": five_years}
 
 	return modified_dates
-
-def main():
-	pass
-
-
-if __name__ == '__main__':
-    main()
