@@ -1,4 +1,3 @@
-import datetime
 from dateutil.relativedelta import relativedelta
 
 def add_or_subtract_days(date_of_birth, num_of_days):
