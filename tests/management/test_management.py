@@ -4,10 +4,7 @@ from django.urls import reverse
 import datetime
 from dateutil.relativedelta import relativedelta
 
-from .models import Contact
-
-# Create your tests here.
-
+from management.models import Contact
 
 def create_contact(name, days):
 
