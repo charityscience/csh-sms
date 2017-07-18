@@ -71,6 +71,13 @@ class TextProcessorGetDataTests(TestCase):
         self.assertEqual(child_name, None)
         self.assertEqual(date, datetime(2015, 11, 25, 0, 0))
 
+    def test_stop(self):
+        t = TextProcessor()
+        keyword, child_name, date = t.get_data_from_message("STOP")
+        self.assertEqual(keyword, "stop")
+        self.assertEqual(child_name, None)
+        self.assertEqual(date, None)
+
 
 class TextProcessorPlaceholerChildTests(TestCase):
     @patch("logging.error")
@@ -121,10 +128,10 @@ class TextProcessorProcessTests(TestCase):
     @patch("modules.text_processor.send_text")
     def test_unsubscribe(self, texting_mock, logging_mock):
         t = TextProcessor()
-        response = t.process("STOP PAULA 25-11-2012")
+        response = t.process("STOP")
         # TODO: Test data is removed
         self.assertEqual(response, msg_unsubscribe("English"))
-        logging_mock.assert_called_with("Unsubscribing `STOP PAULA 25-11-2012`...")
+        logging_mock.assert_called_with("Unsubscribing `STOP`...")
         texting_mock.assert_called_once_with(response)
 
     @patch("logging.error")

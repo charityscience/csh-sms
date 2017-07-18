@@ -40,12 +40,16 @@ class TextProcessor(object):
             A text will look like `<KEYWORD> <CHILD> <DATE OF BIRTH>`, like
             `REMIND NATHAN 25/11/2015`. Sometimes the child name is omitted."""
         message = message.lower().split(" ")
-        if len(message) == 2:
+        if len(message) == 1:
+            keyword = message[0]
+            date = None
+            child_name = None
+        elif len(message) == 2:
             keyword, date = message
             child_name = None
         else:
-            keyword, child_name, date = message
-        date = date_string_to_date(date) if date_is_valid(date) else None
+            keyword, child_name, date = message[0:3]
+        date = date_string_to_date(date) if date and date_is_valid(date) else None
         return (keyword, child_name, date)
 
 
@@ -71,7 +75,7 @@ class TextProcessor(object):
             language = "English" if keyword[0] in string.ascii_lowercase else "Hindi"
             action = self.process_failure
 
-        if action != self.process_failure:
+        if action == self.process_subscribe:
             if child_name is None:
                 child_name = self.get_placeholder_child(language)
             else:
