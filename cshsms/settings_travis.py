@@ -6,10 +6,10 @@ SECRET_KEY = 'LONGstringOFsecrets'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'projectdatabasename',
-        'USER': 'username',
+        'NAME': 'travisdb',
+        'USER': 'travis',
         'PASSWORD': 'password',
-        'HOST': 'hostname',
+        'HOST': 'localhost',
         'PORT': '',
     }
 }
