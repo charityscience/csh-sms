@@ -27,7 +27,7 @@ class TextProcessor(object):
 
     def get_placeholder_child(self, language):
         """If we don't get a child name in the text, we call them 'your child'."""
-        if language == "English" or language == "Hindi":
+        if language == "English" or language == "Hindi" or language == "Gujarati":
             return msg_placeholder_child(language)
         else:
             logging.error("A placeholder child name was requested for language " +
@@ -45,6 +45,7 @@ class TextProcessor(object):
             child_name = None
         else:
             keyword, child_name, date = message
+        date = date_string_to_date(date) if date_is_valid(date) else None
         return (keyword, child_name, date)
 
 
@@ -73,12 +74,11 @@ class TextProcessor(object):
         if action != self.process_failure:
             if child_name is None:
                 child_name = self.get_placeholder_child(language)
-
-            if date_is_valid(date):
-                date = date_string_to_date(date)
             else:
-                logging.error("Date " + quote(keyword) + " in message " + quote(message) +
-                              " is invalid.")
+                child_name = child_name.title()
+
+            if date is None:
+                logging.error("Date in message " + quote(message) + " is invalid.")
                 action = self.process_failed_date
 
         response_text_message = action(keyword, child_name, date, language)
