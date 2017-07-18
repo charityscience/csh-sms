@@ -4,7 +4,7 @@ import datetime
 from django.utils import timezone
 from modules.utils import date_string_ymd_to_date, date_string_mdy_to_date, datetime_string_mdy_to_datetime
 from modules.visit_date_helper import add_or_subtract_days
-from management.models import Contact
+from management.models import Contact, Group
 
 def csv_upload(filepath):
 	with open(filepath) as csvfile:
@@ -16,6 +16,7 @@ def csv_upload(filepath):
 			new_contact, created = Contact.objects.update_or_create(name=new_dict["name"],
 				phone_number=new_dict["phone_number"],defaults=new_dict)
 			
+			assign_groups_to_contact(new_contact, row["Groups"])
 
 
 def make_contact_dict(row):
@@ -67,6 +68,14 @@ def make_contact_dict(row):
 	new_dict["time_created"] = parse_contact_time_references(row["Time Created"])
 
 	return new_dict
+
+def assign_groups_to_contact(contact, groups_string):
+
+	for group_name in groups_string.split(", "):
+		new_or_old_group, created = Group.objects.get_or_create(name=group_name)
+		new_or_old_group.contacts.add(contact)
+		new_or_old_group.save()
+
 
 def previous_vaccination(row_entry):
 	if "Y".lower() in row_entry:
