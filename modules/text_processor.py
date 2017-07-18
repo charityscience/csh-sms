@@ -7,21 +7,21 @@ from i18n import msg_subscribe, msg_unsubscribe, msg_placeholder_child, msg_fail
                  msg_failed_date, subscribe_keywords
 
 class TextProcessor(object):
-    def process_subscribe(self, keyword, child_name, date, language):
+    def process_subscribe(self, keyword, child_name, date, language, phone_number):
         # TODO: Store data in the system
         return child_name + " " + msg_subscribe(language)
 
 
-    def process_unsubscribe(self, keyword, child_name, date, language):
+    def process_unsubscribe(self, keyword, child_name, date, language, phone_number):
         # TODO: Remove data from system.
         return msg_unsubscribe(language)
 
 
-    def process_failure(self, keyword, child_name, date, language):
+    def process_failure(self, keyword, child_name, date, language, phone_number):
         return msg_failure(language)
 
 
-    def process_failed_date(self, keyword, child_name, date, language):
+    def process_failed_date(self, keyword, child_name, date, language, phone_number):
         return msg_failed_date(language)
 
 
@@ -53,7 +53,7 @@ class TextProcessor(object):
         return (keyword, child_name, date)
 
 
-    def process(self, message):
+    def process(self, message, phone_number):
         # TODO: Run this continuously to monitor incoming texts.
         """This is the main function that is run on an incoming text message to process it."""
         keyword, child_name, date = self.get_data_from_message(message)
@@ -85,6 +85,11 @@ class TextProcessor(object):
                 logging.error("Date in message " + quote(message) + " is invalid.")
                 action = self.process_failed_date
 
-        response_text_message = action(keyword, child_name, date, language)
-        send_text(response_text_message)  # TODO: Actually implement this.
+        response_text_message = action(keyword=keyword,
+                                       child_name=child_name,
+                                       date=date,
+                                       language=language,
+                                       phone_number=phone_number)
+        send_text(message=response_text_message,
+                  phone_number=phone_number)  # TODO: Actually implement this.
         return response_text_message
