@@ -82,8 +82,10 @@ class Contact(models.Model):
 	telerivet_sender_phone = models.CharField(max_length=100, blank=True)
 	time_created = models.DateField(auto_now=False, auto_now_add=False,
 		default=datetime.date.today)
-	last_heard_from = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, default=timezone.now)
-	last_contacted = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, default=timezone.now)
+	last_heard_from = models.DateTimeField(auto_now=False, auto_now_add=False, blank=True,
+		null=True, default=timezone.now)
+	last_contacted = models.DateTimeField(auto_now=False, auto_now_add=False, blank=True,
+		null=True, default=timezone.now)
 
 	def __str__(self):
 		return self.name
