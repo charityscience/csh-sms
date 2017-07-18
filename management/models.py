@@ -54,16 +54,7 @@ class Contact(models.Model):
 	# System Identification
 	telerivet_contact_id = models.CharField(max_length=50, blank=True)
 	trial_id = models.CharField(max_length=20, blank=True)
-	trial_group = models.CharField(max_length=20, blank=True)
-
-	def contact_id_default():
-		num_of_contacts = Contact.objects.all().count()
-		ten_billion = 10000000000
-		new_id = str(num_of_contacts + ten_billion)
-		return new_id
-
-	contact_id = models.CharField(max_length=20, unique=True, default=contact_id_default)
-	
+	trial_group = models.CharField(max_length=20, blank=True)	
 
 	def set_visit_dates(self):
 		standard_dates = visit_date_helper.get_modified_dates(self.date_of_birth)
