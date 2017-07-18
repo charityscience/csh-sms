@@ -42,7 +42,7 @@ class Contact(models.Model):
 	org_sign_up = models.CharField(max_length=20, blank=True)
 	hospital_name = models.CharField(max_length=30, blank=True)
 	doctor_name = models.CharField(max_length=30, blank=True)
-	url_information = models.URLField(max_length=200, blank=True)
+	url_information = models.URLField(max_length=200, blank=True, null=True)
 
 
 	def has_been_born(self):
@@ -73,17 +73,17 @@ class Contact(models.Model):
 		(GUJARATI, "Gujarati")
 		)
 
-	language_preference = models.CharField(max_length=4, choices=LANGUAGE_CHOICES,
+	language_preference = models.CharField(max_length=20, choices=LANGUAGE_CHOICES,
 		default=ENGLISH)
 
 	# Message References
 	preferred_time = models.CharField(max_length=20, blank=True)
 	script_selection = models.CharField(max_length=20, blank=True)
 	telerivet_sender_phone = models.CharField(max_length=100, blank=True)
-	telerivet_time_created = models.DateField(auto_now=False, auto_now_add=False,
+	time_created = models.DateField(auto_now=False, auto_now_add=False,
 		default=datetime.date.today)
-	last_heard_from = models.DateTimeField(auto_now=False, auto_now_add=False, default=timezone.now)
-	last_contacted = models.DateTimeField(auto_now=False, auto_now_add=False,default=timezone.now)
+	last_heard_from = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, default=timezone.now)
+	last_contacted = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, default=timezone.now)
 
 	def __str__(self):
 		return self.name
@@ -93,7 +93,7 @@ class Contact(models.Model):
 
 
 class Group(models.Model):
-	name = models.CharField(max_length=50)
+	name = models.CharField(max_length=50, unique=True)
 	contacts = models.ManyToManyField(Contact)
 
 
