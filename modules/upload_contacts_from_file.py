@@ -17,6 +17,7 @@ def csv_upload(filepath):
 				phone_number=new_dict["phone_number"],defaults=new_dict)
 			
 			assign_groups_to_contact(new_contact, row["Groups"])
+			assign_visit_dates_to_contact(new_contact)
 
 
 def make_contact_dict(row):
@@ -75,6 +76,18 @@ def assign_groups_to_contact(contact, groups_string):
 		new_or_old_group, created = Group.objects.get_or_create(name=group_name)
 		new_or_old_group.contacts.add(contact)
 		new_or_old_group.save()
+
+def assign_visit_dates_to_contact(contact):
+	standards, functionals = contact.set_visit_dates()
+
+	visit_dict_parse(contact, standards, "standards_")
+	visit_dict_parse(contact, functionals, "functional_")
+	contact.save()
+
+def visit_dict_parse(contact, visit_dict, name_preface):
+
+	for key, value in visit_dict.items():
+		contact.visitdate_set.create(name=name_preface+str(key), date=value)
 
 
 def previous_vaccination(row_entry):
