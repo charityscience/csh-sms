@@ -4,7 +4,7 @@ import string
 from texter import send_text
 from utils import quote, date_is_valid, date_string_to_date
 from i18n import msg_subscribe, msg_unsubscribe, msg_placeholder_child, msg_failure, \
-                    msg_failed_date, subscribe_keywords
+                 msg_failed_date, subscribe_keywords
 
 class TextProcessor(object):
     def process_subscribe(self, keyword, child_name, date, language):
