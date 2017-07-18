@@ -23,8 +23,3 @@ before_script:
 script:
   - python manage.py migrate
   - python manage.py test
-
-notifications:
-  email:
-    on_success: change
-    on_failure: always
