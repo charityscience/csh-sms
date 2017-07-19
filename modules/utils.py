@@ -9,7 +9,7 @@ def date_string_to_date(date_string):
         raise ValueError()
     year = "%Y" if len(date_string.split(sep)[2]) == 4 else "%y"
     pattern = "%d" + sep + "%m" + sep + year
-    return datetime.strptime(date_string, pattern)
+    return datetime.strptime(date_string, pattern).date()
 
 def date_is_valid(date_string):
     try:

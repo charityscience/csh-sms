@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.test import TestCase
 
 from modules.utils import quote, date_string_to_date, date_is_valid
@@ -45,3 +46,10 @@ class DateIsValidTests(TestCase):
     
     def test_reject_too_far_in_past(self):
         self.assertFalse(date_is_valid("11/12/1991"))
+
+
+class DateStringToDateTests(TestCase):
+    def test_date_strings_get_converted_to_dates(self):
+        self.assertEqual(date_string_to_date("25/11/2015"), datetime(2015, 11, 25, 0, 0).date())
+        self.assertEqual(date_string_to_date("11/12/2012"), datetime(2012, 12, 11, 0, 0).date())
+        self.assertEqual(date_string_to_date("9-2-01"), datetime(2001, 2, 9, 0, 0).date())

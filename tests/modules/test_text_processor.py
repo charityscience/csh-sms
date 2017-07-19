@@ -13,63 +13,63 @@ class TextProcessorGetDataTests(TestCase):
         keyword, child_name, date = t.get_data_from_message("REMIND NATHAN 25/11/2015")
         self.assertEqual(keyword, "remind")
         self.assertEqual(child_name, "nathan")
-        self.assertEqual(date, datetime(2015, 11, 25, 0, 0))
+        self.assertEqual(date, datetime(2015, 11, 25, 0, 0).date())
 
     def test_all_lowercase(self):
         t = TextProcessor()
         keyword, child_name, date = t.get_data_from_message("remind nathan 25/11/2015")
         self.assertEqual(keyword, "remind")
         self.assertEqual(child_name, "nathan")
-        self.assertEqual(date, datetime(2015, 11, 25, 0, 0))
+        self.assertEqual(date, datetime(2015, 11, 25, 0, 0).date())
 
     def test_normalcase(self):
         t = TextProcessor()
         keyword, child_name, date = t.get_data_from_message("Remind Nathan 25/11/2015")
         self.assertEqual(keyword, "remind")
         self.assertEqual(child_name, "nathan")
-        self.assertEqual(date, datetime(2015, 11, 25, 0, 0))
+        self.assertEqual(date, datetime(2015, 11, 25, 0, 0).date())
 
     def test_date_short_year(self):
         t = TextProcessor()
         keyword, child_name, date = t.get_data_from_message("REMIND NATHAN 25/11/15")
         self.assertEqual(keyword, "remind")
         self.assertEqual(child_name, "nathan")
-        self.assertEqual(date, datetime(2015, 11, 25, 0, 0))
+        self.assertEqual(date, datetime(2015, 11, 25, 0, 0).date())
 
     def test_date_hypen_separation(self):
         t = TextProcessor()
         keyword, child_name, date = t.get_data_from_message("REMIND NATHAN 25-11-2015")
         self.assertEqual(keyword, "remind")
         self.assertEqual(child_name, "nathan")
-        self.assertEqual(date, datetime(2015, 11, 25, 0, 0))
+        self.assertEqual(date, datetime(2015, 11, 25, 0, 0).date())
 
     def test_join_keyword(self):
         t = TextProcessor()
         keyword, child_name, date = t.get_data_from_message("Join Charles 19/12/2012")
         self.assertEqual(keyword, "join")
         self.assertEqual(child_name, "charles")
-        self.assertEqual(date, datetime(2012, 12, 19, 0, 0))
+        self.assertEqual(date, datetime(2012, 12, 19, 0, 0).date())
 
     def test_hindi_remind(self):
         t = TextProcessor()
         keyword, child_name, date = t.get_data_from_message(hindi_remind() + " Sai 11/09/2013")
         self.assertEqual(keyword, hindi_remind())
         self.assertEqual(child_name, "sai")
-        self.assertEqual(date, datetime(2013, 9, 11, 0, 0))
+        self.assertEqual(date, datetime(2013, 9, 11, 0, 0).date())
 
     def test_hindi_information(self):
         t = TextProcessor()
         keyword, child_name, date = t.get_data_from_message(hindi_information() + " Sai 11/09/2013")
         self.assertEqual(keyword, hindi_information())
         self.assertEqual(child_name, "sai")
-        self.assertEqual(date, datetime(2013, 9, 11, 0, 0))
+        self.assertEqual(date, datetime(2013, 9, 11, 0, 0).date())
 
     def test_no_child_name(self):
         t = TextProcessor()
         keyword, child_name, date = t.get_data_from_message("Remind 25/11/2015")
         self.assertEqual(keyword, "remind")
         self.assertEqual(child_name, None)
-        self.assertEqual(date, datetime(2015, 11, 25, 0, 0))
+        self.assertEqual(date, datetime(2015, 11, 25, 0, 0).date())
 
     def test_stop(self):
         t = TextProcessor()
