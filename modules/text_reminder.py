@@ -1,14 +1,60 @@
+from datetime import datetime, timedelta
+
+from texter import send_text
+from i18n import six_week_reminder_seven_days, six_week_reminder_one_day, \
+                 ten_week_reminder_seven_days, ten_week_reminder_one_day, \
+                 fourteen_week_reminder_seven_days, fourteen_week_reminder_one_day, \
+                 nine_month_reminder_seven_days, nine_month_reminder_one_day, \
+                 sixteen_month_reminder_seven_days, sixteen_month_reminder_one_day, \
+                 five_year_reminder_seven_days, five_year_reminder_one_day
+
 class TextReminder(object):
-	def remind(self, child_name, date_of_birth, language):
-6w 7 days -- [[contact.name]] has their scheduled vaccination in 7 days. Without this vaccination your child will be vulnerable to deadly diseases.
-6w 1 day  -- [[contact.name]] is due for their important vaccinations in tomorrow. Please do so then.
-10w 7 days -- [[contact.name]] is eligible for a free vaccination in 7 days. Without this vaccination your child will be vulnerable to deadly diseases.
-10w 1 day -- [[contact.name]] is due for their important vaccinations tomorrow. Please do so then.
-14w 7 days -- Thank you for being a responsible mother. [[contact.name]] is due for their important vaccinations in 7 days. Please do so then.
-14w 1 day -- Your child is eligible to receive a free course of vaccines. [[contact.name]] has their scheduled vaccination tomorrow.
-9m 7 days -- same as 6w 7 days
-9m 1 day -- same as 6w 1 day
-16m 7 days -- same as 10w 7 days
-16m 1 day -- same as 10w 1 day
-5y7 day -- same as 14w 7 days
-5y 1 day -- same as 14w 1 day
+    # TODO: Run once per day to process reminders
+
+    def __init__(self, child_name, date_of_birth, phone_number, language):
+        self.child_name = child_name
+        self.date_of_birth = date_of_birth
+        self.phone_number = phone_number
+        self.language = language
+
+    def is_eligible_for_reminder(years=0, months=0, weeks=0, days=0):
+        self.date_of_birth == (datetime.now() - timedelta(years=years,
+                                                          months=months,
+                                                          weeks=weeks,
+                                                          days=days)).date()
+
+	def get_reminder_msg(self):
+        if is_eligible_for_reminder(weeks=6, days=7):
+            reminder = six_week_reminder_seven_days
+        elif is_eligible_for_reminder(weeks=6, days=1):
+            reminder = six_week_reminder_one_day
+        elif is_eligible_for_reminder(weeks=10, days=7):
+            reminder = ten_week_reminder_seven_days
+        elif is_eligible_for_reminder(weeks=10, days=1):
+            reminder = ten_week_reminder_one_day
+        elif is_eligible_for_reminder(weeks=14, days=7):
+            reminder = fourteen_week_reminder_seven_days
+        elif is_eligible_for_reminder(weeks=14, days=1):
+            reminder = fourteen_week_reminder_one_day
+        elif is_eligible_for_reminder(months=9, days=7):
+            reminder = nine_month_reminder_seven_days
+        elif is_eligible_for_reminder(months=9, days=1):
+            reminder = nine_month_reminder_one_day
+        elif is_eligible_for_reminder(months=16, days=7):
+            reminder = sixteen_month_reminder_seven_days
+        elif is_eligible_for_reminder(months=16, days=1):
+            reminder = sixteen_month_reminder_one_day
+        elif is_eligible_for_reminder(years=5, days=7):
+            reminder = five_year_reminder_seven_days
+        elif is_eligible_for_reminder(years=5, days=1):
+            reminder = five_year_reminder_one_day
+        else:
+            reminder = None
+        return reminder(self.language).format(child=self.child_name) if reminder else None
+
+    def should_remind_today(self):
+        return self.get_reminder_msg() is not None
+
+    def remind(self):
+        if self.should_remind_today():
+            send_text(self.get_reminder_msg())

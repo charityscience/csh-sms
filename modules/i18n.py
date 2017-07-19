@@ -55,6 +55,7 @@ def subscribe_keywords(language):
 def six_week_reminder_seven_days(language):
     if language == "English":
         return "{name} has their scheduled vaccination in 7 days. Without this vaccination your child will be vulnerable to deadly diseases."
+    # TODO: add other languages
 
 def six_week_reminder_one_day(language):
     if language == "English":
@@ -67,11 +68,29 @@ def ten_week_reminder_seven_days(language):
 def ten_week_reminder_one_day(language):
     if language == "English":
         return "{name} is due for their important vaccinations tomorrow. Please do so then."
-14w 7 days -- Thank you for being a responsible mother. [[contact.name]] is due for their important vaccinations in 7 days. Please do so then.
-14w 1 day -- Your child is eligible to receive a free course of vaccines. [[contact.name]] has their scheduled vaccination tomorrow.
-9m 7 days -- same as 6w 7 days
-9m 1 day -- same as 6w 1 day
-16m 7 days -- same as 10w 7 days
-16m 1 day -- same as 10w 1 day
-5y7 day -- same as 14w 7 days
-5y 1 day -- same as 14w 1 day
+
+def fourteen_week_reminder_seven_days(language):
+    if language == "English":
+        return "Thank you for being a responsible mother. {name} is due for their important vaccinations in 7 days. Please do so then."
+
+def fourteen_week_reminder_one_day(language):
+    if language == "English":
+        return "Your child is eligible to receive a free course of vaccines. {name} has their scheduled vaccination tomorrow."
+
+def nine_month_reminder_seven_days(language):
+    return six_week_reminder_seven_days(language)
+
+def nine_month_reminder_one_day(language):
+    return six_week_reminder_one_day(language)
+
+def sixteen_month_reminder_seven_days(language):
+    return ten_week_reminder_seven_days(language)
+
+def sixteen_month_reminder_one_day(language):
+    return ten_week_reminder_one_day(language)
+
+def five_year_reminder_seven_days(language):
+    return fourteen_week_reminder_seven_days(language)
+
+def five_year_reminder_one_day(language):
+    return fourteen_week_reminder_one_day(language)
