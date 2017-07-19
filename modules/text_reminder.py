@@ -50,7 +50,7 @@ class TextReminder(object):
             reminder = five_year_reminder_one_day
         else:
             reminder = None
-        return reminder(self.language).format(child=self.child_name) if reminder else None
+        return reminder(self.language).format(name=self.child_name) if reminder else None
 
     def should_remind_today(self):
         return self.get_reminder_msg() is not None

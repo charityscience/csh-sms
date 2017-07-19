@@ -102,7 +102,7 @@ class TextProcessorProcessTests(TestCase):
         t = TextProcessor()
         response = t.process("JOIN PAULA 25-11-2012", "1-111-1111")
         # TODO: Test data is stored
-        self.assertEqual(response, "Paula " + msg_subscribe("English"))
+        self.assertEqual(response, msg_subscribe("English").format(name="Paula"))
         logging_mock.assert_called_with("Subscribing `JOIN PAULA 25-11-2012`...")
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
 
@@ -112,7 +112,7 @@ class TextProcessorProcessTests(TestCase):
         t = TextProcessor()
         response = t.process(hindi_remind() + " Sai 11/09/2013", "1-111-1111")
         # TODO: Test data is stored
-        self.assertEqual(response, "Sai " + msg_subscribe("Hindi"))
+        self.assertEqual(response, msg_subscribe("Hindi").format(name="Sai"))
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
 
     @patch("logging.info")
@@ -121,7 +121,7 @@ class TextProcessorProcessTests(TestCase):
         t = TextProcessor()
         response = t.process("JOIN 25-11-2012", "1-111-1111")
         # TODO: Test data is stored
-        self.assertEqual(response, "Your child " + msg_subscribe("English"))
+        self.assertEqual(response, msg_subscribe("English").format(name="Your child"))
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
 
     @patch("logging.info")
