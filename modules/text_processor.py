@@ -9,11 +9,11 @@ from i18n import msg_subscribe, msg_unsubscribe, msg_placeholder_child, msg_fail
 class TextProcessor(object):
     def process_subscribe(self, keyword, child_name, date, language, phone_number):
         # TODO: Store data in the system
-        return child_name + " " + msg_subscribe(language)
+        return msg_subscribe(language).format(name=child_name)
 
 
     def process_unsubscribe(self, keyword, child_name, date, language, phone_number):
-        # TODO: Remove data from system.
+        # TODO: Mark data in the system as cancelled.
         return msg_unsubscribe(language)
 
 
@@ -66,7 +66,7 @@ class TextProcessor(object):
             logging.info("Subscribing " + quote(message) + "...")
             action = self.process_subscribe
         elif keyword == "stop":
-            language = "English"
+            language = "English"  # TODO: Language will have to be determined from database.
             logging.info("Unsubscribing " + quote(message) + "...")
             action = self.process_unsubscribe
         else:

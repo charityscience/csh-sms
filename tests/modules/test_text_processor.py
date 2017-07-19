@@ -3,6 +3,7 @@ from mock import patch
 from datetime import datetime
 from django.test import TestCase
 
+from modules.utils import quote
 from modules.text_processor import TextProcessor
 from modules.i18n import hindi_remind, hindi_information, msg_placeholder_child, \
                          msg_subscribe, msg_unsubscribe, msg_failure, msg_failed_date
@@ -57,6 +58,13 @@ class TextProcessorGetDataTests(TestCase):
         self.assertEqual(child_name, "sai")
         self.assertEqual(date, datetime(2013, 9, 11, 0, 0).date())
 
+    def test_hindi_remind_with_hindi_name(self):
+        t = TextProcessor()
+        keyword, child_name, date = t.get_data_from_message(hindi_remind() + " \xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5 11/09/2013")
+        self.assertEqual(keyword, hindi_remind())
+        self.assertEqual(child_name, "\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5")
+        self.assertEqual(date, datetime(2013, 9, 11, 0, 0).date())
+
     def test_hindi_information(self):
         t = TextProcessor()
         keyword, child_name, date = t.get_data_from_message(hindi_information() + " Sai 11/09/2013")
@@ -102,7 +110,7 @@ class TextProcessorProcessTests(TestCase):
         t = TextProcessor()
         response = t.process("JOIN PAULA 25-11-2012", "1-111-1111")
         # TODO: Test data is stored
-        self.assertEqual(response, "Paula " + msg_subscribe("English"))
+        self.assertEqual(response, msg_subscribe("English").format(name="Paula"))
         logging_mock.assert_called_with("Subscribing `JOIN PAULA 25-11-2012`...")
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
 
@@ -112,7 +120,16 @@ class TextProcessorProcessTests(TestCase):
         t = TextProcessor()
         response = t.process(hindi_remind() + " Sai 11/09/2013", "1-111-1111")
         # TODO: Test data is stored
-        self.assertEqual(response, "Sai " + msg_subscribe("Hindi"))
+        self.assertEqual(response, msg_subscribe("Hindi").format(name="Sai"))
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+
+    @patch("logging.info")
+    @patch("modules.text_processor.send_text")
+    def test_hindi_join_with_hindi_name(self, texting_mock, logging_mock):
+        t = TextProcessor()
+        response = t.process(hindi_remind() + " \xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5 11/09/2013", "1-111-1111")
+        # TODO: Test data is stored
+        self.assertEqual(response, msg_subscribe("Hindi").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
 
     @patch("logging.info")
@@ -121,15 +138,16 @@ class TextProcessorProcessTests(TestCase):
         t = TextProcessor()
         response = t.process("JOIN 25-11-2012", "1-111-1111")
         # TODO: Test data is stored
-        self.assertEqual(response, "Your child " + msg_subscribe("English"))
+        self.assertEqual(response, msg_subscribe("English").format(name="Your child"))
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
 
     @patch("logging.info")
     @patch("modules.text_processor.send_text")
-    def test_unsubscribe(self, texting_mock, logging_mock):
+    def test_unsubscribe_english(self, texting_mock, logging_mock):
         t = TextProcessor()
         response = t.process("STOP", "1-111-1111")
-        # TODO: Test data is removed
+        # TODO: Test data is marked cancelled
+        # TODO: Test in Hindi once Hindi can be triggered.
         self.assertEqual(response, msg_unsubscribe("English"))
         logging_mock.assert_called_with("Unsubscribing `STOP`...")
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
@@ -154,9 +172,29 @@ class TextProcessorProcessTests(TestCase):
 
     @patch("logging.error")
     @patch("modules.text_processor.send_text")
-    def test_keyword_failed_date(self, texting_mock, logging_mock):
+    def test_keyword_failed_date_english(self, texting_mock, logging_mock):
         t = TextProcessor()
         response = t.process("JOIN PAULA 25:11:2012", "1-111-1111")
         self.assertEqual(response, msg_failed_date("English"))
         logging_mock.assert_called_with("Date in message `JOIN PAULA 25:11:2012` is invalid.")
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+
+    @patch("logging.error")
+    @patch("modules.text_processor.send_text")
+    def test_keyword_failed_date_hindi(self, texting_mock, logging_mock):
+        t = TextProcessor()
+        invalid_text_message = hindi_remind() + " Sai 11,09,2013"
+        response = t.process(invalid_text_message, "1-111-1111")
+        self.assertEqual(response, msg_failed_date("Hindi"))
+        logging_mock.assert_called_with("Date in message " + quote(invalid_text_message) + " is invalid.")
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+
+    @patch("logging.error")
+    @patch("modules.text_processor.send_text")
+    def test_keyword_failed_date_hindi_with_hindi_name(self, texting_mock, logging_mock):
+        t = TextProcessor()
+        invalid_text_message = hindi_remind() + " \xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5 11,09,2013"
+        response = t.process(invalid_text_message, "1-111-1111")
+        self.assertEqual(response, msg_failed_date("Hindi"))
+        logging_mock.assert_called_with("Date in message " + quote(invalid_text_message) + " is invalid.")
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
