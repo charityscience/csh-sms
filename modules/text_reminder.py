@@ -24,29 +24,29 @@ class TextReminder(object):
                                                           days=days)).date()
 
 	def get_reminder_msg(self):
-        if is_eligible_for_reminder(weeks=6, days=7):
+        if self.is_eligible_for_reminder(weeks=6, days=7):
             reminder = six_week_reminder_seven_days
-        elif is_eligible_for_reminder(weeks=6, days=1):
+        elif self.is_eligible_for_reminder(weeks=6, days=1):
             reminder = six_week_reminder_one_day
-        elif is_eligible_for_reminder(weeks=10, days=7):
+        elif self.is_eligible_for_reminder(weeks=10, days=7):
             reminder = ten_week_reminder_seven_days
-        elif is_eligible_for_reminder(weeks=10, days=1):
+        elif self.is_eligible_for_reminder(weeks=10, days=1):
             reminder = ten_week_reminder_one_day
-        elif is_eligible_for_reminder(weeks=14, days=7):
+        elif self.is_eligible_for_reminder(weeks=14, days=7):
             reminder = fourteen_week_reminder_seven_days
-        elif is_eligible_for_reminder(weeks=14, days=1):
+        elif self.is_eligible_for_reminder(weeks=14, days=1):
             reminder = fourteen_week_reminder_one_day
-        elif is_eligible_for_reminder(months=9, days=7):
+        elif self.is_eligible_for_reminder(months=9, days=7):
             reminder = nine_month_reminder_seven_days
-        elif is_eligible_for_reminder(months=9, days=1):
+        elif self.is_eligible_for_reminder(months=9, days=1):
             reminder = nine_month_reminder_one_day
-        elif is_eligible_for_reminder(months=16, days=7):
+        elif self.is_eligible_for_reminder(months=16, days=7):
             reminder = sixteen_month_reminder_seven_days
-        elif is_eligible_for_reminder(months=16, days=1):
+        elif self.is_eligible_for_reminder(months=16, days=1):
             reminder = sixteen_month_reminder_one_day
-        elif is_eligible_for_reminder(years=5, days=7):
+        elif self.is_eligible_for_reminder(years=5, days=7):
             reminder = five_year_reminder_seven_days
-        elif is_eligible_for_reminder(years=5, days=1):
+        elif self.is_eligible_for_reminder(years=5, days=1):
             reminder = five_year_reminder_one_day
         else:
             reminder = None
