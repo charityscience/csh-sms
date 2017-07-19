@@ -9,7 +9,7 @@ from i18n import msg_subscribe, msg_unsubscribe, msg_placeholder_child, msg_fail
 class TextProcessor(object):
     def process_subscribe(self, keyword, child_name, date, language, phone_number):
         # TODO: Store data in the system
-        return child_name + " " + msg_subscribe(language)
+        return msg_subscribe(language).format(name=child_name)
 
 
     def process_unsubscribe(self, keyword, child_name, date, language, phone_number):
