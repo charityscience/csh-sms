@@ -42,7 +42,7 @@ def make_contact_dict(row):
 	new_dict["district"] = row["District"]
 	new_dict["city"] = row["City"]
 	new_dict["monthly_income_rupees"] = monthly_income(row["Monthly Income"])
-	new_dict["children_previously_vaccinated"] = previous_vaccination(row["Previously had children vaccinated"])
+	new_dict["children_previously_vaccinated"] = previous_vaccination(row["Previously had children vaccinated"].lower())
 	new_dict["not_vaccinated_why"] = row["If not vaccinated why"]
 	new_dict["mother_first_name"] = row["Mother's First"]
 	new_dict["mother_last_name"] = row["Mother's Last"]
@@ -91,9 +91,9 @@ def visit_dict_parse(contact, visit_dict, name_preface):
 
 
 def previous_vaccination(row_entry):
-	if "Y".lower() in row_entry:
+	if "y" in row_entry:
 		return True
-	elif "N".lower() in row_entry:
+	elif "n" in row_entry:
 		return False
 	else:
 		return None
