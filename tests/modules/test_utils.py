@@ -37,6 +37,8 @@ class DateIsValidTests(TestCase):
     def test_reject_bogus_dates(self):
         self.assertFalse(date_is_valid("Bogus"))
         self.assertFalse(date_is_valid("00/00/00"))
+        self.assertFalse(date_is_valid("31/02/2015"))
+        self.assertFalse(date_is_valid("43/11/2015"))
 
     def test_reject_mm_dd_dates(self):
         self.assertFalse(date_is_valid("11-25-2015"))
