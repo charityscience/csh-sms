@@ -66,7 +66,7 @@ class TextProcessor(object):
             logging.info("Subscribing " + quote(message) + "...")
             action = self.process_subscribe
         elif keyword == "stop":
-            language = "English"
+            language = "English"  # TODO: Language will have to be determined from database.
             logging.info("Unsubscribing " + quote(message) + "...")
             action = self.process_unsubscribe
         else:

@@ -127,10 +127,11 @@ class TextProcessorProcessTests(TestCase):
 
     @patch("logging.info")
     @patch("modules.text_processor.send_text")
-    def test_unsubscribe(self, texting_mock, logging_mock):
+    def test_unsubscribe_english(self, texting_mock, logging_mock):
         t = TextProcessor()
         response = t.process("STOP", "1-111-1111")
         # TODO: Test data is marked cancelled
+        # TODO: Test in Hindi once Hindi can be triggered.
         self.assertEqual(response, msg_unsubscribe("English"))
         logging_mock.assert_called_with("Unsubscribing `STOP`...")
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
