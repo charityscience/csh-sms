@@ -80,7 +80,7 @@ def assign_groups_to_contact(contact, groups_string):
 def assign_visit_dates_to_contact(contact):
 	standards, functionals = contact.set_visit_dates()
 
-	visit_dict_parse(contact, standards, "standards_")
+	visit_dict_parse(contact, standards, "standard_")
 	visit_dict_parse(contact, functionals, "functional_")
 	contact.save()
 
