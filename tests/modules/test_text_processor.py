@@ -130,7 +130,7 @@ class TextProcessorProcessTests(TestCase):
     def test_unsubscribe(self, texting_mock, logging_mock):
         t = TextProcessor()
         response = t.process("STOP", "1-111-1111")
-        # TODO: Test data is removed
+        # TODO: Test data is marked cancelled
         self.assertEqual(response, msg_unsubscribe("English"))
         logging_mock.assert_called_with("Unsubscribing `STOP`...")
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")

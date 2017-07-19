@@ -13,7 +13,7 @@ class TextProcessor(object):
 
 
     def process_unsubscribe(self, keyword, child_name, date, language, phone_number):
-        # TODO: Remove data from system.
+        # TODO: Mark data in the system as cancelled.
         return msg_unsubscribe(language)
 
 
