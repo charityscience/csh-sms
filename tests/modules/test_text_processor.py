@@ -3,6 +3,7 @@ from mock import patch
 from datetime import datetime
 from django.test import TestCase
 
+from modules.utils import quote
 from modules.text_processor import TextProcessor
 from modules.i18n import hindi_remind, hindi_information, msg_placeholder_child, \
                          msg_subscribe, msg_unsubscribe, msg_failure, msg_failed_date
@@ -154,9 +155,19 @@ class TextProcessorProcessTests(TestCase):
 
     @patch("logging.error")
     @patch("modules.text_processor.send_text")
-    def test_keyword_failed_date(self, texting_mock, logging_mock):
+    def test_keyword_failed_date_english(self, texting_mock, logging_mock):
         t = TextProcessor()
         response = t.process("JOIN PAULA 25:11:2012", "1-111-1111")
         self.assertEqual(response, msg_failed_date("English"))
         logging_mock.assert_called_with("Date in message `JOIN PAULA 25:11:2012` is invalid.")
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+
+    @patch("logging.error")
+    @patch("modules.text_processor.send_text")
+    def test_keyword_failed_date_hindi(self, texting_mock, logging_mock):
+        t = TextProcessor()
+        invalid_text_message = hindi_remind() + " Sai 11,09,2013"
+        response = t.process(invalid_text_message, "1-111-1111")
+        self.assertEqual(response, msg_failed_date("Hindi"))
+        logging_mock.assert_called_with("Date in message " + quote(invalid_text_message) + " is invalid.")
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
