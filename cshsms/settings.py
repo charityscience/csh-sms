@@ -113,7 +113,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # Set test runner to color to django rainbowtests
-TEST_RUNNER = 'rainbowtests.test.runner.RainbowDiscoverRunner'
+TEST_RUNNER = 'rainbowtests.test.runner.RainbowDiscoverCoverageRunner'
 
 
 # Set test runner to color to colour runner
