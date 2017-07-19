@@ -383,7 +383,7 @@ class TextReminderTests(TestCase):
 
     @freeze_time(FAKE_NOW)
     @patch("modules.text_reminder.send_text")
-    def test_send_text_when_eligible(self, mocked_send_text):
+    def test_do_not_send_text_when_not_eligible(self, mocked_send_text):
         r = text_reminder_test_object("10/7/2017") # 7 days ago
         self.assertFalse(r.should_remind_today())
         r.remind()
