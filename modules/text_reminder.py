@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 from texter import send_text
 from i18n import six_week_reminder_seven_days, six_week_reminder_one_day, \
@@ -17,13 +18,11 @@ class TextReminder(object):
         self.phone_number = phone_number
         self.language = language
 
-    def is_eligible_for_reminder(years=0, months=0, weeks=0, days=0):
-        self.date_of_birth == (datetime.now() - timedelta(years=years,
-                                                          months=months,
-                                                          weeks=weeks,
-                                                          days=days)).date()
+    def is_eligible_for_reminder(self, years=0, months=0, weeks=0, days=0):
+        delta = relativedelta(years=years, months=months, weeks=weeks, days=days)
+        return self.date_of_birth == (datetime.now() - delta).date()
 
-	def get_reminder_msg(self):
+    def get_reminder_msg(self):
         if self.is_eligible_for_reminder(weeks=6, days=7):
             reminder = six_week_reminder_seven_days
         elif self.is_eligible_for_reminder(weeks=6, days=1):
@@ -57,4 +56,5 @@ class TextReminder(object):
 
     def remind(self):
         if self.should_remind_today():
-            send_text(self.get_reminder_msg())
+            send_text(message=self.get_reminder_msg(),
+                      phone_number=self.phone_number)
