@@ -17,7 +17,7 @@ from modules.i18n import six_week_reminder_seven_days, six_week_reminder_one_day
 FAKE_NOW = datetime(2017, 7, 17, 0, 0)
 
 def text_reminder_test_object(date_of_birth, language="English"):
-    child = "Roland" if language == "English" else "Sai"
+    child = "Roland" if language == "English" else "\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"
     return TextReminder(child_name=child,
                         date_of_birth=date_string_to_date(date_of_birth),
                         phone_number="1-111-1111",
@@ -53,7 +53,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(weeks=6, days=7))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         six_week_reminder_seven_days("Hindi").format(name="Sai"))
+                         six_week_reminder_seven_days("Hindi").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_six_weeks_seven_days_gujarati(self):
@@ -61,7 +61,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(weeks=6, days=7))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         six_week_reminder_seven_days("Gujarati").format(name="Sai"))
+                         six_week_reminder_seven_days("Gujarati").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
 
     @freeze_time(FAKE_NOW)
@@ -81,7 +81,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(weeks=6, days=1))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         six_week_reminder_one_day("Hindi").format(name="Sai"))
+                         six_week_reminder_one_day("Hindi").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_six_weeks_one_day_gujarati(self):
@@ -89,7 +89,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(weeks=6, days=1))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         six_week_reminder_one_day("Gujarati").format(name="Sai"))
+                         six_week_reminder_one_day("Gujarati").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
 
     @freeze_time(FAKE_NOW)
@@ -109,7 +109,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(weeks=10, days=7))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         ten_week_reminder_seven_days("Hindi").format(name="Sai"))
+                         ten_week_reminder_seven_days("Hindi").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_ten_weeks_seven_days_gujarati(self):
@@ -117,7 +117,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(weeks=10, days=7))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         ten_week_reminder_seven_days("Gujarati").format(name="Sai"))
+                         ten_week_reminder_seven_days("Gujarati").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
 
     @freeze_time(FAKE_NOW)
@@ -137,7 +137,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(weeks=10, days=1))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         ten_week_reminder_one_day("Hindi").format(name="Sai"))
+                         ten_week_reminder_one_day("Hindi").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_ten_weeks_one_day_gujarati(self):
@@ -145,7 +145,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(weeks=10, days=1))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         ten_week_reminder_one_day("Gujarati").format(name="Sai"))
+                         ten_week_reminder_one_day("Gujarati").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
 
     @freeze_time(FAKE_NOW)
@@ -165,7 +165,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(weeks=14, days=7))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         fourteen_week_reminder_seven_days("Hindi").format(name="Sai"))
+                         fourteen_week_reminder_seven_days("Hindi").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_fourteen_weeks_seven_days_gujarati(self):
@@ -173,7 +173,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(weeks=14, days=7))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         fourteen_week_reminder_seven_days("Gujarati").format(name="Sai"))
+                         fourteen_week_reminder_seven_days("Gujarati").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
 
     @freeze_time(FAKE_NOW)
@@ -193,7 +193,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(weeks=14, days=1))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         fourteen_week_reminder_one_day("Hindi").format(name="Sai"))
+                         fourteen_week_reminder_one_day("Hindi").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_fourteen_weeks_one_day_gujarati(self):
@@ -201,7 +201,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(weeks=14, days=1))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         fourteen_week_reminder_one_day("Gujarati").format(name="Sai"))
+                         fourteen_week_reminder_one_day("Gujarati").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
 
     @freeze_time(FAKE_NOW)
@@ -221,7 +221,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(months=9, days=7))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         nine_month_reminder_seven_days("Hindi").format(name="Sai"))
+                         nine_month_reminder_seven_days("Hindi").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_nine_months_seven_days_gujarati(self):
@@ -229,7 +229,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(months=9, days=7))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         nine_month_reminder_seven_days("Gujarati").format(name="Sai"))
+                         nine_month_reminder_seven_days("Gujarati").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
 
     @freeze_time(FAKE_NOW)
@@ -249,7 +249,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(months=9, days=1))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         nine_month_reminder_one_day("Hindi").format(name="Sai"))
+                         nine_month_reminder_one_day("Hindi").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_nine_months_one_day_gujarati(self):
@@ -257,7 +257,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(months=9, days=1))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         nine_month_reminder_one_day("Gujarati").format(name="Sai"))
+                         nine_month_reminder_one_day("Gujarati").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
 
     @freeze_time(FAKE_NOW)
@@ -277,7 +277,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(months=16, days=7))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         sixteen_month_reminder_seven_days("Hindi").format(name="Sai"))
+                         sixteen_month_reminder_seven_days("Hindi").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_sixteen_months_seven_days_gujarati(self):
@@ -285,7 +285,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(months=16, days=7))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         sixteen_month_reminder_seven_days("Gujarati").format(name="Sai"))
+                         sixteen_month_reminder_seven_days("Gujarati").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
 
     @freeze_time(FAKE_NOW)
@@ -305,7 +305,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(months=16, days=1))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         sixteen_month_reminder_one_day("Hindi").format(name="Sai"))
+                         sixteen_month_reminder_one_day("Hindi").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_sixteen_months_one_day_gujarati(self):
@@ -313,7 +313,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(months=16, days=1))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         sixteen_month_reminder_one_day("Gujarati").format(name="Sai"))
+                         sixteen_month_reminder_one_day("Gujarati").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
 
     @freeze_time(FAKE_NOW)
@@ -333,7 +333,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(years=5, days=7))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         five_year_reminder_seven_days("Hindi").format(name="Sai"))
+                         five_year_reminder_seven_days("Hindi").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_five_years_seven_days_gujarati(self):
@@ -341,7 +341,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(years=5, days=7))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         five_year_reminder_seven_days("Gujarati").format(name="Sai"))
+                         five_year_reminder_seven_days("Gujarati").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
 
     @freeze_time(FAKE_NOW)
@@ -361,7 +361,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(years=5, days=1))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         five_year_reminder_one_day("Hindi").format(name="Sai"))
+                         five_year_reminder_one_day("Hindi").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_five_years_one_day_gujarati(self):
@@ -369,7 +369,7 @@ class TextReminderTests(TestCase):
         self.assertTrue(r.is_eligible_for_reminder(years=5, days=1))
         self.assertTrue(r.should_remind_today())
         self.assertEqual(r.get_reminder_msg(),
-                         five_year_reminder_one_day("Gujarati").format(name="Sai"))
+                         five_year_reminder_one_day("Gujarati").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
 
 
     @freeze_time(FAKE_NOW)
