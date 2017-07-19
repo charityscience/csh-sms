@@ -40,6 +40,9 @@ class DateIsValidTests(TestCase):
 
     def test_reject_mm_dd_dates(self):
         self.assertFalse(date_is_valid("11-25-2015"))
+        self.assertFalse(date_is_valid("31/06/2017"))
+        self.assertFalse(date_is_valid("29/02/2017"))
+        self.assertFalse(date_is_valid("15/15/2015"))
     
     def test_reject_too_far_in_future(self):
         self.assertFalse(date_is_valid("25/11/2133"))
