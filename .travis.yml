@@ -13,6 +13,7 @@ before_install:
 
 install:
   - pip install -r requirements.txt
+  - pip install codecov
 
 before_script:
   - psql -c "CREATE DATABASE travisdb;" -U postgres
@@ -22,4 +23,7 @@ before_script:
 
 script:
   - python manage.py migrate
-  - python manage.py test
+  - coverage run manage.py test
+ 
+after_success:
+  - codecov

@@ -1,4 +1,4 @@
-# csh-sms
+# csh-sms <a href="https://travis-ci.org/charityscience/csh-sms/builds"><img src="https://img.shields.io/travis/charityscience/csh-sms.svg"></a> <a href="https://codecov.io/github/charityscience/csh-sms"><img src="https://img.shields.io/codecov/c/github/charityscience/csh-sms.svg"></a>
 
 #### Installation
 

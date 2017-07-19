@@ -34,9 +34,17 @@ class DateIsValidTests(TestCase):
         self.assertTrue(date_is_valid("9-2-2001"))
         self.assertTrue(date_is_valid("9-2-2001"))
         
+    def test_leap_year_dates(self):
+        self.assertTrue(date_is_valid("29/02/2012"))
+        self.assertFalse(date_is_valid("29/02/2013"))
+        self.assertTrue(date_is_valid("29/02/2016"))
+        self.assertFalse(date_is_valid("29/02/2017"))
+
     def test_reject_bogus_dates(self):
         self.assertFalse(date_is_valid("Bogus"))
         self.assertFalse(date_is_valid("00/00/00"))
+        self.assertFalse(date_is_valid("31/02/2015"))
+        self.assertFalse(date_is_valid("43/11/2015"))
 
     def test_reject_mm_dd_dates(self):
         self.assertFalse(date_is_valid("11-25-2015"))
