@@ -1,3 +1,5 @@
+import os
+import tempfile
 from django.test import TestCase
 
 from modules.upload_contacts_from_file import csv_upload, make_contact_dict, assign_groups_to_contact, \
@@ -5,11 +7,22 @@ from modules.upload_contacts_from_file import csv_upload, make_contact_dict, ass
 											  monthly_income, parse_or_create_delay_num, entered_date_string_to_date, \
 											  parse_or_create_functional_dob, parse_contact_time_references
 
+
+
 class UploadContactsFileTests(TestCase):
 
 	def test_nonexistent_file_csv(self):
 		with self.assertRaises(FileNotFoundError):
 			csv_upload("none.csv")
+
+	def test_non_csv_file(self):
+		fake_txt_path = os.path.join(tempfile.gettempdir(), "fake.txt")
+		with self.assertRaises(FileNotFoundError):
+			csv_upload(fake_txt_path)
+
+	def test_processes_csv(self):
+		csv_path = "tests/data/example.csv" 
+		csv_upload(csv_path)
 
 class UploadContactsInputParserTests(TestCase):
 
