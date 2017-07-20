@@ -4,6 +4,7 @@ import tempfile
 from django.test import TestCase
 
 from datetime import datetime
+from django.utils import timezone
 from management.models import Contact
 from modules.upload_contacts_from_file import csv_upload, make_contact_dict, assign_groups_to_contact, \
 											  assign_visit_dates_to_contact, visit_dict_parse, previous_vaccination, \
@@ -101,3 +102,95 @@ class UploadContactsInputParserTests(TestCase):
 		self.assertEqual(previous_vaccination("no"),False)
 		self.assertEqual(previous_vaccination("no  "),False)
 		self.assertEqual(previous_vaccination("no asdfasfasf "),False)
+
+
+	def test_fake_dates_for_parse_or_create_functional_dob(self):
+		with self.assertRaises(ValueError):
+			parse_or_create_functional_dob("40-15-2015", "40-15-2015", 0)
+		with self.assertRaises(ValueError):
+			parse_or_create_functional_dob("30-15-2015", "30-15-2015", 0)
+		with self.assertRaises(ValueError):
+			parse_or_create_functional_dob("12-35-2015", "12-35-2015", 0)
+		with self.assertRaises(ValueError):
+			parse_or_create_functional_dob("2014-20-15", "2014-20-15", 0)
+		with self.assertRaises(ValueError):
+			parse_or_create_functional_dob("12-00-2015", "12-00-2015", 0)
+		with self.assertRaises(ValueError):
+			parse_or_create_functional_dob("20000-20-15", "0000-20-15", 0)
+		with self.assertRaises(ValueError):
+			parse_or_create_functional_dob("2014-35-00", "2014-35-00", 0)
+		with self.assertRaises(ValueError):
+			parse_or_create_functional_dob("2016-12-40", "2016-12-40", 0)
+		with self.assertRaises(ValueError):
+			parse_or_create_functional_dob("2017-02-40", "2017-02-40", 0)
+
+	def test_nonexistent_dates_for_parse_or_create_functional_dob(self):
+		with self.assertRaises(TypeError):
+			parse_or_create_functional_dob("", "", 0)
+
+		delay1 = 0
+		delay2 = 5
+		dob1 = entered_date_string_to_date("10-15-2015")
+		parsed_func_dob = parse_or_create_functional_dob("", dob1, delay1)
+		parsed_func_dob2 = parse_or_create_functional_dob("", dob1, delay2)
+		
+		self.assertEqual(parsed_func_dob, datetime(2015, 10, 15).date())
+		self.assertEqual(parsed_func_dob2, datetime(2015, 10, 20).date())
+
+	def test_real_dates_for_parse_or_create_functional_dob(self):
+		funct_dob1 = "10-15-2015"
+		funct_dob2 = "10-18-2015"
+		dob1 = entered_date_string_to_date("10-15-2015")
+		delay1 = 0
+		delay2 = 3
+		parsed_func_dob1 = parse_or_create_functional_dob(funct_dob1, dob1, delay1)
+		parsed_func_dob2 = parse_or_create_functional_dob(funct_dob2, dob1, delay2)
+		
+		self.assertEqual(parsed_func_dob1, datetime(2015, 10, 15).date())
+		self.assertEqual(parsed_func_dob2, datetime(2015, 10, 18).date())
+
+	def test_nonexistent_dates_for_entered_date_string_to_date(self):
+		with self.assertRaises(ValueError):
+			entered_date_string_to_date("")
+
+	def test_fake_dates_for_entered_date_string_to_date(self):
+		with self.assertRaises(ValueError):
+			entered_date_string_to_date("40-15-2015")
+		with self.assertRaises(ValueError):
+			entered_date_string_to_date("30-15-2015")
+		with self.assertRaises(ValueError):
+			entered_date_string_to_date("12-35-2015")
+		with self.assertRaises(ValueError):
+			entered_date_string_to_date("2014-20-15")
+		with self.assertRaises(ValueError):
+			entered_date_string_to_date("12-00-2015")
+		with self.assertRaises(ValueError):
+			entered_date_string_to_date("0000-20-15")
+		with self.assertRaises(ValueError):
+			entered_date_string_to_date("2014-35-00")
+		with self.assertRaises(ValueError):
+			entered_date_string_to_date("2016-12-40")
+		with self.assertRaises(ValueError):
+			entered_date_string_to_date("2017-02-29")
+
+	def test_real_dates_for_entered_date_string_to_date(self):
+		date_string1 = "2014-12-20"
+		date_string2 = "2017-01-20"
+		date_string3 = "2017-01-07"
+		date_string4 = "01-15-2017"
+		date_string5 = "02-28-2017"
+
+		self.assertEqual(entered_date_string_to_date(date_string1),datetime(2014, 12, 20, 0,0 ).date())
+		self.assertEqual(entered_date_string_to_date(date_string2),datetime(2017, 1, 20, 0,0 ).date())
+		self.assertEqual(entered_date_string_to_date(date_string3),datetime(2017, 1, 7, 0,0 ).date())
+		self.assertEqual(entered_date_string_to_date(date_string4),datetime(2017, 1, 15, 0,0 ).date())
+		self.assertEqual(entered_date_string_to_date(date_string5),datetime(2017, 2, 28, 0,0 ).date())
+	
+	def test_parse_contact_time_references_real_datetimes(self):
+		time1 = "6/12/2017 4:00:03 PM"
+		time2 = "6/16/2017 6:51:28 PM"
+
+		self.assertEqual(datetime(2017, 6, 12, 16, 0, 3, tzinfo=timezone.get_default_timezone()),
+			parse_contact_time_references(time1))
+		self.assertEqual(datetime(2017, 6, 16, 18, 51, 28, tzinfo=timezone.get_default_timezone()),
+			parse_contact_time_references(time2))
