@@ -5,13 +5,23 @@ from django.test import TestCase
 
 from datetime import datetime
 from django.utils import timezone
-from management.models import Contact
+from management.models import Contact, Group
 from modules.upload_contacts_from_file import csv_upload, make_contact_dict, assign_groups_to_contact, \
 											  assign_visit_dates_to_contact, visit_dict_parse, previous_vaccination, \
 											  monthly_income, parse_or_create_delay_num, entered_date_string_to_date, \
 											  parse_or_create_functional_dob, parse_contact_time_references
 
 
+
+
+def create_sample_contact(*args):
+	contact, created = Contact.objects.get_or_create(name="Aarav", phone_number="911234567890",
+		date_of_birth=datetime(2011, 5, 10, 0,0).date())
+	return contact
+
+def create_sample_group(name="TestMe"):
+	group, created = Group.objects.get_or_create(name=name)
+	return group
 
 class UploadContactsFileTests(TestCase):
 
@@ -34,13 +44,10 @@ class UploadContactsContactFieldsTests(TestCase):
 		csv_path = "tests/data/example.csv" 
 		csv_upload(csv_path)		
 
-	def create_sample_contact(self):
-		contact, created = Contact.objects.get_or_create(name="Aarav", phone_number="911234567890",
-			date_of_birth=datetime(2011, 5, 10, 0,0).date())
-		return contact
+	
 
 	def test_existing_contacts_are_updated(self):
-		old_contact = self.create_sample_contact()
+		old_contact = create_sample_contact()
 
 		self.upload_file()
 		updated_contact = Contact.objects.get(name=old_contact.name, phone_number=old_contact.phone_number)
@@ -54,6 +61,46 @@ class UploadContactsContactFieldsTests(TestCase):
 		new_contacts_count = Contact.objects.count()
 		self.assertNotEqual(old_all_contacts, new_all_contacts)
 		self.assertNotEqual(old_contacts_count, new_contacts_count)
+
+class UploadContactsRelationshipTests(TestCase):
+
+	def test_groups_are_assigned_to_contact(self):
+		contact = create_sample_contact()
+		group_string = "TestMe"
+		multi_group_string = "TestMe, Again"
+		group = create_sample_group(name=group_string)
+		try:
+			before_add = contact.group_set.get(id=group.id)
+		except Group.DoesNotExist:
+			before_add = False
+		assign_groups_to_contact(contact, group_string)
+		after_add = contact.group_set.get(id=group.id)
+		assign_groups_to_contact(contact, multi_group_string)
+		after_second_add = contact.group_set.get(name__exact="Again")
+
+		self.assertNotEqual(before_add, after_add)
+		self.assertTrue(after_add)
+		self.assertEqual(after_add.name, group_string)
+		self.assertEqual(after_second_add.name, "Again")
+
+	def test_existing_groups_are_updated_with_new_contacts(self):
+		group_string = "TestMe"
+		group = create_sample_group(name=group_string)
+		contact = create_sample_contact()
+
+		with self.assertRaises(Contact.DoesNotExist):
+			group.contacts.get(id=contact.id)
+
+		assign_groups_to_contact(contact, group_string)
+		self.assertTrue(group.contacts.get(id=contact.id))
+
+	def test_empty_group_strings(self):
+		group_string = ""
+		contact = create_sample_contact()
+		assign_groups_to_contact(contact, group_string)
+
+		with self.assertRaises(Group.DoesNotExist):
+			contact.group_set.get(name__exact=group_string)
 
 
 class UploadContactsInputParserTests(TestCase):
