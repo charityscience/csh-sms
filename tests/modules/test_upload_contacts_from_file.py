@@ -14,8 +14,8 @@ from modules.upload_contacts_from_file import csv_upload, make_contact_dict, ass
 
 
 
-def create_sample_contact(*args):
-	contact, created = Contact.objects.get_or_create(name="Aarav", phone_number="911234567890",
+def create_sample_contact(name="Aarav"):
+	contact, created = Contact.objects.get_or_create(name=name, phone_number="911234567890",
 		date_of_birth=datetime(2011, 5, 10, 0,0).date())
 	return contact
 
@@ -43,8 +43,6 @@ class UploadContactsContactFieldsTests(TestCase):
 	def upload_file(self):
 		csv_path = "tests/data/example.csv" 
 		csv_upload(csv_path)		
-
-	
 
 	def test_existing_contacts_are_updated(self):
 		old_contact = create_sample_contact()
