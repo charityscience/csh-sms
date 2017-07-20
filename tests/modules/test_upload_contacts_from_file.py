@@ -1,7 +1,10 @@
 import os
+import csv
 import tempfile
 from django.test import TestCase
 
+from datetime import datetime
+from management.models import Contact
 from modules.upload_contacts_from_file import csv_upload, make_contact_dict, assign_groups_to_contact, \
 											  assign_visit_dates_to_contact, visit_dict_parse, previous_vaccination, \
 											  monthly_income, parse_or_create_delay_num, entered_date_string_to_date, \
@@ -23,6 +26,33 @@ class UploadContactsFileTests(TestCase):
 	def test_processes_csv(self):
 		csv_path = "tests/data/example.csv" 
 		csv_upload(csv_path)
+
+class UploadContactsContactFieldsTests(TestCase):
+
+	def upload_file(self):
+		csv_path = "tests/data/example.csv" 
+		csv_upload(csv_path)		
+
+	def create_sample_contact(self):
+		contact, created = Contact.objects.get_or_create(name="Aarav", phone_number="911234567890",
+			date_of_birth=datetime(2011, 5, 10, 0,0).date())
+		return contact
+
+	def test_existing_contacts_are_updated(self):
+		old_contact = self.create_sample_contact()
+		old_contact_dob = old_contact.date_of_birth
+
+		self.upload_file()
+		updated_contact = Contact.objects.get(name=old_contact.name, phone_number=old_contact.phone_number)
+		updated_contact_dob = updated_contact.date_of_birth
+		self.assertNotEqual(old_contact_dob, updated_contact_dob)
+
+	def test_new_contacts_are_created(self):
+		old_all_contacts = Contact.objects.all()
+		self.upload_file()
+		new_all_contacts = Contact.objects.all()
+		self.assertNotEqual(old_all_contacts, new_all_contacts)
+
 
 class UploadContactsInputParserTests(TestCase):
 
