@@ -40,18 +40,19 @@ class UploadContactsContactFieldsTests(TestCase):
 
 	def test_existing_contacts_are_updated(self):
 		old_contact = self.create_sample_contact()
-		old_contact_dob = old_contact.date_of_birth
 
 		self.upload_file()
 		updated_contact = Contact.objects.get(name=old_contact.name, phone_number=old_contact.phone_number)
-		updated_contact_dob = updated_contact.date_of_birth
-		self.assertNotEqual(old_contact_dob, updated_contact_dob)
+		self.assertNotEqual(old_contact.date_of_birth, updated_contact.date_of_birth)
 
 	def test_new_contacts_are_created(self):
 		old_all_contacts = Contact.objects.all()
+		old_contacts_count = Contact.objects.count()
 		self.upload_file()
 		new_all_contacts = Contact.objects.all()
+		new_contacts_count = Contact.objects.count()
 		self.assertNotEqual(old_all_contacts, new_all_contacts)
+		self.assertNotEqual(old_contacts_count, new_contacts_count)
 
 
 class UploadContactsInputParserTests(TestCase):
