@@ -39,16 +39,6 @@ class TextProcessor(object):
         return msg_failed_date(language)
 
 
-    def get_placeholder_child(self, language):
-        """If we don't get a child name in the text, we call them 'your child'."""
-        if language == "English" or language == "Hindi" or language == "Gujarati":
-            return msg_placeholder_child(language)
-        else:
-            logging.error("A placeholder child name was requested for language " +
-                            quote(language) + " but this is not supported.")
-            return msg_placeholder_child("English")
-
-
     def get_data_from_message(self, message):
         """Get the keyword, child name, and the date from the message.
             A text will look like `<KEYWORD> <CHILD> <DATE OF BIRTH>`, like
@@ -91,7 +81,8 @@ class TextProcessor(object):
 
         if action == self.process_subscribe:
             if child_name is None:
-                child_name = self.get_placeholder_child(language)
+                # If a child name is not found, we call them "your child".
+                child_name = msg_placeholder_child(language)
             else:
                 child_name = child_name.title()
 

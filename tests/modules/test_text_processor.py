@@ -87,22 +87,6 @@ class TextProcessorGetDataTests(TestCase):
         self.assertEqual(date, None)
 
 
-class TextProcessorPlaceholerChildTests(TestCase):
-    @patch("logging.error")
-    def test_placeholder_child(self, mock):
-        t = TextProcessor()
-        self.assertEqual(msg_placeholder_child("English"), t.get_placeholder_child("English"))
-        self.assertEqual(msg_placeholder_child("Hindi"), t.get_placeholder_child("Hindi"))
-        self.assertEqual(msg_placeholder_child("Gujarati"), t.get_placeholder_child("Gujarati"))
-        self.assertTrue(not mock.called)
-        
-    @patch("logging.error")
-    def test_missing_language(self, mock):
-        t = TextProcessor()
-        self.assertEqual(t.get_placeholder_child("Bogus"), msg_placeholder_child("English"))
-        mock.assert_called_with("A placeholder child name was requested for language `Bogus` but this is not supported.")
-
-
 class TextProcessorProcessTests(TestCase):
     @patch("logging.info")
     @patch("modules.text_processor.send_text")  # See https://stackoverflow.com/questions/16134281/python-mocking-a-function-from-an-imported-module
@@ -134,11 +118,20 @@ class TextProcessorProcessTests(TestCase):
 
     @patch("logging.info")
     @patch("modules.text_processor.send_text")
-    def test_process_with_placeholder_child(self, texting_mock, logging_mock):
+    def test_process_with_placeholder_child_english(self, texting_mock, logging_mock):
         t = TextProcessor()
         response = t.process("JOIN 25-11-2012", "1-111-1111")
         # TODO: Test data is stored
         self.assertEqual(response, msg_subscribe("English").format(name="Your child"))
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+
+    @patch("logging.info")
+    @patch("modules.text_processor.send_text")
+    def test_process_with_placeholder_child_hindi(self, texting_mock, logging_mock):
+        t = TextProcessor()
+        response = t.process(hindi_remind() + " 25-11-2012", "1-111-1111")
+        self.assertEqual(response,
+                         msg_subscribe("Hindi").format(name=msg_placeholder_child("Hindi")))
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
 
     @patch("logging.info")
