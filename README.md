@@ -2,9 +2,11 @@
 
 #### Installation
 
-Download [Postgressapp](https://postgresapp.com/) or otherwise download Postgres. You will need to put the app on your `PATH` to get access to the `psql` executible.
+1.) Acquire a copy of `settings_secret.py` and put it in `cshsms/settings_secret.py`
 
-Within Postgres:
+2.) Download [Postgressapp](https://postgresapp.com/) or otherwise download Postgres. You will need to put the app on your `PATH` to get access to the `psql` executible.
+
+3.) Within Postgres:
 
 ```
 CREATE DATABASE cshsms;
@@ -16,7 +18,7 @@ CREATE DATABASE test_cshsms;
 ALTER DATABASE test_cshsms OWNER TO cshsmsadmin;
 ```
 
-Then initialize Django:
+4.) Initialize Django:
 
 ```
 pip install -r requirements.txt
