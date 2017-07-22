@@ -72,7 +72,7 @@ def make_contact_dict(row):
 
 def assign_groups_to_contact(contact, groups_string):
 	if groups_string == "":
-		return
+		return None
 
 	for group_name in groups_string.split(", "):
 		new_or_old_group, created = Group.objects.get_or_create(name=group_name)

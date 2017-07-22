@@ -70,7 +70,7 @@ class UploadContactsRelationshipTests(TestCase):
 		try:
 			before_add = contact.group_set.get(id=group.id)
 		except Group.DoesNotExist:
-			before_add = False
+			before_add = None
 		assign_groups_to_contact(contact, group_string)
 		after_add = contact.group_set.get(id=group.id)
 		assign_groups_to_contact(contact, multi_group_string)
