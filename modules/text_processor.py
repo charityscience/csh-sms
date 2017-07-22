@@ -1,12 +1,26 @@
 import logging
 import string
 
+from management.models import Contact
 from texter import send_text
 from utils import quote, date_is_valid, date_string_to_date
 from i18n import msg_subscribe, msg_unsubscribe, msg_placeholder_child, msg_failure, \
                  msg_failed_date, subscribe_keywords
 
+
 class TextProcessor(object):
+    def create_contact(self, child_name, date, language, phone_number):
+        contact, c = Contact.objects.update_or_create(name=child_name,
+                                                      phone_number=phone_number,
+                                                      delay_in_days="?",
+                                                      language_preference=language,
+                                                      date_of_birth=date,
+                                                      date_of_sign_up=datetime.now().date(),
+                                                      functional_date_of_birth="?",
+                                                      method_of_sign_up="text")
+        #assign_groups_to_contact(new_contact, row["Groups"])
+        #assign_visit_dates_to_contact(new_contact)
+
     def process_subscribe(self, keyword, child_name, date, language, phone_number):
         # TODO: Store data in the system
         return msg_subscribe(language).format(name=child_name)
