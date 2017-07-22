@@ -174,12 +174,12 @@ class ContactModelTests(TestCase):
 		standards, functionals = future_contact.set_visit_dates()
 		dates = get_scheduled_dates(future_date)
 
-		self.assertEqual(standards["six_weeks"] == dates["six_weeks"], True)
-		self.assertEqual(standards["ten_weeks"] == dates["ten_weeks"], True)
-		self.assertEqual(standards["fourteen_weeks"] == dates["fourteen_weeks"], True)
-		self.assertEqual(standards["nine_months"] == dates["nine_months"], True)
-		self.assertEqual(standards["sixteen_months"] == dates["sixteen_months"], True)
-		self.assertEqual(standards["five_years"] == dates["five_years"], True)
+		self.assertEqual(standards["six_weeks"], dates["six_weeks"])
+		self.assertEqual(standards["ten_weeks"], dates["ten_weeks"])
+		self.assertEqual(standards["fourteen_weeks"], dates["fourteen_weeks"])
+		self.assertEqual(standards["nine_months"], dates["nine_months"])
+		self.assertEqual(standards["sixteen_months"], dates["sixteen_months"])
+		self.assertEqual(standards["five_years"], dates["five_years"])
 
 
 class ContactIndexViewTests(TestCase):
