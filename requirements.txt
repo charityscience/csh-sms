@@ -8,7 +8,3 @@ pyflakes==1.5.0
 python-dateutil==2.6.0
 pytz==2017.2
 six==1.10.0
-<<<<<<< HEAD
-psycopg2==2.7.1
-=======
->>>>>>> 3c97647a8aef824813c39dcea35ca75619c4ff53
