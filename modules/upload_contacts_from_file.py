@@ -35,7 +35,6 @@ def make_contact_dict(row):
 	# Personal Info
 	new_dict["gender"] = row["Gender"]
 	new_dict["mother_tongue"] = row["Mother Tongue"]
-	new_dict["language_preference"] = row["Language Preference"]
 	new_dict["religion"] = row["Religion"]
 	new_dict["state"] = row["State"]
 	new_dict["division"] = row["Division"]
