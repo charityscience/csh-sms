@@ -11,6 +11,7 @@ from modules.i18n import six_week_reminder_seven_days, six_week_reminder_one_day
 
 class TextReminder(object):
     # TODO: Run once per day to process reminders
+    # TODO: Run on all non-cancelled Django objects
 
     def __init__(self, child_name, date_of_birth, phone_number, language):
         self.child_name = child_name
