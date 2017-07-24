@@ -62,6 +62,11 @@ class UploadContactsContactFieldsTests(TestCase):
 		new_contact = create_sample_contact(name=hindi_name)
 		self.assertEqual(hindi_name,new_contact.name)
 
+	def test_gujarati_names_are_preserved(self):
+		guj_name = u'\u0A90\u0AC5\u0A94'
+		new_contact = create_sample_contact(name=guj_name)
+		self.assertEqual(guj_name,new_contact.name)
+
 class UploadContactsRelationshipTests(TestCase):
 	def test_groups_are_assigned_to_contact(self):
 		contact = create_sample_contact()
