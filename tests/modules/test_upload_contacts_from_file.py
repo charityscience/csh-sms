@@ -26,12 +26,12 @@ def create_sample_group(name="TestMe"):
 class UploadContactsFileTests(TestCase):
 
 	def test_nonexistent_file_csv(self):
-		with self.assertRaises(FileNotFoundError):
+		with self.assertRaises(IOError):
 			csv_upload("none.csv")
 
 	def test_non_csv_file(self):
 		fake_txt_path = os.path.join(tempfile.gettempdir(), "fake.txt")
-		with self.assertRaises(FileNotFoundError):
+		with self.assertRaises(IOError):
 			csv_upload(fake_txt_path)
 
 	def test_processes_csv(self):

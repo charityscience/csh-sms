@@ -1,9 +1,17 @@
 from datetime import datetime
 from django.utils import timezone 
-
+from management.models import Group
 
 def quote(word):
-    return "`" + str(word) + "`"
+    return "`" + word + "`"
+
+
+def add_contact_to_group(contact, group_name):
+    group, _ = Group.objects.get_or_create(name=group_name)
+    group.contacts.add(contact)
+    group.save()
+    return group
+
 
 def date_string_to_date(date_string):
     sep = "-" if "-" in date_string else "/"
