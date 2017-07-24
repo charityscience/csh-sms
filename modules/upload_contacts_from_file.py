@@ -4,18 +4,15 @@ import datetime
 from django.utils import timezone
 from modules.utils import add_contact_to_group, date_string_ymd_to_date, date_string_mdy_to_date, datetime_string_mdy_to_datetime
 from modules.visit_date_helper import add_or_subtract_days
-from management.models import Contact, Group
+from management.models import Contact
 
 def csv_upload(filepath):
     with open(filepath) as csvfile:
         reader = csv.DictReader(csvfile)
-        
         for row in reader:
             new_dict = make_contact_dict(row)
-            
             new_contact, created = Contact.objects.update_or_create(name=new_dict["name"],
                 phone_number=new_dict["phone_number"],defaults=new_dict)
-            
             assign_groups_to_contact(new_contact, row["Groups"])
             assign_visit_dates_to_contact(new_contact)
 
@@ -27,7 +24,6 @@ def make_contact_dict(row):
     new_dict["alt_phone_number"] = row["Alternative Phone"]
     new_dict["delay_in_days"] = parse_or_create_delay_num(row["Delay in days"])
     new_dict["language_preference"] = row["Language Preference"]
-    
     new_dict["date_of_birth"] = entered_date_string_to_date(row["Date of Birth"])
     new_dict["date_of_sign_up"] = entered_date_string_to_date(row["Date of Sign Up"])
     new_dict["functional_date_of_birth"] = parse_or_create_functional_dob(row["Functional DoB"], new_dict["date_of_birth"], new_dict["delay_in_days"])
@@ -45,7 +41,6 @@ def make_contact_dict(row):
     new_dict["not_vaccinated_why"] = row["If not vaccinated why"]
     new_dict["mother_first_name"] = row["Mother's First"]
     new_dict["mother_last_name"] = row["Mother's Last"]
-
 
     # Type of Sign Up
     new_dict["method_of_sign_up"] = row["Method of Sign Up"]
@@ -66,28 +61,23 @@ def make_contact_dict(row):
     new_dict["last_heard_from"] = parse_contact_time_references(row["Last Heard From"])
     new_dict["last_contacted"] = parse_contact_time_references(row["Last Contacted"])
     new_dict["time_created"] = parse_contact_time_references(row["Time Created"])
-
     return new_dict
 
 def assign_groups_to_contact(contact, groups_string):
     if groups_string == "":
         return None
-
     for group_name in groups_string.split(", "):
         add_contact_to_group(contact, group_name)
 
 def assign_visit_dates_to_contact(contact):
     standards, functionals = contact.set_visit_dates()
-
     visit_dict_parse(contact, standards, "standard_")
     visit_dict_parse(contact, functionals, "functional_")
     contact.save()
 
 def visit_dict_parse(contact, visit_dict, name_preface):
-
     for key, value in visit_dict.items():
         contact.visitdate_set.create(name=name_preface+str(key), date=value)
-
 
 def previous_vaccination(row_entry):
     if "y" in row_entry:
