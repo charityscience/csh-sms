@@ -19,17 +19,14 @@ class TextProcessor(object):
             # TODO: Throw error
             # TODO: Be able to resubscribe if cancelled
         else:
-            created_at = datetime.now(tzinfo=timezone.get_default_timezone())
             contact, _ = Contact.objects.create(name=child_name,
                                                 phone_number=phone_number,
                                                 time_created=created_at,
                                                 delay_in_days=0,
                                                 language_preference=language,
                                                 date_of_birth=date_of_birth,
-                                                date_of_sign_up=datetime.now().date(),
                                                 functional_date_of_birth=date_of_birth,
                                                 method_of_sign_up="Text")
-
             for group_name in ["Text Sign Ups",
                                "Text Sign Ups - " + language,
                                "Everyone - " + language]:
