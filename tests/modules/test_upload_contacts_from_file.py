@@ -7,12 +7,9 @@ from datetime import datetime
 from django.utils import timezone
 from management.models import Contact, Group
 from modules.upload_contacts_from_file import csv_upload, make_contact_dict, assign_groups_to_contact, \
-											  assign_visit_dates_to_contact, visit_dict_parse, previous_vaccination, \
-											  monthly_income, parse_or_create_delay_num, entered_date_string_to_date, \
-											  parse_or_create_functional_dob, parse_contact_time_references
-
-
-
+											  previous_vaccination, monthly_income, parse_or_create_delay_num, \
+                                              entered_date_string_to_date, parse_or_create_functional_dob, \
+                                              parse_contact_time_references
 
 def create_sample_contact(name="Aarav"):
 	contact, created = Contact.objects.get_or_create(name=name, phone_number="911234567890",
@@ -23,8 +20,8 @@ def create_sample_group(name="TestMe"):
 	group, created = Group.objects.get_or_create(name=name)
 	return group
 
-class UploadContactsFileTests(TestCase):
 
+class UploadContactsFileTests(TestCase):
 	def test_nonexistent_file_csv(self):
 		with self.assertRaises(IOError):
 			csv_upload("none.csv")
@@ -38,8 +35,8 @@ class UploadContactsFileTests(TestCase):
 		csv_path = "tests/data/example.csv" 
 		csv_upload(csv_path)
 
-class UploadContactsContactFieldsTests(TestCase):
 
+class UploadContactsContactFieldsTests(TestCase):
 	def upload_file(self):
 		csv_path = "tests/data/example.csv" 
 		csv_upload(csv_path)		
@@ -60,8 +57,8 @@ class UploadContactsContactFieldsTests(TestCase):
 		self.assertNotEqual(old_all_contacts, new_all_contacts)
 		self.assertNotEqual(old_contacts_count, new_contacts_count)
 
-class UploadContactsRelationshipTests(TestCase):
 
+class UploadContactsRelationshipTests(TestCase):
 	def test_groups_are_assigned_to_contact(self):
 		contact = create_sample_contact()
 		group_string = "TestMe"
@@ -102,7 +99,6 @@ class UploadContactsRelationshipTests(TestCase):
 
 
 class UploadContactsInputParserTests(TestCase):
-
 	def test_nondigits_in_income(self):
 		self.assertEqual(monthly_income("1892ff8"),999999)
 		self.assertEqual(monthly_income("ghg18928"),999999)

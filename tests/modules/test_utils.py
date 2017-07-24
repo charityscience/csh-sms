@@ -1,7 +1,8 @@
 from datetime import datetime
 from django.test import TestCase
 
-from modules.utils import quote, date_string_to_date, date_is_valid
+from modules.utils import quote
+from modules.date_helper import date_string_to_date, date_is_valid
 
 class QuoteTests(TestCase):
     def test_quote(self):

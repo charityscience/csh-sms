@@ -5,7 +5,7 @@ from django.test import TestCase
 
 from datetime import datetime
 
-from modules.utils import date_string_to_date
+from modules.date_helper import date_string_to_date
 from modules.text_reminder import TextReminder
 from modules.i18n import six_week_reminder_seven_days, six_week_reminder_one_day, \
                          ten_week_reminder_seven_days, ten_week_reminder_one_day, \

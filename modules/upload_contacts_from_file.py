@@ -2,8 +2,9 @@ import csv
 import re
 import datetime
 from django.utils import timezone
-from modules.utils import add_contact_to_group, date_string_ymd_to_date, date_string_mdy_to_date, datetime_string_mdy_to_datetime
-from modules.visit_date_helper import add_or_subtract_days
+from modules.utils import add_contact_to_group
+from modules.date_helper import date_string_ymd_to_date, date_string_mdy_to_date, datetime_string_mdy_to_datetime, \
+                                add_or_subtract_days
 from management.models import Contact
 
 def csv_upload(filepath):
@@ -14,7 +15,6 @@ def csv_upload(filepath):
             new_contact, created = Contact.objects.update_or_create(name=new_dict["name"],
                 phone_number=new_dict["phone_number"],defaults=new_dict)
             assign_groups_to_contact(new_contact, row["Groups"])
-            assign_visit_dates_to_contact(new_contact)
 
 
 def make_contact_dict(row):
@@ -68,16 +68,6 @@ def assign_groups_to_contact(contact, groups_string):
         return None
     for group_name in groups_string.split(", "):
         add_contact_to_group(contact, group_name)
-
-def assign_visit_dates_to_contact(contact):
-    standards, functionals = contact.set_visit_dates()
-    visit_dict_parse(contact, standards, "standard_")
-    visit_dict_parse(contact, functionals, "functional_")
-    contact.save()
-
-def visit_dict_parse(contact, visit_dict, name_preface):
-    for key, value in visit_dict.items():
-        contact.visitdate_set.create(name=name_preface+str(key), date=value)
 
 def previous_vaccination(row_entry):
     if "y" in row_entry:

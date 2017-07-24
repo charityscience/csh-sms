@@ -5,7 +5,8 @@ from django.utils import timezone
 
 from management.models import Contact, Group
 from modules.texter import send_text
-from modules.utils import quote, add_contact_to_group, date_is_valid, date_string_to_date
+from modules.utils import quote, add_contact_to_group
+from modules.date_helper import date_is_valid, date_string_to_date
 from modules.i18n import msg_subscribe, msg_unsubscribe, msg_placeholder_child, msg_failure, \
                          msg_failed_date, subscribe_keywords
 
