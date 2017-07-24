@@ -127,9 +127,11 @@ class TextProcessorProcessTests(TestCase):
     @patch("modules.text_processor.send_text")
     def test_hindi_join_with_hindi_name(self, texting_mock, logging_mock):
         t = TextProcessor()
-        response = t.process(hindi_remind() + " \xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5 11/09/2013", "1-111-1111")
+        message = hindi_remind() + " \xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5 11/09/2013"
+        response = t.process(message=message, phone_number="1-111-1111")
+        expected_response = msg_subscribe("Hindi").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5".title())
+        self.assertEqual(response, expected_response)
         # TODO: Test data is stored
-        self.assertEqual(response, msg_subscribe("Hindi").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5"))
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
 
     @patch("logging.info")
