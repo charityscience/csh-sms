@@ -3,7 +3,7 @@ from django.utils import timezone
 
 
 def quote(word):
-    return "`" + str(word) + "`"
+    return "`" + word + "`"
 
 def date_string_to_date(date_string):
     sep = "-" if "-" in date_string else "/"

@@ -1,13 +1,13 @@
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-from texter import send_text
-from i18n import six_week_reminder_seven_days, six_week_reminder_one_day, \
-                 ten_week_reminder_seven_days, ten_week_reminder_one_day, \
-                 fourteen_week_reminder_seven_days, fourteen_week_reminder_one_day, \
-                 nine_month_reminder_seven_days, nine_month_reminder_one_day, \
-                 sixteen_month_reminder_seven_days, sixteen_month_reminder_one_day, \
-                 five_year_reminder_seven_days, five_year_reminder_one_day
+from modules.texter import send_text
+from modules.i18n import six_week_reminder_seven_days, six_week_reminder_one_day, \
+                         ten_week_reminder_seven_days, ten_week_reminder_one_day, \
+                         fourteen_week_reminder_seven_days, fourteen_week_reminder_one_day, \
+                         nine_month_reminder_seven_days, nine_month_reminder_one_day, \
+                         sixteen_month_reminder_seven_days, sixteen_month_reminder_one_day, \
+                         five_year_reminder_seven_days, five_year_reminder_one_day
 
 class TextReminder(object):
     # TODO: Run once per day to process reminders
