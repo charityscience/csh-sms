@@ -19,6 +19,7 @@ class Contact(models.Model):
     delay_in_days = models.SmallIntegerField(default=0, blank=True)
     functional_date_of_birth = models.DateField(blank=True,auto_now=False,
         auto_now_add=False, default=datetime.date.today)
+    cancelled = models.BooleanField(default=False, blank=False)
 
     # Personal Info
     gender = models.CharField(max_length=2, blank=True)
