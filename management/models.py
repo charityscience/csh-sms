@@ -53,11 +53,11 @@ class Contact(models.Model):
     trial_group = models.CharField(max_length=20, blank=True)    
 
 
-    language_preference = models.CharField(max_length=20, choices=LANGUAGE_CHOICES,
-        default="English", null=False)
+    language_preference = models.CharField(max_length=20,
+        default="English", blank=False, null=False)
 
     # Message References
-    preferred_time = models.CharField(max_length=20, blank=True)
+    preferred_time = models.CharField(max_length=50, blank=True)
     script_selection = models.CharField(max_length=20, blank=True)
     telerivet_sender_phone = models.CharField(max_length=100, blank=True)
     time_created = models.DateField(auto_now=False, auto_now_add=False,
@@ -67,7 +67,7 @@ class Contact(models.Model):
     last_contacted = models.DateTimeField(auto_now=False, auto_now_add=False, blank=True,
         null=True, default=timezone.now)
 
-    def __str__(self):
+    def __unicode__(self):
         return self.name
 
     class Meta:
@@ -126,5 +126,5 @@ class Message(models.Model):
     # Message direction is Incoming or Outgoing
     direction = models.CharField(max_length=10)
 
-    def __str__(self):
-        return self.name
+    def __unicode__(self):
+        return self.body
