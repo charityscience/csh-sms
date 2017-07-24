@@ -21,7 +21,6 @@ class TextProcessor(object):
         else:
             contact, _ = Contact.objects.create(name=child_name,
                                                 phone_number=phone_number,
-                                                time_created=created_at,
                                                 delay_in_days=0,
                                                 language_preference=language,
                                                 date_of_birth=date_of_birth,
