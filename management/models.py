@@ -22,26 +22,24 @@ class Contact(models.Model):
     cancelled = models.BooleanField(default=False, blank=False)
 
     # Personal Info
-    gender = models.CharField(max_length=2, blank=True)
+    gender = models.CharField(max_length=6, blank=True)
     mother_tongue = models.CharField(max_length=50, blank=True)
-    state = models.CharField(max_length=20, blank=True)
-    division = models.CharField(max_length=20, blank=True)
-    district = models.CharField(max_length=20, blank=True)
-    city = models.CharField(max_length=20, blank=True)
+    state = models.CharField(max_length=50, blank=True)
+    division = models.CharField(max_length=50, blank=True)
+    district = models.CharField(max_length=50, blank=True)
+    city = models.CharField(max_length=50, blank=True)
     monthly_income_rupees = models.IntegerField(blank=True, default=999999)
-    religion = models.CharField(max_length=20, blank=True)
+    religion = models.CharField(max_length=50, blank=True)
     children_previously_vaccinated = models.NullBooleanField()
-    not_vaccinated_why = models.CharField(max_length=100, blank=True)
+    not_vaccinated_why = models.CharField(max_length=500, blank=True)
     mother_first_name = models.CharField(max_length=30, blank=True)
     mother_last_name = models.CharField(max_length=30, blank=True)
     
     # Type of Sign Up
-    method_of_sign_up = models.CharField(max_length=20, blank=True)
-    org_sign_up = models.CharField(max_length=20, blank=True)
-    hospital_name = models.CharField(max_length=30, blank=True)
+    method_of_sign_up = models.CharField(max_length=50, blank=True)
+    org_sign_up = models.CharField(max_length=40, blank=True)
+    hospital_name = models.CharField(max_length=50, blank=True)
     doctor_name = models.CharField(max_length=30, blank=True)
-    url_information = models.URLField(max_length=200, blank=True, null=True)
-
 
     def has_been_born(self):
         today = datetime.date.today()
@@ -54,18 +52,9 @@ class Contact(models.Model):
     trial_id = models.CharField(max_length=20, blank=True)
     trial_group = models.CharField(max_length=20, blank=True)    
 
-    # Language Choices
-    ENGLISH = "ENG"
-    HINDI = "HIN"
-    GUJARATI = "GUJ"
-    LANGUAGE_CHOICES = (
-        (ENGLISH, "English"),
-        (HINDI, "Hindi"),
-        (GUJARATI, "Gujarati")
-        )
 
     language_preference = models.CharField(max_length=20, choices=LANGUAGE_CHOICES,
-        default=ENGLISH)
+        default="English", null=False)
 
     # Message References
     preferred_time = models.CharField(max_length=20, blank=True)
