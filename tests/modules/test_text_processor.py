@@ -101,6 +101,7 @@ class TextProcessorProcessTests(TestCase):
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
         self.assertTrue(Contact.objects.filter(name="Paula", phone_number="1-111-1111").exists())
         self.assertTrue(t.contacts.exists())
+        # TODO: Groups assigned to contact correctly
 
     @patch("logging.info")
     @patch("modules.text_processor.send_text")
@@ -173,6 +174,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertEqual(response, msg_unsubscribe("English"))
         logging_mock.assert_called_with("Unsubscribing `1-111-1112`...")
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1112")
+        # TODO: Groups still there
 
     @patch("logging.info")
     @patch("modules.text_processor.send_text")
@@ -219,6 +221,7 @@ class TextProcessorProcessTests(TestCase):
         logging_error_mock.assert_called_with("Contact for Rose at 1-111-1114 was subscribed but already exists!")
         self.assertTrue(Contact.objects.filter(name="Rose", phone_number="1-111-1114").exists())
         self.assertTrue(t2.contacts.exists())
+        # TODO: Groups still there
 
     @patch("logging.error")
     @patch("logging.info")
@@ -259,6 +262,7 @@ class TextProcessorProcessTests(TestCase):
         texting_mock.assert_called_with(message=second_response, phone_number="1-111-1120")
         self.assertTrue(Contact.objects.filter(name="Ben", phone_number="1-111-1120").exists())
         self.assertEqual(Contact.objects.filter(phone_number="1-111-1120").count(), 2)
+        # TODO: Groups still there
 
     @patch("logging.info")
     @patch("modules.text_processor.send_text")
@@ -275,6 +279,7 @@ class TextProcessorProcessTests(TestCase):
         contacts = Contact.objects.filter(name="Rob", phone_number="1-111-1116")
         self.assertTrue(contacts.exists())
         self.assertTrue(contacts.first().cancelled)
+        # TODO: Groups still there
 
     @patch("logging.info")
     @patch("modules.text_processor.send_text")
@@ -295,6 +300,7 @@ class TextProcessorProcessTests(TestCase):
         contacts = Contact.objects.filter(name="Cheyenne", phone_number="1-111-1117")
         self.assertTrue(contacts.exists())
         self.assertFalse(contacts.first().cancelled)
+        # TODO: Groups still there
 
     @patch("logging.info")
     @patch("modules.text_processor.send_text")
@@ -315,6 +321,7 @@ class TextProcessorProcessTests(TestCase):
         contacts = Contact.objects.filter(name="Cheyenne", phone_number="1-111-1118")
         self.assertTrue(contacts.exists())
         self.assertEqual(contacts.first().date_of_birth, datetime(2012, 12, 25, 0, 0).date())
+        # TODO: Groups still there
 
     @patch("logging.info")
     @patch("modules.text_processor.send_text")
@@ -334,8 +341,6 @@ class TextProcessorProcessTests(TestCase):
         contacts = Contact.objects.filter(name="Larissa", phone_number="1-111-1118")
         self.assertTrue(contacts.exists())
         self.assertEqual(contacts.first().language_preference, "Hindi")
-
-    # TODO: Cancel a non-created contact
 
     @patch("logging.error")
     @patch("modules.text_processor.send_text")
