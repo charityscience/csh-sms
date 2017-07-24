@@ -14,6 +14,12 @@ def msg_unsubscribe(language):
         return u'\u0906\u092a\u0915\u0940 \u0938\u0926\u0938\u094d\u092f\u0924\u093e \u0938\u092e\u093e\u092a\u094d\u0924 \u0915\u0930 \u0926\u0940 \u0917\u092f\u0940 \u0939\u0948.'
 
 
+def msg_already_sub(language):
+    if language == "English":
+        return "You are already registered to receive CSH health reminders."
+    elif language == "Hindi":
+        return "TODO TRANSLATE HINDI msg_already_sub"  # TODO: Translate
+
 def msg_placeholder_child(language):
     if language == "English":
         return "Your child"

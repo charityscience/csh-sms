@@ -13,7 +13,7 @@ def csv_upload(filepath):
         for row in reader:
             new_dict = make_contact_dict(row)
             new_contact, created = Contact.objects.update_or_create(name=new_dict["name"],
-                phone_number=new_dict["phone_number"],defaults=new_dict)
+                phone_number=new_dict["phone_number"], defaults=new_dict)
             assign_groups_to_contact(new_contact, row["Groups"])
 
 

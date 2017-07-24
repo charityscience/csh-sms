@@ -8,31 +8,39 @@ from modules.texter import send_text
 from modules.utils import quote, add_contact_to_group
 from modules.date_helper import date_is_valid, date_string_to_date
 from modules.i18n import msg_subscribe, msg_unsubscribe, msg_placeholder_child, msg_failure, \
-                         msg_failed_date, subscribe_keywords
+                         msg_failed_date, subscribe_keywords, msg_already_sub
 
 
 class TextProcessor(object):
-    def create_contact(self, child_name, date, language, phone_number):
-        created_at = datetime.now(tzinfo=timezone.get_default_timezone())
-        contact, _ = Contact.objects.update_or_create(name=child_name,
-                                                      phone_number=phone_number,
-                                                      time_created=created_at,
-                                                      delay_in_days=0,
-                                                      language_preference=language,
-                                                      date_of_birth=date,
-                                                      date_of_sign_up=datetime.now().date(),
-                                                      functional_date_of_birth=date,
-                                                      method_of_sign_up="Text")
+    def create_contact(self, child_name, phone_number, date_of_birth, language):
+        if Contact.objects.filter(name=child_name,
+                                  phone_number=phone_number).exists():
+            return msg_already_sub(language)
+            # TODO: Throw error
+            # TODO: Be able to resubscribe if cancelled
+        else:
+            created_at = datetime.now(tzinfo=timezone.get_default_timezone())
+            contact, _ = Contact.objects.create(name=child_name,
+                                                phone_number=phone_number,
+                                                time_created=created_at,
+                                                delay_in_days=0,
+                                                language_preference=language,
+                                                date_of_birth=date_of_birth,
+                                                date_of_sign_up=datetime.now().date(),
+                                                functional_date_of_birth=date_of_birth,
+                                                method_of_sign_up="Text")
 
-        for group_name in ["Text Sign Ups",
-                           "Text Sign Ups - " + language,
-                           "Everyone - " + language]:
-            add_contact_to_group(contact, group_name)
-        # TODO: Assign visit date
+            for group_name in ["Text Sign Ups",
+                               "Text Sign Ups - " + language,
+                               "Everyone - " + language]:
+                add_contact_to_group(contact, group_name)
 
 
     def process_subscribe(self, keyword, child_name, date, language, phone_number):
-        # TODO: Store data in the system
+        self.create_contact(child_name=child_name,
+                            phone_number=phone_number,
+                            date_of_birth=date,
+                            language=language)
         return msg_subscribe(language).format(name=child_name)
 
 
