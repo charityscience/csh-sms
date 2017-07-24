@@ -6,8 +6,7 @@ from management.models import Contact
 from modules.utils import quote
 from modules.text_processor import TextProcessor
 from modules.i18n import hindi_remind, hindi_information, msg_placeholder_child, \
-                         msg_subscribe, msg_unsubscribe, msg_failure, msg_failed_date, \
-                         msg_already_sub
+                         msg_subscribe, msg_unsubscribe, msg_failure, msg_failed_date
 
 class TextProcessorGetDataTests(TestCase):
     def test_all_caps(self):
@@ -94,57 +93,48 @@ class TextProcessorProcessTests(TestCase):
     def test_subscribe(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1111")
         response = t.process("JOIN PAULA 25-11-2012")
+        # TODO: Test data is stored
         self.assertEqual(response, msg_subscribe("English").format(name="Paula"))
         logging_mock.assert_called_with("Subscribing `JOIN PAULA 25-11-2012`...")
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
-        self.assertTrue(Contact.objects.filter(name="Paula", phone_number="1-111-1111").exists())
-        self.assertTrue(t.contacts.exists())
 
     @patch("logging.info")
     @patch("modules.text_processor.send_text")
     def test_hindi_join(self, texting_mock, logging_mock):
-        t = TextProcessor(phone_number="1-112-1111")
+        t = TextProcessor(phone_number="1-111-1111")
         response = t.process(hindi_remind() + " Sai 11/09/2013")
+        # TODO: Test data is stored
         self.assertEqual(response, msg_subscribe("Hindi").format(name="Sai"))
-        texting_mock.assert_called_once_with(message=response, phone_number="1-112-1111")
-        self.assertTrue(Contact.objects.filter(name="Sai", phone_number="1-112-1111").exists())
-        self.assertTrue(t.contacts.exists())
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
 
     @patch("logging.info")
     @patch("modules.text_processor.send_text")
     def test_hindi_join_with_hindi_name(self, texting_mock, logging_mock):
-        t = TextProcessor(phone_number="1-112-1112")
+        t = TextProcessor(phone_number="1-111-1111")
         message = hindi_remind() + u' \u0906\u0930\u0935 11/09/2013'
         response = t.process(message=message)
         expected_response = msg_subscribe('Hindi').format(name=u'\u0906\u0930\u0935')
         self.assertEqual(response, expected_response)
-        texting_mock.assert_called_once_with(message=response, phone_number="1-112-1112")
-        self.assertTrue(Contact.objects.filter(name=u'\u0906\u0930\u0935',
-                                               phone_number="1-112-1112").exists())
-        self.assertTrue(t.contacts.exists())
+        # TODO: Test data is stored
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
 
     @patch("logging.info")
     @patch("modules.text_processor.send_text")
     def test_process_with_placeholder_child_english(self, texting_mock, logging_mock):
-        t = TextProcessor(phone_number="1-111-1113")
+        t = TextProcessor(phone_number="1-111-1111")
         response = t.process("JOIN 25-11-2012")
-        self.assertEqual(response, msg_subscribe("English").format(name=msg_placeholder_child("English")))
-        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1113")
-        self.assertTrue(Contact.objects.filter(name=msg_placeholder_child("English"),
-                                               phone_number="1-111-1113").exists())
-        self.assertTrue(t.contacts.exists())
+        # TODO: Test data is stored
+        self.assertEqual(response, msg_subscribe("English").format(name="Your child"))
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
 
     @patch("logging.info")
     @patch("modules.text_processor.send_text")
     def test_process_with_placeholder_child_hindi(self, texting_mock, logging_mock):
-        t = TextProcessor(phone_number="1-112-1113")
+        t = TextProcessor(phone_number="1-111-1111")
         response = t.process(hindi_remind() + " 25-11-2012")
         self.assertEqual(response,
                          msg_subscribe("Hindi").format(name=msg_placeholder_child("Hindi")))
-        texting_mock.assert_called_once_with(message=response, phone_number="1-112-1113")
-        self.assertTrue(Contact.objects.filter(name=msg_placeholder_child("Hindi"),
-                                               phone_number="1-112-1113").exists())
-        self.assertTrue(t.contacts.exists())
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
 
     @patch("logging.info")
     @patch("modules.text_processor.send_text")
@@ -156,7 +146,7 @@ class TextProcessorProcessTests(TestCase):
                                method_of_sign_up="Text")
         t = TextProcessor(phone_number="1-111-1112")
         response = t.process("STOP")
-        self.assertTrue(t.contacts.first().cancelled)
+        self.assertTrue(t.get_contacts().first().cancelled)
         self.assertEqual(response, msg_unsubscribe("English"))
         logging_mock.assert_called_with("Unsubscribing `1-111-1112`...")
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1112")
@@ -171,48 +161,10 @@ class TextProcessorProcessTests(TestCase):
                                method_of_sign_up="Text")
         t = TextProcessor(phone_number="1-112-1112")
         response = t.process("STOP")
-        self.assertTrue(t.contacts.first().cancelled)
+        self.assertTrue(t.get_contacts().first().cancelled)
         self.assertEqual(response, msg_unsubscribe("Hindi"))
         logging_mock.assert_called_with("Unsubscribing `1-112-1112`...")
         texting_mock.assert_called_once_with(message=response, phone_number="1-112-1112")
-
-    @patch("logging.error")
-    @patch("logging.info")
-    @patch("modules.text_processor.send_text")
-    def test_subscribe_twice_english(self, texting_mock, logging_info_mock, logging_error_mock):
-        t = TextProcessor(phone_number="1-111-1114")
-        first_response = t.process("JOIN ROSE 25-11-2012")
-        self.assertEqual(first_response, msg_subscribe("English").format(name="Rose"))
-        texting_mock.assert_called_with(message=first_response, phone_number="1-111-1114")
-        self.assertTrue(Contact.objects.filter(name="Rose", phone_number="1-111-1114").exists())
-        self.assertTrue(t.contacts.exists())
-        second_response = t.process("JOIN ROSE 25-11-2012")
-        self.assertEqual(second_response, msg_already_sub("English"))
-        texting_mock.assert_called_with(message=second_response, phone_number="1-111-1114")
-        logging_error_mock.assert_called_with("Contact for Rose at 1-111-1114 was subscribed but already exists!")
-        self.assertTrue(Contact.objects.filter(name="Rose", phone_number="1-111-1114").exists())
-        self.assertTrue(t.contacts.exists())
-
-    @patch("logging.error")
-    @patch("logging.info")
-    @patch("modules.text_processor.send_text")
-    def test_subscribe_twice_hindi(self, texting_mock, logging_info_mock, logging_error_mock):
-        t = TextProcessor(phone_number="1-111-1115")
-        first_response = t.process(hindi_remind() + " SANJIV 25-11-2012")
-        self.assertEqual(first_response, msg_subscribe("Hindi").format(name="Sanjiv"))
-        texting_mock.assert_called_with(message=first_response, phone_number="1-111-1115")
-        self.assertTrue(Contact.objects.filter(name="Sanjiv", phone_number="1-111-1115").exists())
-        self.assertTrue(t.contacts.exists())
-        second_response = t.process(hindi_remind() + " SANJIV 25-11-2012")
-        self.assertEqual(second_response, msg_already_sub("Hindi"))
-        texting_mock.assert_called_with(message=second_response, phone_number="1-111-1115")
-        logging_error_mock.assert_called_with("Contact for Sanjiv at 1-111-1115 was subscribed but already exists!")
-        self.assertTrue(Contact.objects.filter(name="Sanjiv", phone_number="1-111-1115").exists())
-        self.assertTrue(t.contacts.exists())
-
-    # TODO: Subscribe and then cancel
-    # TODO: Subscribe and then cancel and then subscribe
-    # TODO: Cancel a non-created contact
 
     @patch("logging.error")
     @patch("modules.text_processor.send_text")
@@ -260,3 +212,8 @@ class TextProcessorProcessTests(TestCase):
         self.assertEqual(response, msg_failed_date("Hindi"))
         logging_mock.assert_called_with("Date in message " + quote(invalid_text_message) + " is invalid.")
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+
+    # TODO: Subscribe a contact twice
+    # TODO: Subscribe and then cancel
+    # TODO: Subscribe and then cancel and then subscribe
+    # TODO: Cancel a non-created contact
