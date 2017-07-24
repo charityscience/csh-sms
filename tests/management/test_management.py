@@ -15,23 +15,6 @@ def create_contact(name, days):
 	day = datetime.date.today() + datetime.timedelta(days=days)
 	return Contact.objects.create(name=name, date_of_birth=day)
 
-def get_scheduled_dates(date_of_birth):
-		dates = {} 
-		six_weeks = date_of_birth + relativedelta(weeks=6)
-		ten_weeks = date_of_birth + relativedelta(weeks=10)
-		fourteen_weeks = date_of_birth + relativedelta(weeks=14)
-		nine_months = date_of_birth + relativedelta(months=9)
-		sixteen_months = date_of_birth + relativedelta(months=16)
-		five_years = date_of_birth + relativedelta(years=5)
-
-		dates["six_weeks"] = six_weeks
-		dates["ten_weeks"] = ten_weeks
-		dates["fourteen_weeks"] = fourteen_weeks
-		dates["nine_months"] = nine_months
-		dates["sixteen_months"] = sixteen_months
-		dates["five_years"] = five_years
-		return dates
-
 
 class ContactModelTests(TestCase):
 	def test_has_been_born_with_future_birth(self):
