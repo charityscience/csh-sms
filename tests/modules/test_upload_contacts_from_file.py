@@ -57,6 +57,10 @@ class UploadContactsContactFieldsTests(TestCase):
 		self.assertNotEqual(old_all_contacts, new_all_contacts)
 		self.assertNotEqual(old_contacts_count, new_contacts_count)
 
+	def test_hindi_names_are_preserved(self):
+		hindi_name = u'\u0906\u0930\u0935'
+		new_contact = create_sample_contact(name=hindi_name)
+		self.assertEqual(hindi_name,new_contact.name)
 
 class UploadContactsRelationshipTests(TestCase):
 	def test_groups_are_assigned_to_contact(self):
