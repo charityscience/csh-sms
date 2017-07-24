@@ -47,7 +47,6 @@ def make_contact_dict(row):
     new_dict["org_sign_up"] = row["Org Sign Up"]
     new_dict["hospital_name"] = row["Hospital Name"]
     new_dict["doctor_name"] = row["Doctor Name"]
-    new_dict["url_information"] = row["URL information"]
 
     # System Identification
     new_dict["telerivet_contact_id"] = row["Telerivet Contact ID"]

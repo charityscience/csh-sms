@@ -2,7 +2,9 @@ from django.db import models
 from django.core.validators import RegexValidator
 from django.utils import timezone
 import datetime
+from django.utils.encoding import python_2_unicode_compatible
 
+@python_2_unicode_compatible
 class Contact(models.Model):
     # Vitals
     name = models.CharField(max_length=50)
@@ -67,8 +69,8 @@ class Contact(models.Model):
     last_contacted = models.DateTimeField(auto_now=False, auto_now_add=False, blank=True,
         null=True, default=timezone.now)
 
-    def __unicode__(self):
-        return self.name
+    def __str__(self):
+        return "%s, %s, %s" % (self.name, self.phone_number, self.date_of_birth)
 
     class Meta:
         ordering = ('name',)
@@ -118,7 +120,7 @@ class Group(models.Model):
     class Meta:
         ordering = ('name',)
 
-
+@python_2_unicode_compatible
 class Message(models.Model):
     contact = models.ForeignKey(Contact, on_delete=models.CASCADE, null=True)
     body = models.CharField(max_length=300)
@@ -126,5 +128,5 @@ class Message(models.Model):
     # Message direction is Incoming or Outgoing
     direction = models.CharField(max_length=10)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.body

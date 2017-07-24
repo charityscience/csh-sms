@@ -2,9 +2,12 @@ from django.test import TestCase
 from django.utils import timezone
 from django.urls import reverse
 import datetime
+from freezegun import freeze_time
 from dateutil.relativedelta import relativedelta
 
 from management.models import Contact
+
+FAKE_NOW = datetime.datetime(2017, 7, 24, 0, 0)
 
 def create_contact(name, days):
 	"""
@@ -58,6 +61,7 @@ class ContactIndexViewTests(TestCase):
         self.assertContains(response, "No contacts are available.")
         self.assertQuerysetEqual(response.context['latest_contact_list'], [])
 
+    @freeze_time(FAKE_NOW)
     def test_one_contact_that_has_been_born(self):
         """
         A contact that has been born is displayed on the
@@ -67,9 +71,10 @@ class ContactIndexViewTests(TestCase):
         response = self.client.get(reverse('management:index'))
         self.assertQuerysetEqual(
             response.context['latest_contact_list'],
-            ['<Contact: Namey is born>']
+            ['<Contact: Namey is born, 012345, 2017-07-04>']
         )
 
+    @freeze_time(FAKE_NOW)
     def test_two_contacts_that_have_been_born(self):
         """
         Two contacts that has been born are displayed on the
@@ -80,7 +85,8 @@ class ContactIndexViewTests(TestCase):
         response = self.client.get(reverse('management:index'))
         self.assertQuerysetEqual(
             response.context['latest_contact_list'],
-            ['<Contact: Namey is born>', '<Contact: Other is born>']
+            ['<Contact: Namey is born, 012345, 2017-07-04>',
+            '<Contact: Other is born, 012345, 2017-07-14>']
         )
 
 
