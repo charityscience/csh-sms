@@ -26,12 +26,23 @@ class TextProcessor(object):
 
 
     def create_contact(self, child_name, phone_number, date_of_birth, language):
-        if self.contacts.exists() and Contact.objects.filter(name=child_name,
-                                                             phone_number=self.phone_number).exists():
-            if not self.contacts.first().cancelled:
-                logging.error("Contact for {name} at {phone} was subscribed but already exists!".format(name=child_name, phone=self.phone_number))
-                return False 
-
+        if self.contacts.exists():
+            contact = Contact.objects.filter(name=child_name, phone_number=self.phone_number)
+            if contact.exists():
+                contact = contact.first()
+                if contact.cancelled:
+                    # Update and resubscribe
+                    contact.cancelled = False
+                    contact.language_preference = language
+                    contact.date_of_birth = date_of_birth
+                    contact.functional_date_of_birth = date_of_birth
+                    contact.save()
+                    return True
+                else:
+                    # Already exists (error)
+                    logging.error("Contact for {name} at {phone} was subscribed but already exists!".format(name=child_name, phone=self.phone_number))
+                    return False 
+        # Otherwise, create
         contact = Contact.objects.create(name=child_name,
                                          phone_number=phone_number,
                                          delay_in_days=0,
@@ -39,17 +50,15 @@ class TextProcessor(object):
                                          date_of_birth=date_of_birth,
                                          functional_date_of_birth=date_of_birth,
                                          method_of_sign_up="Text")
-
         for group_name in ["Text Sign Ups",
                            "Text Sign Ups - " + language,
                            "Everyone - " + language]:
             add_contact_to_group(contact, group_name)
-
         self.get_contacts()
         return True
 
 
-    def cancel_contacts(self, phone_number):
+    def cancel_contacts(self):
         for contact in self.contacts:
             contact.cancelled = True
             contact.save()
@@ -67,8 +76,12 @@ class TextProcessor(object):
 
 
     def process_unsubscribe(self, child_name, date_of_birth):
-        self.cancel_contacts(self.phone_number)
-        return msg_unsubscribe(self.language)
+        if self.contacts.exists():
+            self.cancel_contacts()
+            return msg_unsubscribe(self.language)
+        else:
+            logging.error(quote(self.phone_number) + " asked to be unsubscribed but does not exist.")
+            return msg_unsubscribe("English")
 
 
     def process_failure(self, child_name, date_of_birth):
