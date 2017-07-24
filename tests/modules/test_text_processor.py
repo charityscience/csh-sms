@@ -60,9 +60,9 @@ class TextProcessorGetDataTests(TestCase):
 
     def test_hindi_remind_with_hindi_name(self):
         t = TextProcessor()
-        keyword, child_name, date = t.get_data_from_message(hindi_remind() + " \xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5 11/09/2013")
+        keyword, child_name, date = t.get_data_from_message(hindi_remind() + u' \u0906\u0930\u0935 11/09/2013')
         self.assertEqual(keyword, hindi_remind())
-        self.assertEqual(child_name, "\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5")
+        self.assertEqual(child_name, u'\u0906\u0930\u0935')
         self.assertEqual(date, datetime(2013, 9, 11, 0, 0).date())
 
     def test_hindi_information(self):
@@ -127,9 +127,9 @@ class TextProcessorProcessTests(TestCase):
     @patch("modules.text_processor.send_text")
     def test_hindi_join_with_hindi_name(self, texting_mock, logging_mock):
         t = TextProcessor()
-        message = hindi_remind() + " \xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5 11/09/2013"
+        message = hindi_remind() + u' \u0906\u0930\u0935 11/09/2013'
         response = t.process(message=message, phone_number="1-111-1111")
-        expected_response = msg_subscribe("Hindi").format(name="\xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5".title())
+        expected_response = msg_subscribe('Hindi').format(name=u'\u0906\u0930\u0935')
         self.assertEqual(response, expected_response)
         # TODO: Test data is stored
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
@@ -167,9 +167,9 @@ class TextProcessorProcessTests(TestCase):
     @patch("modules.text_processor.send_text")
     def test_keyword_failure_hindi(self, texting_mock, logging_mock):
         t = TextProcessor()
-        response = t.process("\xe0\xa4 \xe0\xa4\x95\xe0 25-11-2012", "1-111-1111")
+        response = t.process(u'\u0906\u0930 \u0906\u0930\u0935 25-11-2012', '1-111-1111')
         self.assertEqual(response, msg_failure("Hindi"))
-        logging_mock.assert_called_with("Keyword `\xe0\xa4` in message `\xe0\xa4 \xe0\xa4\x95\xe0 25-11-2012` was not understood by the system.")
+        logging_mock.assert_called_with(u'Keyword `\u0906\u0930` in message `\u0906\u0930 \u0906\u0930\u0935 25-11-2012` was not understood by the system.')
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
 
     @patch("logging.error")
@@ -195,7 +195,7 @@ class TextProcessorProcessTests(TestCase):
     @patch("modules.text_processor.send_text")
     def test_keyword_failed_date_hindi_with_hindi_name(self, texting_mock, logging_mock):
         t = TextProcessor()
-        invalid_text_message = hindi_remind() + " \xe0\xa4\x86\xe0\xa4\xb0\xe0\xa4\xb5 11,09,2013"
+        invalid_text_message = hindi_remind() + u' \u0906\u0930\u0935 11,09,2013'
         response = t.process(invalid_text_message, "1-111-1111")
         self.assertEqual(response, msg_failed_date("Hindi"))
         logging_mock.assert_called_with("Date in message " + quote(invalid_text_message) + " is invalid.")
