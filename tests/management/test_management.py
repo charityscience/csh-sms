@@ -7,7 +7,6 @@ from dateutil.relativedelta import relativedelta
 from management.models import Contact
 
 def create_contact(name, days):
-
 	"""
 	Create a contact with the given `name` and born the
 	given number of `days` offset to now (negative for birthdates
@@ -15,7 +14,6 @@ def create_contact(name, days):
 	"""
 	day = datetime.date.today() + datetime.timedelta(days=days)
 	return Contact.objects.create(name=name, date_of_birth=day)
-
 
 def get_scheduled_dates(date_of_birth):
 		dates = {} 
@@ -34,24 +32,22 @@ def get_scheduled_dates(date_of_birth):
 		dates["five_years"] = five_years
 		return dates
 
+
 class ContactModelTests(TestCase):
 	def test_has_been_born_with_future_birth(self):
 		"""
 		has_been_born() returns False for contacts whose date_of_birth
 		is in the future
 		"""
-
 		future_date = datetime.date.today() + datetime.timedelta(40)
 		future_contact = Contact(date_of_birth=future_date)
 		self.assertIs(future_contact.has_been_born(), False)
-
 
 	def test_has_been_born_with_today_birth(self):
 		"""
 		has_been_born() returns True for contacts whose date_of_birth
 		is today
 		"""
-
 		today = datetime.date.today()
 		today_contact = Contact(date_of_birth=today)
 		self.assertIs(today_contact.has_been_born(), True)
@@ -61,7 +57,6 @@ class ContactModelTests(TestCase):
 		has_been_born() returns True for contacts whose date_of_birth
 		is before today's date
 		"""
-
 		past_date = datetime.date.today() - datetime.timedelta(40)
 		past_contact = Contact(date_of_birth=past_date)
 		self.assertIs(past_contact.has_been_born(), True)
@@ -77,7 +72,6 @@ class ContactIndexViewTests(TestCase):
         self.assertContains(response, "No contacts are available.")
         self.assertQuerysetEqual(response.context['latest_contact_list'], [])
 
-
     def test_one_contact_that_has_been_born(self):
         """
         A contact that has been born is displayed on the
@@ -89,7 +83,6 @@ class ContactIndexViewTests(TestCase):
             response.context['latest_contact_list'],
             ['<Contact: Namey is born>']
         )
-
 
     def test_two_contacts_that_have_been_born(self):
         """
@@ -106,7 +99,6 @@ class ContactIndexViewTests(TestCase):
 
 
 class ContactDetailViewTests(TestCase):
-
     def test_one_contact_that_has_been_born(self):
         """
         The detail view of a Contact with a date_of_birth in the past
