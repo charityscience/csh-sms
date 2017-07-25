@@ -394,6 +394,7 @@ class TextReminderTests(TestCase):
     def test_do_not_send_text_when_not_eligible(self, mocked_send_text):
         tr = text_reminder_test_object("10/7/2017") # 7 days ago
         self.assertFalse(tr.should_remind_today())
+        self.assertTrue("Contact has no reminders for today's date." in tr.why_not_remind_reasons())
         tr.remind()
         self.assertFalse(mocked_send_text.called)
 
@@ -405,4 +406,5 @@ class TextReminderTests(TestCase):
         self.assertTrue(tr.should_remind_today())
         tp = TextProcessor(phone_number=tr.phone_number)
         tp.process("STOP")
+        self.assertTrue("Contact is cancelled." in tr.why_not_remind_reasons())
         self.assertFalse(tr.should_remind_today())
