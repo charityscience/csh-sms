@@ -21,8 +21,10 @@ class TextProcessor(object):
         else:
             self.language = None
 
+    # self.get_contacts() is preferred to self.contact due to triggering a Django DB reload.
     def get_contacts(self):
         self.contacts = Contact.objects.filter(phone_number=self.phone_number)
+        return self.contacts
 
 
     def create_contact(self, child_name, phone_number, date_of_birth, language):

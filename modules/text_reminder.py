@@ -20,41 +20,47 @@ class TextReminder(object):
         self.phone_number = contact.phone_number
         self.language = contact.language_preference
 
-    def is_eligible_for_reminder(self, years=0, months=0, weeks=0, days=0):
+    # self.get_contact() is preferred to self.contact due to triggering a Django DB refresh.
+    def get_contact(self):
+        if self.contact:
+            self.contact.refresh_from_db()
+        return self.contact
+
+    def correct_date_for_reminder(self, years=0, months=0, weeks=0, days=0):
         delta = relativedelta(years=years, months=months, weeks=weeks, days=days)
         return self.date_of_birth == (datetime.now() - delta).date()
 
     def get_reminder_msg(self):
-        if self.is_eligible_for_reminder(weeks=6, days=7):
+        if self.correct_date_for_reminder(weeks=6, days=7):
             reminder = six_week_reminder_seven_days
-        elif self.is_eligible_for_reminder(weeks=6, days=1):
+        elif self.correct_date_for_reminder(weeks=6, days=1):
             reminder = six_week_reminder_one_day
-        elif self.is_eligible_for_reminder(weeks=10, days=7):
+        elif self.correct_date_for_reminder(weeks=10, days=7):
             reminder = ten_week_reminder_seven_days
-        elif self.is_eligible_for_reminder(weeks=10, days=1):
+        elif self.correct_date_for_reminder(weeks=10, days=1):
             reminder = ten_week_reminder_one_day
-        elif self.is_eligible_for_reminder(weeks=14, days=7):
+        elif self.correct_date_for_reminder(weeks=14, days=7):
             reminder = fourteen_week_reminder_seven_days
-        elif self.is_eligible_for_reminder(weeks=14, days=1):
+        elif self.correct_date_for_reminder(weeks=14, days=1):
             reminder = fourteen_week_reminder_one_day
-        elif self.is_eligible_for_reminder(months=9, days=7):
+        elif self.correct_date_for_reminder(months=9, days=7):
             reminder = nine_month_reminder_seven_days
-        elif self.is_eligible_for_reminder(months=9, days=1):
+        elif self.correct_date_for_reminder(months=9, days=1):
             reminder = nine_month_reminder_one_day
-        elif self.is_eligible_for_reminder(months=16, days=7):
+        elif self.correct_date_for_reminder(months=16, days=7):
             reminder = sixteen_month_reminder_seven_days
-        elif self.is_eligible_for_reminder(months=16, days=1):
+        elif self.correct_date_for_reminder(months=16, days=1):
             reminder = sixteen_month_reminder_one_day
-        elif self.is_eligible_for_reminder(years=5, days=7):
+        elif self.correct_date_for_reminder(years=5, days=7):
             reminder = five_year_reminder_seven_days
-        elif self.is_eligible_for_reminder(years=5, days=1):
+        elif self.correct_date_for_reminder(years=5, days=1):
             reminder = five_year_reminder_one_day
         else:
             reminder = None
         return reminder(self.language).format(name=self.child_name) if reminder else None
 
     def should_remind_today(self):
-        return self.get_reminder_msg() is not None
+        return (not self.get_contact().cancelled) and (self.get_reminder_msg() is not None)
 
     def remind(self):
         if self.should_remind_today():
