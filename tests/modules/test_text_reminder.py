@@ -17,16 +17,18 @@ from modules.i18n import six_week_reminder_seven_days, six_week_reminder_one_day
 
 FAKE_NOW = datetime(2017, 7, 17, 0, 0)
 
-def text_reminder_test_object(date_of_birth, language="English"):
+def contact_object(date_of_birth, language="English"):
     child = 'Roland' if language == 'English' else u'\u0906\u0930\u0935'
-    contact = Contact.objects.create(name=child,
-                                     phone_number="1-111-1111",
-                                     delay_in_days=0,
-                                     language_preference=language,
-                                     date_of_birth=date_string_to_date(date_of_birth),
-                                     functional_date_of_birth=date_string_to_date(date_of_birth),
-                                     method_of_sign_up="text")
-    return TextReminder(contact)
+    return Contact.objects.create(name=child,
+                                  phone_number="1-111-1111",
+                                  delay_in_days=0,
+                                  language_preference=language,
+                                  date_of_birth=date_string_to_date(date_of_birth),
+                                  functional_date_of_birth=date_string_to_date(date_of_birth),
+                                  method_of_sign_up="text")
+
+def text_reminder_test_object(date_of_birth, language="English"):
+    return TextReminder(contact_object(date_of_birth=date_of_birth, language=language))
 
 
 class TextReminderTests(TestCase):
