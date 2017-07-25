@@ -8,6 +8,3 @@ def remind_all():
     for contact in Contact.objects.all():
         reminds += TextReminder(contact).remind()
     logging.info("...Completed. Send {} reminders.".format(reminds))
-
-if __name__ == "__main__":
-    remind_all()

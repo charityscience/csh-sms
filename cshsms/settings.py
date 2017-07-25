@@ -10,7 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
+import logging
 import os
+
+
 if not os.getenv('IS_TRAVIS', False):
     from cshsms.settings_secret import SECRET_KEY, DATABASES
 else:
@@ -25,13 +28,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 
-# SECURITY WARNING: don't run with debug turned on in production!
+# TODO - SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
-# Application definition
 
 INSTALLED_APPS = [
     'management.apps.ManagementConfig',
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_crontab'
 ]
 
 MIDDLEWARE = [
@@ -76,7 +78,6 @@ WSGI_APPLICATION = 'cshsms.wsgi.application'
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -95,26 +96,24 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'US/Pacific'
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
-
 STATIC_URL = '/static/'
 
-# Set test runner to color to django rainbowtests
 TEST_RUNNER = 'rainbowtests.test.runner.RainbowDiscoverRunner'
 
 
-# Set test runner to color to colour runner
-# TEST_RUNNER = 'polls.tests.MyTestRunner'
+# Logging
+logging_format = "%(asctime)s|%(levelname)s|%(filename)s:%(lineno)d|%(funcName)s()|%(message)s"
+logging.basicConfig(filename="logs/cshsms.log", level=logging.INFO, format=logging_format)
+CRONJOBS = [
+    ('*/3 * * * *', 'jobs.text_reminder_job.remind_all'),
+    ('* * * * *', 'jobs.text_processor_job.check_and_process_registrations')
+]
