@@ -10,9 +10,6 @@ from modules.i18n import six_week_reminder_seven_days, six_week_reminder_one_day
                          five_year_reminder_seven_days, five_year_reminder_one_day
 
 class TextReminder(object):
-    # TODO: Run once per day to process reminders
-    # TODO: Run on all non-cancelled Django objects
-
     def __init__(self, contact):
         self.contact = contact
         self.child_name = contact.name
