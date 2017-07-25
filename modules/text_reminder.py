@@ -1,7 +1,7 @@
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-from modules.texter import send_text
+from modules.texter import Texter
 from modules.i18n import six_week_reminder_seven_days, six_week_reminder_one_day, \
                          ten_week_reminder_seven_days, ten_week_reminder_one_day, \
                          fourteen_week_reminder_seven_days, fourteen_week_reminder_one_day, \
@@ -72,5 +72,5 @@ class TextReminder(object):
 
     def remind(self):
         if self.should_remind_today():
-            send_text(message=self.get_reminder_msg(),
-                      phone_number=self.phone_number)
+            Texter().send(message=self.get_reminder_msg(),
+                          phone_number=self.phone_number)

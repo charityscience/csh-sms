@@ -90,7 +90,7 @@ class TextProcessorGetDataTests(TestCase):
 
 class TextProcessorProcessTests(TestCase):
     @patch("logging.info")
-    @patch("modules.text_processor.send_text")  # See https://stackoverflow.com/questions/16134281/python-mocking-a-function-from-an-imported-module
+    @patch("modules.text_processor.Texter.send")  # See https://stackoverflow.com/questions/16134281/python-mocking-a-function-from-an-imported-module
     def test_subscribe(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1111")
         self.assertFalse(Contact.objects.filter(name="Paula", phone_number="1-111-1111").exists())
@@ -104,7 +104,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertTrue(all([g.contacts.first() == t.get_contacts().first() for g in Group.objects.all()]))
 
     @patch("logging.info")
-    @patch("modules.text_processor.send_text")
+    @patch("modules.text_processor.Texter.send")
     def test_hindi_join(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-112-1111")
         self.assertFalse(Contact.objects.filter(name="Sai", phone_number="1-112-1111").exists())
@@ -116,7 +116,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertTrue(t.get_contacts().exists())
 
     @patch("logging.info")
-    @patch("modules.text_processor.send_text")
+    @patch("modules.text_processor.Texter.send")
     def test_hindi_join_with_hindi_name(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-112-1112")
         message = hindi_remind() + u' \u0906\u0930\u0935 11/09/2013'
@@ -132,7 +132,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertTrue(t.get_contacts().exists())
 
     @patch("logging.info")
-    @patch("modules.text_processor.send_text")
+    @patch("modules.text_processor.Texter.send")
     def test_process_with_placeholder_child_english(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1113")
         self.assertFalse(Contact.objects.filter(name=msg_placeholder_child("English"),
@@ -146,7 +146,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertTrue(t.get_contacts().exists())
 
     @patch("logging.info")
-    @patch("modules.text_processor.send_text")
+    @patch("modules.text_processor.Texter.send")
     def test_process_with_placeholder_child_hindi(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-112-1113")
         self.assertFalse(Contact.objects.filter(name=msg_placeholder_child("Hindi"),
@@ -161,7 +161,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertTrue(t.get_contacts().exists())
 
     @patch("logging.info")
-    @patch("modules.text_processor.send_text")
+    @patch("modules.text_processor.Texter.send")
     def test_unsubscribe_english(self, texting_mock, logging_mock):
         Contact.objects.create(name="Roland",
                                phone_number="1-111-1112",
@@ -177,7 +177,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertTrue(all([g.contacts.first() == t.get_contacts().first() for g in Group.objects.all()]))
 
     @patch("logging.info")
-    @patch("modules.text_processor.send_text")
+    @patch("modules.text_processor.Texter.send")
     def test_unsubscribe_hindi(self, texting_mock, logging_mock):
         Contact.objects.create(name="Sai",
                                phone_number="1-112-1112",
@@ -193,7 +193,7 @@ class TextProcessorProcessTests(TestCase):
 
     @patch("logging.error")
     @patch("logging.info")
-    @patch("modules.text_processor.send_text")
+    @patch("modules.text_processor.Texter.send")
     def test_unsubscribe_without_contact(self, texting_mock, logging_info_mock, logging_error_mock):
         self.assertFalse(Contact.objects.filter(phone_number="1-111-1112").exists())
         t = TextProcessor(phone_number="1-111-1112")
@@ -204,7 +204,7 @@ class TextProcessorProcessTests(TestCase):
 
     @patch("logging.error")
     @patch("logging.info")
-    @patch("modules.text_processor.send_text")
+    @patch("modules.text_processor.Texter.send")
     def test_subscribe_twice_english(self, texting_mock, logging_info_mock, logging_error_mock):
         t = TextProcessor(phone_number="1-111-1114")
         self.assertFalse(Contact.objects.filter(name="Rose", phone_number="1-111-1114").exists())
@@ -225,7 +225,7 @@ class TextProcessorProcessTests(TestCase):
 
     @patch("logging.error")
     @patch("logging.info")
-    @patch("modules.text_processor.send_text")
+    @patch("modules.text_processor.Texter.send")
     def test_subscribe_twice_hindi(self, texting_mock, logging_info_mock, logging_error_mock):
         t = TextProcessor(phone_number="1-111-1115")
         first_response = t.process(hindi_remind() + " SANJIV 25-11-2012")
@@ -246,7 +246,7 @@ class TextProcessorProcessTests(TestCase):
 
     @patch("logging.error")
     @patch("logging.info")
-    @patch("modules.text_processor.send_text")
+    @patch("modules.text_processor.Texter.send")
     def test_subscribe_two_children(self, texting_mock, logging_info_mock, logging_error_mock):
         t = TextProcessor(phone_number="1-111-1120")
         self.assertFalse(Contact.objects.filter(name="Peter", phone_number="1-111-1120").exists())
@@ -265,7 +265,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertTrue(all([g.contacts.first() == t2.get_contacts().first() for g in Group.objects.all()]))
 
     @patch("logging.info")
-    @patch("modules.text_processor.send_text")
+    @patch("modules.text_processor.Texter.send")
     def test_subscribe_then_cancel(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1116")
         self.assertFalse(Contact.objects.filter(name="Rob", phone_number="1-111-1116").exists())
@@ -282,7 +282,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertTrue(all([g.contacts.first() == contacts.first() for g in Group.objects.all()]))
 
     @patch("logging.info")
-    @patch("modules.text_processor.send_text")
+    @patch("modules.text_processor.Texter.send")
     def test_subscribe_then_cancel_then_subscribe(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1117")
         self.assertFalse(Contact.objects.filter(name="Cheyenne", phone_number="1-111-1117").exists())
@@ -303,7 +303,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertTrue(all([g.contacts.first() == contacts.first() for g in Group.objects.all()]))
 
     @patch("logging.info")
-    @patch("modules.text_processor.send_text")
+    @patch("modules.text_processor.Texter.send")
     def test_subscribe_then_cancel_then_update_dob(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1118")
         self.assertFalse(Contact.objects.filter(name="Cheyenne", phone_number="1-111-1118").exists())
@@ -324,7 +324,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertTrue(all([g.contacts.first() == contacts.first() for g in Group.objects.all()]))
 
     @patch("logging.info")
-    @patch("modules.text_processor.send_text")
+    @patch("modules.text_processor.Texter.send")
     def test_subscribe_then_cancel_then_update_language(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1118")
         self.assertFalse(Contact.objects.filter(name="Larissa", phone_number="1-111-1118").exists())
@@ -343,7 +343,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertEqual(contacts.first().language_preference, "Hindi")
 
     @patch("logging.error")
-    @patch("modules.text_processor.send_text")
+    @patch("modules.text_processor.Texter.send")
     def test_keyword_failure(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1111")
         response = t.process("JLORN COACHZ 25-11-2012")
@@ -352,7 +352,7 @@ class TextProcessorProcessTests(TestCase):
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
 
     @patch("logging.error")
-    @patch("modules.text_processor.send_text")
+    @patch("modules.text_processor.Texter.send")
     def test_keyword_failure_hindi(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1111")
         response = t.process(u'\u0906\u0930 \u0906\u0930\u0935 25-11-2012')
@@ -361,7 +361,7 @@ class TextProcessorProcessTests(TestCase):
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
 
     @patch("logging.error")
-    @patch("modules.text_processor.send_text")
+    @patch("modules.text_processor.Texter.send")
     def test_keyword_failed_date_english(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1111")
         response = t.process("JOIN PAULA 25:11:2012")
@@ -370,7 +370,7 @@ class TextProcessorProcessTests(TestCase):
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
 
     @patch("logging.error")
-    @patch("modules.text_processor.send_text")
+    @patch("modules.text_processor.Texter.send")
     def test_keyword_failed_date_hindi(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1111")
         invalid_text_message = hindi_remind() + " Sai 11,09,2013"
@@ -380,7 +380,7 @@ class TextProcessorProcessTests(TestCase):
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
 
     @patch("logging.error")
-    @patch("modules.text_processor.send_text")
+    @patch("modules.text_processor.Texter.send")
     def test_keyword_failed_date_hindi_with_hindi_name(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1111")
         invalid_text_message = hindi_remind() + u' \u0906\u0930\u0935 11,09,2013'

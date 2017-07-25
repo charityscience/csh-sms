@@ -1,7 +1,10 @@
-# Here is the HSPSMS documentation: https://docs.google.com/document/d/1mACLXYFvnjkWJ3oQimN2sscy1G-VGSQAG0zkWhkLYHY/edit?usp=sharing
-# If you need to login, the site is: http://sms.hspsms.com 
+class Texter(object):
+    def read_inbox():
+        # TODO: Implement for real
+        # TODO: Get all messages in the inbox.
+        return {}
 
-def send_text(message, phone_number):
-    # TODO: Implement for real
-    print("I SENT THIS TEXT: `" + message + "`.")
-    return None
+    def send(message, phone_number):
+        # TODO: Implement for real
+        print("I SENT THIS TEXT: `" + message + "`.")
+        return None

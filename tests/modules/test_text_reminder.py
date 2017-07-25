@@ -365,7 +365,7 @@ class TextReminderTests(TestCase):
 
 
     @freeze_time(FAKE_NOW)
-    @patch("modules.text_reminder.send_text")
+    @patch("modules.text_reminder.Texter.send")
     def test_send_text_when_eligible(self, mocked_send_text):
         tr = text_reminder_object("29/5/2017") # 6 weeks, 7 days ago
         self.assertTrue(tr.should_remind_today())
@@ -374,7 +374,7 @@ class TextReminderTests(TestCase):
                                                  phone_number="1-111-1111")
 
     @freeze_time(FAKE_NOW)
-    @patch("modules.text_reminder.send_text")
+    @patch("modules.text_reminder.Texter.send")
     def test_do_not_send_text_when_not_eligible(self, mocked_send_text):
         tr = text_reminder_object("10/7/2017") # 7 days ago
         self.assertFalse(tr.should_remind_today())
@@ -383,8 +383,8 @@ class TextReminderTests(TestCase):
         self.assertFalse(mocked_send_text.called)
 
     @freeze_time(FAKE_NOW)
-    @patch("modules.text_reminder.send_text")
-    @patch("modules.text_processor.send_text")
+    @patch("modules.text_reminder.Texter.send")
+    @patch("modules.text_processor.Texter.send")
     def test_remind_when_good_dont_remind_when_cancelled(self, r_mocked_send_text, t_mocked_send_text):
         tr = text_reminder_object("29/5/2017") # 6 weeks, 7 days ago
         self.assertTrue(tr.should_remind_today())

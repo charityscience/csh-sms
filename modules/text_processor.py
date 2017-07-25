@@ -4,7 +4,7 @@ import string
 from django.utils import timezone
 
 from management.models import Contact, Group
-from modules.texter import send_text
+from modules.texter import Texter
 from modules.utils import quote, add_contact_to_group
 from modules.date_helper import date_is_valid, date_string_to_date
 from modules.i18n import msg_subscribe, msg_unsubscribe, msg_placeholder_child, msg_failure, \
@@ -145,6 +145,6 @@ class TextProcessor(object):
 
         response_text_message = action(child_name=child_name,
                                        date_of_birth=date)
-        send_text(message=response_text_message,
-                  phone_number=self.phone_number)  # TODO: Actually implement this.
+        Texter().send(message=response_text_message,
+                      phone_number=self.phone_number)  # TODO: Actually implement this.
         return response_text_message
