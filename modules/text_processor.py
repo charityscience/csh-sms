@@ -10,8 +10,6 @@ from modules.date_helper import date_is_valid, date_string_to_date
 from modules.i18n import msg_subscribe, msg_unsubscribe, msg_placeholder_child, msg_failure, \
                          msg_failed_date, subscribe_keywords, msg_already_sub
 
-
-# TODO: Run this continuously to monitor incoming texts.
 class TextProcessor(object):
     def __init__(self, phone_number):
         self.phone_number = phone_number
