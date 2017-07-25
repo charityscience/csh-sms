@@ -2,12 +2,14 @@ from django.test import TestCase
 from django.utils import timezone
 from django.urls import reverse
 import datetime
+from freezegun import freeze_time
 from dateutil.relativedelta import relativedelta
 
 from management.models import Contact
 
-def create_contact(name, days):
+FAKE_NOW = datetime.datetime(2017, 7, 24, 0, 0)
 
+def create_contact(name, days):
 	"""
 	Create a contact with the given `name` and born the
 	given number of `days` offset to now (negative for birthdates
@@ -17,41 +19,24 @@ def create_contact(name, days):
 	return Contact.objects.create(name=name, date_of_birth=day)
 
 
-def get_scheduled_dates(date_of_birth):
-		dates = {} 
-		six_weeks = date_of_birth + relativedelta(weeks=6)
-		ten_weeks = date_of_birth + relativedelta(weeks=10)
-		fourteen_weeks = date_of_birth + relativedelta(weeks=14)
-		nine_months = date_of_birth + relativedelta(months=9)
-		sixteen_months = date_of_birth + relativedelta(months=16)
-		five_years = date_of_birth + relativedelta(years=5)
-
-		dates["six_weeks"] = six_weeks
-		dates["ten_weeks"] = ten_weeks
-		dates["fourteen_weeks"] = fourteen_weeks
-		dates["nine_months"] = nine_months
-		dates["sixteen_months"] = sixteen_months
-		dates["five_years"] = five_years
-		return dates
-
 class ContactModelTests(TestCase):
+    # TODO: Test validation
+    # TODO: Test group assignment
+
 	def test_has_been_born_with_future_birth(self):
 		"""
 		has_been_born() returns False for contacts whose date_of_birth
 		is in the future
 		"""
-
 		future_date = datetime.date.today() + datetime.timedelta(40)
 		future_contact = Contact(date_of_birth=future_date)
 		self.assertIs(future_contact.has_been_born(), False)
-
 
 	def test_has_been_born_with_today_birth(self):
 		"""
 		has_been_born() returns True for contacts whose date_of_birth
 		is today
 		"""
-
 		today = datetime.date.today()
 		today_contact = Contact(date_of_birth=today)
 		self.assertIs(today_contact.has_been_born(), True)
@@ -61,125 +46,9 @@ class ContactModelTests(TestCase):
 		has_been_born() returns True for contacts whose date_of_birth
 		is before today's date
 		"""
-
 		past_date = datetime.date.today() - datetime.timedelta(40)
 		past_contact = Contact(date_of_birth=past_date)
 		self.assertIs(past_contact.has_been_born(), True)
-
-	def test_set_visit_dates_standards_with_today_birth(self):
-		"""
-		set_visit_dates() returns the same standard_dates as manually adding the correct times to
-		today's date for a Cotanct with the date_of_birth of today
-		"""
-		today_contact = create_contact(name="Today", days=0)
-		standards, functionals = today_contact.set_visit_dates()
-
-		today = datetime.date.today()
-		dates = get_scheduled_dates(today)
-
-		self.assertEqual(standards["six_weeks"] == dates["six_weeks"], True)
-		self.assertEqual(standards["ten_weeks"] == dates["ten_weeks"], True)
-		self.assertEqual(standards["fourteen_weeks"] == dates["fourteen_weeks"], True)
-		self.assertEqual(standards["nine_months"] == dates["nine_months"], True)
-		self.assertEqual(standards["sixteen_months"] == dates["sixteen_months"], True)
-		self.assertEqual(standards["five_years"] == dates["five_years"], True)
-
-	def test_set_visit_dates_standards_with_past_birth(self):
-		"""
-		set_visit_dates() returns the same standard_dates as manually adding the correct times to
-		today's date for a Cotanct with the date_of_birth in the past
-		"""
-		num_days_in_past = -10
-		past_contact = create_contact(name="Past", days=num_days_in_past)
-		standards, functionals = past_contact.set_visit_dates()
-
-		past_date = datetime.date.today() + relativedelta(days=num_days_in_past)
-		dates = get_scheduled_dates(past_date)
-
-		self.assertEqual(standards["six_weeks"] == dates["six_weeks"], True)
-		self.assertEqual(standards["ten_weeks"] == dates["ten_weeks"], True)
-		self.assertEqual(standards["fourteen_weeks"] == dates["fourteen_weeks"], True)
-		self.assertEqual(standards["nine_months"] == dates["nine_months"], True)
-		self.assertEqual(standards["sixteen_months"] == dates["sixteen_months"], True)
-		self.assertEqual(standards["five_years"] == dates["five_years"], True)
-
-	def test_set_visit_dates_standards_with_future_birth(self):
-		"""
-		set_visit_dates() returns the same standard_dates as manually adding the correct times to
-		today's date for a Cotanct with the date_of_birth in the future
-		"""
-		num_days_in_future = 400
-		future_contact = create_contact(name="Future", days=num_days_in_future)
-		standards, functionals = future_contact.set_visit_dates()
-
-		future_date = datetime.date.today() + relativedelta(days=num_days_in_future)
-		dates = get_scheduled_dates(future_date)
-
-		self.assertEqual(standards["six_weeks"] == dates["six_weeks"], True)
-		self.assertEqual(standards["ten_weeks"] == dates["ten_weeks"], True)
-		self.assertEqual(standards["fourteen_weeks"] == dates["fourteen_weeks"], True)
-		self.assertEqual(standards["nine_months"] == dates["nine_months"], True)
-		self.assertEqual(standards["sixteen_months"] == dates["sixteen_months"], True)
-		self.assertEqual(standards["five_years"] == dates["five_years"], True)
-
-
-	def test_set_visit_dates_functionals_with_today_birth(self):
-		"""
-		set_visit_dates() returns the same functional_dates as manually adding the correct times to
-		today's date for a Cotanct with the date_of_birth of today
-		"""
-		today_contact = create_contact(name="Today", days=0)
-		standards, functionals = today_contact.set_visit_dates()
-
-		today = datetime.date.today()
-		dates = get_scheduled_dates(today)
-
-		self.assertEqual(functionals["six_weeks"] == dates["six_weeks"], True)
-		self.assertEqual(functionals["ten_weeks"] == dates["ten_weeks"], True)
-		self.assertEqual(functionals["fourteen_weeks"] == dates["fourteen_weeks"], True)
-		self.assertEqual(functionals["nine_months"] == dates["nine_months"], True)
-		self.assertEqual(functionals["sixteen_months"] == dates["sixteen_months"], True)
-		self.assertEqual(functionals["five_years"] == dates["five_years"], True)
-
-	def test_set_visit_dates_functionals_with_past_birth(self):
-		"""
-		set_visit_dates() returns the same functional_dates as manually adding the correct times to
-		today's date for a Cotanct with the date_of_birth in the past
-		"""
-		num_days_in_past = -10
-		past_contact = create_contact(name="Past", days=num_days_in_past)
-		past_date = datetime.date.today() + relativedelta(days=num_days_in_past)
-		past_contact.functional_date_of_birth = past_date
-
-		standards, functionals = past_contact.set_visit_dates()
-		dates = get_scheduled_dates(past_date)
-
-		self.assertEqual(functionals["six_weeks"] == dates["six_weeks"], True)
-		self.assertEqual(functionals["ten_weeks"] == dates["ten_weeks"], True)
-		self.assertEqual(functionals["fourteen_weeks"] == dates["fourteen_weeks"], True)
-		self.assertEqual(functionals["nine_months"] == dates["nine_months"], True)
-		self.assertEqual(functionals["sixteen_months"] == dates["sixteen_months"], True)
-		self.assertEqual(functionals["five_years"] == dates["five_years"], True)
-
-	def test_set_visit_dates_functionals_with_future_birth(self):
-		"""
-		set_visit_dates() returns the same functional_dates as manually adding the correct times to
-		today's date for a Cotanct with the date_of_birth in the future
-		"""
-		num_days_in_future = 400
-		future_contact = create_contact(name="Future", days=num_days_in_future)
-		future_date = datetime.date.today() + relativedelta(days=num_days_in_future)
-		future_contact.functional_date_of_birth = future_date
-
-		standards, functionals = future_contact.set_visit_dates()
-		dates = get_scheduled_dates(future_date)
-
-		self.assertEqual(standards["six_weeks"], dates["six_weeks"])
-		self.assertEqual(standards["ten_weeks"], dates["ten_weeks"])
-		self.assertEqual(standards["fourteen_weeks"], dates["fourteen_weeks"])
-		self.assertEqual(standards["nine_months"], dates["nine_months"])
-		self.assertEqual(standards["sixteen_months"], dates["sixteen_months"])
-		self.assertEqual(standards["five_years"], dates["five_years"])
 
 
 class ContactIndexViewTests(TestCase):
@@ -192,7 +61,7 @@ class ContactIndexViewTests(TestCase):
         self.assertContains(response, "No contacts are available.")
         self.assertQuerysetEqual(response.context['latest_contact_list'], [])
 
-
+    @freeze_time(FAKE_NOW)
     def test_one_contact_that_has_been_born(self):
         """
         A contact that has been born is displayed on the
@@ -202,10 +71,10 @@ class ContactIndexViewTests(TestCase):
         response = self.client.get(reverse('management:index'))
         self.assertQuerysetEqual(
             response.context['latest_contact_list'],
-            ['<Contact: Namey is born>']
+            ['<Contact: Namey is born, 012345, 2017-07-04>']
         )
 
-
+    @freeze_time(FAKE_NOW)
     def test_two_contacts_that_have_been_born(self):
         """
         Two contacts that has been born are displayed on the
@@ -216,12 +85,12 @@ class ContactIndexViewTests(TestCase):
         response = self.client.get(reverse('management:index'))
         self.assertQuerysetEqual(
             response.context['latest_contact_list'],
-            ['<Contact: Namey is born>', '<Contact: Other is born>']
+            ['<Contact: Namey is born, 012345, 2017-07-04>',
+            '<Contact: Other is born, 012345, 2017-07-14>']
         )
 
 
 class ContactDetailViewTests(TestCase):
-
     def test_one_contact_that_has_been_born(self):
         """
         The detail view of a Contact with a date_of_birth in the past

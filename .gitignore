@@ -105,5 +105,5 @@ ENV/
 # mypy
 .mypy_cache/
 
-# Example files
-example.csv
+# system logs
+logs/
