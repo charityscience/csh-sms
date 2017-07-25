@@ -13,11 +13,12 @@ class TextReminder(object):
     # TODO: Run once per day to process reminders
     # TODO: Run on all non-cancelled Django objects
 
-    def __init__(self, child_name, date_of_birth, phone_number, language):
-        self.child_name = child_name
-        self.date_of_birth = date_of_birth
-        self.phone_number = phone_number
-        self.language = language
+    def __init__(self, contact):
+        self.contact = contact
+        self.child_name = contact.name
+        self.date_of_birth = contact.date_of_birth
+        self.phone_number = contact.phone_number
+        self.language = contact.language_preference
 
     def is_eligible_for_reminder(self, years=0, months=0, weeks=0, days=0):
         delta = relativedelta(years=years, months=months, weeks=weeks, days=days)

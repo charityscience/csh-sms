@@ -5,6 +5,7 @@ from django.test import TestCase
 
 from datetime import datetime
 
+from management.models import Contact
 from modules.date_helper import date_string_to_date
 from modules.text_reminder import TextReminder
 from modules.i18n import six_week_reminder_seven_days, six_week_reminder_one_day, \
@@ -18,10 +19,14 @@ FAKE_NOW = datetime(2017, 7, 17, 0, 0)
 
 def text_reminder_test_object(date_of_birth, language="English"):
     child = 'Roland' if language == 'English' else u'\u0906\u0930\u0935'
-    return TextReminder(child_name=child,
-                        date_of_birth=date_string_to_date(date_of_birth),
-                        phone_number="1-111-1111",
-                        language=language)
+    contact = Contact.objects.create(name=child,
+                                     phone_number="1-111-1111",
+                                     delay_in_days=0,
+                                     language_preference=language,
+                                     date_of_birth=date_string_to_date(date_of_birth),
+                                     functional_date_of_birth=date_string_to_date(date_of_birth),
+                                     method_of_sign_up="text")
+    return TextReminder(contact)
 
 
 class TextReminderTests(TestCase):
