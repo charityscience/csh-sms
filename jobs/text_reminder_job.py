@@ -1,8 +1,9 @@
+from management.models import Contact
 from modules.text_reminder import TextReminder
 
-def main():
-    # TODO
-
+def remind_all():
+    for contact in Contact.objects.all():
+        TextReminder(contact).remind()
 
 if __name__ == "__main__":
-    main()
+    remind_all()
