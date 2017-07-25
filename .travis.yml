@@ -23,9 +23,9 @@ before_script:
   - psql -c "ALTER ROLE travis WITH LOGIN;" -U postgres
   - psql -c "ALTER ROLE travis WITH CREATEDB;" -U postgres
   - psql -c "GRANT ALL PRIVILEGES ON DATABASE travisdb TO travis;" -U postgres
+  - python manage.py migrate
 
 script:
-  - python manage.py migrate
   - coverage run manage.py test
  
 after_success:
