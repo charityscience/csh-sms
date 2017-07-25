@@ -74,3 +74,6 @@ class TextReminder(object):
         if self.should_remind_today():
             Texter().send(message=self.get_reminder_msg(),
                           phone_number=self.phone_number)
+            return True
+        else:
+            return False
