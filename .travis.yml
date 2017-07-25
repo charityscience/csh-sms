@@ -15,10 +15,10 @@ before_install:
 install:
   - pip install -r requirements.txt
   - pip install codecov
-  - mkdir logs
-  - touch logs/cshsms.log
 
 before_script:
+  - mkdir logs
+  - touch logs/cshsms.log
   - psql -c "CREATE DATABASE travisdb;" -U postgres
   - psql -c "ALTER ROLE travis WITH LOGIN;" -U postgres
   - psql -c "ALTER ROLE travis WITH CREATEDB;" -U postgres
