@@ -395,7 +395,3 @@ class TextReminderTests(TestCase):
         self.assertFalse(r.should_remind_today())
         r.remind()
         self.assertFalse(mocked_send_text.called)
-
-
-# TODO: Django integration tests
-# class DjangoTests(TestCase):
