@@ -244,3 +244,13 @@ class UploadContactsInputParserTests(TestCase):
 			parse_contact_time_references(time1))
 		self.assertEqual(datetime(2017, 6, 16, 18, 51, 28, tzinfo=timezone.get_default_timezone()),
 			parse_contact_time_references(time2))
+
+	def test_parse_contact_time_references_fake_datetimes(self):
+		fake_time1 = "6/12/2017 25:00:03 PM"
+		fake_time2 = "6/30/2017 6:51:28 PM"
+
+		with self.assertRaises(ValueError):
+			parse_contact_time_references(fake_time1)
+			parse_contact_time_references(fake_time2)
+
+	
