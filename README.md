@@ -22,6 +22,8 @@ ALTER DATABASE test_cshsms OWNER TO cshsmsadmin;
 
 ```
 pip install -r requirements.txt
+mkdir logs
+touch logs/cshsms.log
 python manage.py migrate
 ```
 

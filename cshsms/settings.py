@@ -114,6 +114,6 @@ TEST_RUNNER = 'rainbowtests.test.runner.RainbowDiscoverRunner'
 logging_format = "%(asctime)s|%(levelname)s|%(filename)s:%(lineno)d|%(funcName)s()|%(message)s"
 logging.basicConfig(filename="logs/cshsms.log", level=logging.INFO, format=logging_format)
 CRONJOBS = [
-    ('*/3 * * * *', 'jobs.text_reminder_job.remind_all'),
-    ('* * * * *', 'jobs.text_processor_job.check_and_process_registrations')
+    ('*/10 * * * *', 'jobs.text_reminder_job.remind_all'),                   # Run every 10 min
+    ('5 4 * * *', 'jobs.text_processor_job.check_and_process_registrations') # Run daily at 4:05am
 ]
