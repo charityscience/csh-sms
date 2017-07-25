@@ -59,8 +59,16 @@ class TextReminder(object):
             reminder = None
         return reminder(self.language).format(name=self.child_name) if reminder else None
 
+    def why_not_remind_reasons(self):
+        reasons = []
+        if self.get_contact().cancelled:
+            reasons.append("Contact is cancelled.")
+        if self.get_reminder_msg() is None:
+            reasons.append("Contact has no reminders for today's date.")
+        return reasons
+        
     def should_remind_today(self):
-        return (not self.get_contact().cancelled) and (self.get_reminder_msg() is not None)
+        return len(self.why_not_remind_reasons()) == 0
 
     def remind(self):
         if self.should_remind_today():
