@@ -115,14 +115,11 @@ class TextProcessor(object):
         keyword, child_name, date = self.get_data_from_message(message)
         if keyword in subscribe_keywords("English"):
             self.language = "English"
-            logging.info("Subscribing " + quote(message) + "...")
             action = self.process_subscribe
         elif keyword in subscribe_keywords("Hindi"):
             self.language = "Hindi"
-            logging.info("Subscribing " + quote(message) + "...")
             action = self.process_subscribe
         elif keyword == "stop":
-            logging.info("Unsubscribing " + quote(self.phone_number) + "...")
             action = self.process_unsubscribe
         else:
             logging.error("Keyword " + quote(keyword) + " in message " + quote(message) +
@@ -143,6 +140,11 @@ class TextProcessor(object):
             if date is None:
                 logging.error("Date in message " + quote(message) + " is invalid.")
                 action = self.process_failed_date
+
+        if action == self.process_subscribe:
+            logging.info("Subscribing " + quote(message) + "...")
+        elif action == self.process_unsubscribe:
+            logging.info("Unsubscribing " + quote(self.phone_number) + "...")
 
         response_text_message = action(child_name=child_name,
                                        date_of_birth=date)

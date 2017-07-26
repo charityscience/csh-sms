@@ -7,9 +7,10 @@ from modules.i18n import msg_subscribe, msg_unsubscribe, hindi_remind
 from jobs import text_processor_job
 
 class TextProcessorJobTests(TestCase):
+    @patch("logging.info")
     @patch("modules.text_reminder.Texter.send")
     @patch("jobs.text_processor_job.Texter.read_inbox")
-    def test_check_and_process_registrations(self, mocked_texter_read, mocked_texter_send):
+    def test_check_and_process_registrations(self, mocked_texter_read, mocked_texter_send, mocked_logger):
         mocked_texter_read.return_value = {'1-111-1111': ["JOIN ROLAND 29/5/2017"],
                                            '1-112-1111': [hindi_remind() + " SAI 29/5/2017",
                                                           "STOP"]}
