@@ -12,8 +12,9 @@ FAKE_NOW = datetime(2017, 7, 17, 0, 0)
 
 class TextReminderJobTests(TestCase):
     @freeze_time(FAKE_NOW)
+    @patch("logging.info")
     @patch("modules.text_reminder.Texter.send")
-    def test_remind_two_people(self, mocked_send_text):
+    def test_remind_two_people(self, mocked_send_text, mocked_logger):
         c1 = contact_object(name="Roland",
                             phone_number="1-111-1111",
                             date_of_birth="29/5/2017") # 6 weeks, 7 days ago
@@ -30,8 +31,9 @@ class TextReminderJobTests(TestCase):
         self.assertEqual(mocked_send_text.call_count, 2)
 
     @freeze_time(FAKE_NOW)
+    @patch("logging.info")
     @patch("modules.text_reminder.Texter.send")
-    def test_remind_two_people_but_not_the_cancelled_one(self, mocked_send_text):
+    def test_remind_two_people_but_not_the_cancelled_one(self, mocked_send_text, mocked_logger):
         c1 = contact_object(name="Roland",
                             phone_number="1-111-1111",
                             date_of_birth="29/5/2017") # 6 weeks, 7 days ago

@@ -383,9 +383,10 @@ class TextReminderTests(TestCase):
         self.assertFalse(mocked_send_text.called)
 
     @freeze_time(FAKE_NOW)
+    @patch("logging.info")
     @patch("modules.text_reminder.Texter.send")
     @patch("modules.text_processor.Texter.send")
-    def test_remind_when_good_dont_remind_when_cancelled(self, r_mocked_send_text, t_mocked_send_text):
+    def test_remind_when_good_dont_remind_when_cancelled(self, r_mocked_send_text, t_mocked_send_text, mocked_logging):
         tr = text_reminder_object("29/5/2017") # 6 weeks, 7 days ago
         self.assertTrue(tr.should_remind_today())
         tp = TextProcessor(phone_number=tr.phone_number)
