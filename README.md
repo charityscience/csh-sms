@@ -22,8 +22,18 @@ ALTER DATABASE test_cshsms OWNER TO cshsmsadmin;
 
 ```
 pip install -r requirements.txt
+mkdir logs
+touch logs/cshsms.log
 python manage.py migrate
 ```
+
+5.) Install the relevant cronjobs (you probably only want to do this if you are prod):
+
+```
+python manage.py crontab add
+```
+
+Logs can be checked at `/logs/cshsms.log`.
 
 
 #### Run
