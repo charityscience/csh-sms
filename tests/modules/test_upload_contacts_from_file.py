@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import os
 import csv
 import tempfile
@@ -11,7 +12,7 @@ from modules.upload_contacts_from_file import csv_upload, make_contact_dict, ass
                                               entered_date_string_to_date, parse_or_create_functional_dob, \
                                               parse_contact_time_references
 
-def create_sample_contact(name="Aarav"):
+def create_sample_contact(name="Aaarsh"):
 	contact, created = Contact.objects.get_or_create(name=name, phone_number="911234567890",
 		date_of_birth=datetime(2011, 5, 10, 0,0).date())
 	return contact
@@ -58,14 +59,28 @@ class UploadContactsContactFieldsTests(TestCase):
 		self.assertNotEqual(old_contacts_count, new_contacts_count)
 
 	def test_hindi_names_are_preserved(self):
-		hindi_name = u'\u0906\u0930\u0935'
-		new_contact = create_sample_contact(name=hindi_name)
-		self.assertEqual(hindi_name,new_contact.name)
+		"""tests/data/example.csv file being tested contains
+		   a contact with name: \u0906\u0930\u0935 and phone number: 912222277777"""
+		hindi_name = r'\u0906\u0930\u0935'
+		self.upload_file()
+		hin_contact = Contact.objects.get(phone_number="912222277777")
+		self.assertNotEqual(hindi_name, hin_contact.name)
+		self.assertTrue("\\" not in hin_contact.name)
+		self.assertEqual(hindi_name.encode("utf-8").decode('unicode-escape'), hin_contact.name)
 
 	def test_gujarati_names_are_preserved(self):
-		guj_name = u'\u0A90\u0AC5\u0A94'
-		new_contact = create_sample_contact(name=guj_name)
-		self.assertEqual(guj_name,new_contact.name)
+		"""tests/data/example.csv file being tested contains
+		   a contact with name: \u0A90\u0AC5\u0A94 and phone number: 915555511111"""
+		guj_name = r'\u0A90\u0AC5\u0A94'
+		self.upload_file()
+		guj_contact = Contact.objects.get(phone_number="915555511111")
+		self.assertNotEqual(guj_name, guj_contact.name)
+		self.assertTrue("\\" not in guj_contact.name)
+		self.assertEqual(guj_name.encode("utf-8").decode('unicode-escape'), guj_contact.name)
+
+	def test_unicode_literal_names_are_encoded(self):
+		self.upload_file()
+		self.assertFalse(Contact.objects.filter(name__startswith="\\"))
 
 class UploadContactsRelationshipTests(TestCase):
 	def test_groups_are_assigned_to_contact(self):
@@ -247,10 +262,11 @@ class UploadContactsInputParserTests(TestCase):
 
 	def test_parse_contact_time_references_fake_datetimes(self):
 		fake_time1 = "6/12/2017 25:00:03 PM"
-		fake_time2 = "6/30/2017 6:51:28 PM"
+		fake_time2 = "6/30/2017 16:51:28 PM"
 
 		with self.assertRaises(ValueError):
 			parse_contact_time_references(fake_time1)
+		with self.assertRaises(ValueError):
 			parse_contact_time_references(fake_time2)
 
 	

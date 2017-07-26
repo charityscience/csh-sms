@@ -19,7 +19,7 @@ def csv_upload(filepath):
 
 def make_contact_dict(row):
     new_dict = {}
-    new_dict["name"] = u"%s" % (row["Name"])
+    new_dict["name"] = row["Name"].encode("utf-8").decode('unicode-escape')
     new_dict["phone_number"] = row["Phone Number"]
     new_dict["alt_phone_number"] = row["Alternative Phone"]
     new_dict["delay_in_days"] = parse_or_create_delay_num(row["Delay in days"])
