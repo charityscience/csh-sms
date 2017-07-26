@@ -4,14 +4,12 @@ import string
 from django.utils import timezone
 
 from management.models import Contact, Group
-from modules.texter import send_text
+from modules.texter import Texter
 from modules.utils import quote, add_contact_to_group
 from modules.date_helper import date_is_valid, date_string_to_date
 from modules.i18n import msg_subscribe, msg_unsubscribe, msg_placeholder_child, msg_failure, \
                          msg_failed_date, subscribe_keywords, msg_already_sub
 
-
-# TODO: Run this continuously to monitor incoming texts.
 class TextProcessor(object):
     def __init__(self, phone_number):
         self.phone_number = phone_number
@@ -21,17 +19,30 @@ class TextProcessor(object):
         else:
             self.language = None
 
+    # self.get_contacts() is preferred to self.contact due to triggering a Django DB reload.
     def get_contacts(self):
         self.contacts = Contact.objects.filter(phone_number=self.phone_number)
+        return self.contacts
 
 
     def create_contact(self, child_name, phone_number, date_of_birth, language):
-        if self.contacts.exists() and Contact.objects.filter(name=child_name,
-                                                             phone_number=self.phone_number).exists():
-            if not self.contacts.first().cancelled:
-                logging.error("Contact for {name} at {phone} was subscribed but already exists!".format(name=child_name, phone=self.phone_number))
-                return False 
-
+        if self.contacts.exists():
+            contact = Contact.objects.filter(name=child_name, phone_number=self.phone_number)
+            if contact.exists():
+                contact = contact.first()
+                if contact.cancelled:
+                    # Update and resubscribe
+                    contact.cancelled = False
+                    contact.language_preference = language
+                    contact.date_of_birth = date_of_birth
+                    contact.functional_date_of_birth = date_of_birth
+                    contact.save()
+                    return True
+                else:
+                    # Already exists (error)
+                    logging.error("Contact for {name} at {phone} was subscribed but already exists!".format(name=child_name, phone=self.phone_number))
+                    return False 
+        # Otherwise, create
         contact = Contact.objects.create(name=child_name,
                                          phone_number=phone_number,
                                          delay_in_days=0,
@@ -39,17 +50,15 @@ class TextProcessor(object):
                                          date_of_birth=date_of_birth,
                                          functional_date_of_birth=date_of_birth,
                                          method_of_sign_up="Text")
-
         for group_name in ["Text Sign Ups",
                            "Text Sign Ups - " + language,
                            "Everyone - " + language]:
             add_contact_to_group(contact, group_name)
-
         self.get_contacts()
         return True
 
 
-    def cancel_contacts(self, phone_number):
+    def cancel_contacts(self):
         for contact in self.contacts:
             contact.cancelled = True
             contact.save()
@@ -67,8 +76,12 @@ class TextProcessor(object):
 
 
     def process_unsubscribe(self, child_name, date_of_birth):
-        self.cancel_contacts(self.phone_number)
-        return msg_unsubscribe(self.language)
+        if self.contacts.exists():
+            self.cancel_contacts()
+            return msg_unsubscribe(self.language)
+        else:
+            logging.error(quote(self.phone_number) + " asked to be unsubscribed but does not exist.")
+            return msg_unsubscribe("English")
 
 
     def process_failure(self, child_name, date_of_birth):
@@ -102,14 +115,11 @@ class TextProcessor(object):
         keyword, child_name, date = self.get_data_from_message(message)
         if keyword in subscribe_keywords("English"):
             self.language = "English"
-            logging.info("Subscribing " + quote(message) + "...")
             action = self.process_subscribe
         elif keyword in subscribe_keywords("Hindi"):
             self.language = "Hindi"
-            logging.info("Subscribing " + quote(message) + "...")
             action = self.process_subscribe
         elif keyword == "stop":
-            logging.info("Unsubscribing " + quote(self.phone_number) + "...")
             action = self.process_unsubscribe
         else:
             logging.error("Keyword " + quote(keyword) + " in message " + quote(message) +
@@ -124,12 +134,20 @@ class TextProcessor(object):
             else:
                 child_name = child_name.title()
 
+            if len(child_name) > 50:
+                action = self.process_failure
+
             if date is None:
                 logging.error("Date in message " + quote(message) + " is invalid.")
                 action = self.process_failed_date
 
+        if action == self.process_subscribe:
+            logging.info("Subscribing " + quote(message) + "...")
+        elif action == self.process_unsubscribe:
+            logging.info("Unsubscribing " + quote(self.phone_number) + "...")
+
         response_text_message = action(child_name=child_name,
                                        date_of_birth=date)
-        send_text(message=response_text_message,
-                  phone_number=self.phone_number)  # TODO: Actually implement this.
+        Texter().send(message=response_text_message,
+                      phone_number=self.phone_number)  # TODO: Actually implement this.
         return response_text_message
