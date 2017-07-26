@@ -2,7 +2,7 @@ from mock import patch
 from datetime import datetime
 from django.test import TestCase
 
-from management.models import Contact, Group
+from management.models import Contact
 from modules.utils import quote
 from modules.text_processor import TextProcessor
 from modules.i18n import hindi_remind, hindi_information, msg_placeholder_child, \
@@ -101,7 +101,9 @@ class TextProcessorProcessTests(TestCase):
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
         self.assertTrue(Contact.objects.filter(name="Paula", phone_number="1-111-1111").exists())
         self.assertTrue(t.get_contacts().exists())
-        self.assertTrue(all([g.contacts.first() == t.get_contacts().first() for g in Group.objects.all()]))
+        actual_groups = [str(g) for g in t.get_contacts().first().group_set.all()]
+        expected_groups = ['Everyone - English', 'Text Sign Ups', 'Text Sign Ups - English']
+        self.assertEqual(actual_groups, expected_groups)
 
     @patch("logging.info")
     @patch("modules.text_processor.Texter.send")
@@ -163,18 +165,16 @@ class TextProcessorProcessTests(TestCase):
     @patch("logging.info")
     @patch("modules.text_processor.Texter.send")
     def test_unsubscribe_english(self, texting_mock, logging_mock):
-        Contact.objects.create(name="Roland",
-                               phone_number="1-111-1112",
-                               delay_in_days=0,
-                               language_preference="English",
-                               method_of_sign_up="Text")
         t = TextProcessor(phone_number="1-111-1112")
+        t.process("JOIN Roland 12/11/2017")
         response = t.process("STOP")
         self.assertTrue(t.get_contacts().first().cancelled)
         self.assertEqual(response, msg_unsubscribe("English"))
         logging_mock.assert_called_with("Unsubscribing `1-111-1112`...")
-        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1112")
-        self.assertTrue(all([g.contacts.first() == t.get_contacts().first() for g in Group.objects.all()]))
+        texting_mock.assert_called_with(message=response, phone_number="1-111-1112")
+        actual_groups = [str(g) for g in t.get_contacts().first().group_set.all()]
+        expected_groups = ['Everyone - English', 'Text Sign Ups', 'Text Sign Ups - English']
+        self.assertEqual(actual_groups, expected_groups)
 
     @patch("logging.info")
     @patch("modules.text_processor.Texter.send")
@@ -221,7 +221,9 @@ class TextProcessorProcessTests(TestCase):
         logging_error_mock.assert_called_with("Contact for Rose at 1-111-1114 was subscribed but already exists!")
         self.assertTrue(Contact.objects.filter(name="Rose", phone_number="1-111-1114").exists())
         self.assertTrue(t2.get_contacts().exists())
-        self.assertTrue(all([g.contacts.first() == t2.get_contacts().first() for g in Group.objects.all()]))
+        actual_groups = [str(g) for g in t2.get_contacts().first().group_set.all()]
+        expected_groups = ['Everyone - English', 'Text Sign Ups', 'Text Sign Ups - English']
+        self.assertEqual(actual_groups, expected_groups)
 
     @patch("logging.error")
     @patch("logging.info")
@@ -262,7 +264,9 @@ class TextProcessorProcessTests(TestCase):
         texting_mock.assert_called_with(message=second_response, phone_number="1-111-1120")
         self.assertTrue(Contact.objects.filter(name="Ben", phone_number="1-111-1120").exists())
         self.assertEqual(Contact.objects.filter(phone_number="1-111-1120").count(), 2)
-        self.assertTrue(all([g.contacts.first() == t2.get_contacts().first() for g in Group.objects.all()]))
+        actual_groups = [str(g) for g in t2.get_contacts().first().group_set.all()]
+        expected_groups = ['Everyone - English', 'Text Sign Ups', 'Text Sign Ups - English']
+        self.assertEqual(actual_groups, expected_groups)
 
     @patch("logging.info")
     @patch("modules.text_processor.Texter.send")
@@ -279,7 +283,9 @@ class TextProcessorProcessTests(TestCase):
         contacts = Contact.objects.filter(name="Rob", phone_number="1-111-1116")
         self.assertTrue(contacts.exists())
         self.assertTrue(contacts.first().cancelled)
-        self.assertTrue(all([g.contacts.first() == contacts.first() for g in Group.objects.all()]))
+        actual_groups = [str(g) for g in contacts.first().group_set.all()]
+        expected_groups = ['Everyone - English', 'Text Sign Ups', 'Text Sign Ups - English']
+        self.assertEqual(actual_groups, expected_groups)
 
     @patch("logging.info")
     @patch("modules.text_processor.Texter.send")
@@ -300,7 +306,9 @@ class TextProcessorProcessTests(TestCase):
         contacts = Contact.objects.filter(name="Cheyenne", phone_number="1-111-1117")
         self.assertTrue(contacts.exists())
         self.assertFalse(contacts.first().cancelled)
-        self.assertTrue(all([g.contacts.first() == contacts.first() for g in Group.objects.all()]))
+        actual_groups = [str(g) for g in contacts.first().group_set.all()]
+        expected_groups = ['Everyone - English', 'Text Sign Ups', 'Text Sign Ups - English']
+        self.assertEqual(actual_groups, expected_groups)
 
     @patch("logging.info")
     @patch("modules.text_processor.Texter.send")
@@ -321,7 +329,9 @@ class TextProcessorProcessTests(TestCase):
         contacts = Contact.objects.filter(name="Cheyenne", phone_number="1-111-1118")
         self.assertTrue(contacts.exists())
         self.assertEqual(contacts.first().date_of_birth, datetime(2012, 12, 25, 0, 0).date())
-        self.assertTrue(all([g.contacts.first() == contacts.first() for g in Group.objects.all()]))
+        actual_groups = [str(g) for g in contacts.first().group_set.all()]
+        expected_groups = ['Everyone - English', 'Text Sign Ups', 'Text Sign Ups - English']
+        self.assertEqual(actual_groups, expected_groups)
 
     @patch("logging.info")
     @patch("modules.text_processor.Texter.send")
