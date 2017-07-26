@@ -164,6 +164,17 @@ class TextProcessorProcessTests(TestCase):
 
     @patch("logging.info")
     @patch("modules.text_processor.Texter.send")
+    def test_subscribe_with_too_long_name(self, texting_mock, logging_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        long_name = "".join(["name" for _ in range(20)]) # length 100
+        response = t.process("JOIN " + long_name + " 25-11-2012")
+        self.assertEqual(response, msg_failure("English"))
+        self.assertFalse(Contact.objects.filter(name=long_name.title(), phone_number="1-111-1111").exists())
+        self.assertFalse(t.get_contacts().exists())
+
+
+    @patch("logging.info")
+    @patch("modules.text_processor.Texter.send")
     def test_unsubscribe_english(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1112")
         t.process("JOIN Roland 12/11/2017")

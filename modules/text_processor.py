@@ -137,6 +137,9 @@ class TextProcessor(object):
             else:
                 child_name = child_name.title()
 
+            if len(child_name) > 50:
+                action = self.process_failure
+
             if date is None:
                 logging.error("Date in message " + quote(message) + " is invalid.")
                 action = self.process_failed_date
