@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import logging
+import sys
 import os
 
 
@@ -110,9 +111,14 @@ STATIC_URL = '/static/'
 TEST_RUNNER = 'rainbowtests.test.runner.RainbowDiscoverRunner'
 
 
-# Logging
-logging_format = "%(asctime)s|%(levelname)s|%(filename)s:%(lineno)d|%(funcName)s()|%(message)s"
+# Logging (log all errors to .log file and ERRORs to console as well)
+logger = logging.getLogger()
+logging_format = "%(asctime)s | %(levelname)s | %(filename)s:%(lineno)d | %(message)s"
 logging.basicConfig(filename="logs/cshsms.log", level=logging.INFO, format=logging_format)
+logging_handler_out = logging.StreamHandler(sys.stdout)
+logging_handler_out.setLevel(logging.ERROR)
+logging_handler_out.setFormatter(logging.Formatter(logging_format))
+logger.addHandler(logging_handler_out)
 CRONJOBS = [
     ('*/10 * * * *', 'jobs.text_reminder_job.remind_all'),                   # Run every 10 min
     ('5 4 * * *', 'jobs.text_processor_job.check_and_process_registrations') # Run daily at 4:05am
