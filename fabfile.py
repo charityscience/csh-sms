@@ -5,14 +5,14 @@ from fabric.api import env, sudo, run, prefix
 from fabric.context_managers import cd
 from fabric.operations import put
 
-from cshsms.settings import DATABASES
+from cshsms.settings import DATABASES, REMOTE
 USER = DATABASES['default']['USER']
 DBNAME = DATABASES['default']['NAME']
 PASSWORD =  DATABASES['default']['PASSWORD']
 
-env.user = 'ubuntu'
-env.key_filename = '~/.ssh/cshsms.pem'
-env.hosts = ['ec2-34-213-135-118.us-west-2.compute.amazonaws.com']
+env.user = REMOTE['host']
+env.key_filename = REMOTE['keyfile']
+env.hosts = [REMOTE['host']]
 
 @_contextmanager
 def virtualenv():
@@ -50,4 +50,9 @@ def deploy():
         run("git checkout master")
         run("git pull")
         run("python manage.py migrate")
+        run("python manage.py test")
+
+
+def verify_host():
+    with virtualenv():
         run("python manage.py test")

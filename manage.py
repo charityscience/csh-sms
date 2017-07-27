@@ -2,6 +2,11 @@
 import os
 import sys
 
+from fabric.context_managers import settings
+
+from cshsms.settings import REMOTE
+from fabfile import deploy, verify_host
+
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cshsms.settings")
     try:
@@ -19,4 +24,13 @@ if __name__ == "__main__":
                 "forget to activate a virtual environment?"
             )
         raise
-    execute_from_command_line(sys.argv)
+
+    with settings(host_string=REMOTE['host'],
+                  key_filename=REMOTE['keyfile'],
+                  user=REMOTE['user']):
+        if sys.argv[1] == "deploy":
+            deploy()
+        elif sys.argv[1] == "verify_host":
+            verify_host()
+        else:
+            execute_from_command_line(sys.argv)
