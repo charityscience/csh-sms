@@ -240,35 +240,23 @@ class UploadContactsInputParserTests(TestCase):
             entered_date_string_to_date("2017-02-29")
 
     def test_real_dates_for_entered_date_string_to_date(self):
-        date_string1 = "2014-12-20"
-        date_string2 = "2017-01-20"
-        date_string3 = "2017-01-07"
-        date_string4 = "01-15-2017"
-        date_string5 = "02-28-2017"
-
-        self.assertEqual(entered_date_string_to_date(date_string1),datetime(2014, 12, 20, 0,0 ).date())
-        self.assertEqual(entered_date_string_to_date(date_string2),datetime(2017, 1, 20, 0,0 ).date())
-        self.assertEqual(entered_date_string_to_date(date_string3),datetime(2017, 1, 7, 0,0 ).date())
-        self.assertEqual(entered_date_string_to_date(date_string4),datetime(2017, 1, 15, 0,0 ).date())
-        self.assertEqual(entered_date_string_to_date(date_string5),datetime(2017, 2, 28, 0,0 ).date())
+        self.assertEqual(entered_date_string_to_date("2014-12-20"),datetime(2014, 12, 20, 0,0 ).date())
+        self.assertEqual(entered_date_string_to_date("2017-01-20"),datetime(2017, 1, 20, 0,0 ).date())
+        self.assertEqual(entered_date_string_to_date("2017-01-07"),datetime(2017, 1, 7, 0,0 ).date())
+        self.assertEqual(entered_date_string_to_date("01-15-2017"),datetime(2017, 1, 15, 0,0 ).date())
+        self.assertEqual(entered_date_string_to_date("02-28-2017"),datetime(2017, 2, 28, 0,0 ).date())
     
     def test_parse_contact_time_references_real_datetimes(self):
-        time1 = "6/12/2017 4:00:03 PM"
-        time2 = "6/16/2017 6:51:28 PM"
-
         self.assertEqual(datetime(2017, 6, 12, 16, 0, 3, tzinfo=timezone.get_default_timezone()),
-            parse_contact_time_references(time1))
+            parse_contact_time_references("6/12/2017 4:00:03 PM"))
         self.assertEqual(datetime(2017, 6, 16, 18, 51, 28, tzinfo=timezone.get_default_timezone()),
-            parse_contact_time_references(time2))
+            parse_contact_time_references("6/16/2017 6:51:28 PM"))
 
     def test_parse_contact_time_references_fake_datetimes(self):
-        fake_time1 = "6/12/2017 25:00:03 PM"
-        fake_time2 = "6/30/2017 16:51:28 PM"
-
         with self.assertRaises(ValueError):
-            parse_contact_time_references(fake_time1)
+            parse_contact_time_references("6/12/2017 25:00:03 PM")
         with self.assertRaises(ValueError):
-            parse_contact_time_references(fake_time2)
+            parse_contact_time_references("6/30/2017 16:51:28 PM")
 
     @freeze_time(datetime(2017, 7, 21, 0, 0).replace(tzinfo=timezone.get_default_timezone()))
     def test_parse_contact_time_references_empty_times(self):
