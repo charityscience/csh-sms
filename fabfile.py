@@ -49,6 +49,7 @@ def deploy():
         run("git reset HEAD --hard")
         run("git checkout master")
         run("git pull")
+        run("pip install -r requirements.txt")
         run("python manage.py migrate")
         run("python manage.py test")
         run("python manage.py crontab add")
