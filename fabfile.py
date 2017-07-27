@@ -40,7 +40,7 @@ def install():
     with virtualenv():
         run("pip install -r requirements.txt")
         run("mkdir logs")
-        run("touch logs/cshsms.logs")
+        run("touch log/cshsms.logs")
         put("cshsms/settings_secret.py", "/home/ubuntu/csh-sms/cshsms/settings_secret.py")
         
 
@@ -58,9 +58,15 @@ def verify_server():
     with virtualenv():
         print("Last deployment time was...")
         run("env TZ=':America/Los_Angeles' date -r cshsms/settings.py")
+        print("Last log entry was...")
+        run("env TZ=':America/Los_Angeles' date -r logs/cshsms.log")
         print("Last commit was...")
         run("git log -1 --format=%cd | cat")
         print("Checking crontab...")
         run("crontab -l")
         print("Verifying remote tests...")
         run("python manage.py test")
+
+def read_server_log():
+    with virtualenv():
+        run("cat logs/cshsms.log")
