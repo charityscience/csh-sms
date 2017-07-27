@@ -125,49 +125,49 @@ class UploadContactsRelationshipTests(TestCase):
 
 class UploadContactsInputParserTests(TestCase):
     def test_nondigits_in_income(self):
-        self.assertEqual(monthly_income("1892ff8"),999999)
-        self.assertEqual(monthly_income("ghg18928"),999999)
-        self.assertEqual(monthly_income("18928ff"),999999)
-        self.assertEqual(monthly_income("18928-"),999999)
-        self.assertEqual(monthly_income("-18928"),999999)
-        self.assertEqual(monthly_income("+18928"),999999)
-        self.assertEqual(monthly_income("18+928"),999999)
-        self.assertEqual(monthly_income("18 928"),999999)
-        self.assertEqual(monthly_income("18,928"),999999)
+        self.assertEqual(monthly_income("1892ff8"), 999999)
+        self.assertEqual(monthly_income("ghg18928"), 999999)
+        self.assertEqual(monthly_income("18928ff"), 999999)
+        self.assertEqual(monthly_income("18928-"), 999999)
+        self.assertEqual(monthly_income("-18928"), 999999)
+        self.assertEqual(monthly_income("+18928"), 999999)
+        self.assertEqual(monthly_income("18+928"), 999999)
+        self.assertEqual(monthly_income("18 928"), 999999)
+        self.assertEqual(monthly_income("18,928"), 999999)
 
     def test_empty_income(self):
-        self.assertEqual(monthly_income(''),999999)
-        self.assertEqual(monthly_income(None),999999)
+        self.assertEqual(monthly_income(''), 999999)
+        self.assertEqual(monthly_income(None), 999999)
 
     def test_empty_delay(self):
-        self.assertEqual(parse_or_create_delay_num(''),0)
-        self.assertEqual(parse_or_create_delay_num(None),0)
+        self.assertEqual(parse_or_create_delay_num(''), 0)
+        self.assertEqual(parse_or_create_delay_num(None), 0)
 
     def test_nondigits_in_delay(self):
-        self.assertEqual(parse_or_create_delay_num("1892ff8"),0)
-        self.assertEqual(parse_or_create_delay_num("ghg18928"),0)
-        self.assertEqual(parse_or_create_delay_num("18928ff"),0)
-        self.assertEqual(parse_or_create_delay_num("18928-"),0)
-        self.assertEqual(parse_or_create_delay_num("-18928"),0)
-        self.assertEqual(parse_or_create_delay_num("+18928"),0)
-        self.assertEqual(parse_or_create_delay_num("18+928"),0)
-        self.assertEqual(parse_or_create_delay_num("18 928"),0)
-        self.assertEqual(parse_or_create_delay_num("18,928"),0)
+        self.assertEqual(parse_or_create_delay_num("1892ff8"), 0)
+        self.assertEqual(parse_or_create_delay_num("ghg18928"), 0)
+        self.assertEqual(parse_or_create_delay_num("18928ff"), 0)
+        self.assertEqual(parse_or_create_delay_num("18928-"), 0)
+        self.assertEqual(parse_or_create_delay_num("-18928"), 0)
+        self.assertEqual(parse_or_create_delay_num("+18928"), 0)
+        self.assertEqual(parse_or_create_delay_num("18+928"), 0)
+        self.assertEqual(parse_or_create_delay_num("18 928"), 0)
+        self.assertEqual(parse_or_create_delay_num("18,928"), 0)
 
     def test_empty_previous_vaccination(self):
         self.assertEqual(previous_vaccination(''), None)
 
     def test_previous_vaccination_positive(self):
-        self.assertEqual(previous_vaccination("y"),True)
-        self.assertEqual(previous_vaccination("yes"),True)
-        self.assertEqual(previous_vaccination("yes  "),True)
-        self.assertEqual(previous_vaccination("yes asdfasfasf "),True)
+        self.assertEqual(previous_vaccination("y"), True)
+        self.assertEqual(previous_vaccination("yes"), True)
+        self.assertEqual(previous_vaccination("yes  "), True)
+        self.assertEqual(previous_vaccination("yes asdfasfasf "), True)
 
     def test_previous_vaccination_negative(self):
-        self.assertEqual(previous_vaccination("n"),False)
-        self.assertEqual(previous_vaccination("no"),False)
-        self.assertEqual(previous_vaccination("no  "),False)
-        self.assertEqual(previous_vaccination("no asdfasfasf "),False)
+        self.assertEqual(previous_vaccination("n"), False)
+        self.assertEqual(previous_vaccination("no"), False)
+        self.assertEqual(previous_vaccination("no  "), False)
+        self.assertEqual(previous_vaccination("no asdfasfasf "), False)
 
 
     def test_fake_dates_for_parse_or_create_functional_dob(self):
@@ -192,25 +192,19 @@ class UploadContactsInputParserTests(TestCase):
 
     def test_nonexistent_dates_for_parse_or_create_functional_dob(self):
         with self.assertRaises(TypeError):
-            parse_or_create_functional_dob("", "", 0)
+            parse_or_create_functional_dob(row_entry="", date_of_birth="", delay=0)
 
-        delay1 = 0
-        delay2 = 5
-        dob1 = entered_date_string_to_date("10-15-2015")
-        parsed_func_dob = parse_or_create_functional_dob("", dob1, delay1)
-        parsed_func_dob2 = parse_or_create_functional_dob("", dob1, delay2)
+        parsed_func_dob = parse_or_create_functional_dob(row_entry="", date_of_birth=datetime(2015, 10, 15,0,0).date(), delay=0)
+        parsed_func_dob2 = parse_or_create_functional_dob(row_entry="", date_of_birth=datetime(2015, 10, 15,0,0).date(), delay=5)
         
         self.assertEqual(parsed_func_dob, datetime(2015, 10, 15).date())
         self.assertEqual(parsed_func_dob2, datetime(2015, 10, 20).date())
 
     def test_real_dates_for_parse_or_create_functional_dob(self):
-        funct_dob1 = "10-15-2015"
-        funct_dob2 = "10-18-2015"
-        dob1 = entered_date_string_to_date("10-15-2015")
-        delay1 = 0
-        delay2 = 3
-        parsed_func_dob1 = parse_or_create_functional_dob(funct_dob1, dob1, delay1)
-        parsed_func_dob2 = parse_or_create_functional_dob(funct_dob2, dob1, delay2)
+        parsed_func_dob1 = parse_or_create_functional_dob(row_entry="10-15-2015",
+        	date_of_birth=datetime(2015, 10, 15,0,0).date(), delay=0)
+        parsed_func_dob2 = parse_or_create_functional_dob(row_entry="10-18-2015",
+        	date_of_birth=datetime(2015, 10, 15,0,0).date(), delay=3)
         
         self.assertEqual(parsed_func_dob1, datetime(2015, 10, 15).date())
         self.assertEqual(parsed_func_dob2, datetime(2015, 10, 18).date())
@@ -240,11 +234,11 @@ class UploadContactsInputParserTests(TestCase):
             entered_date_string_to_date("2017-02-29")
 
     def test_real_dates_for_entered_date_string_to_date(self):
-        self.assertEqual(entered_date_string_to_date("2014-12-20"),datetime(2014, 12, 20, 0,0 ).date())
-        self.assertEqual(entered_date_string_to_date("2017-01-20"),datetime(2017, 1, 20, 0,0 ).date())
-        self.assertEqual(entered_date_string_to_date("2017-01-07"),datetime(2017, 1, 7, 0,0 ).date())
-        self.assertEqual(entered_date_string_to_date("01-15-2017"),datetime(2017, 1, 15, 0,0 ).date())
-        self.assertEqual(entered_date_string_to_date("02-28-2017"),datetime(2017, 2, 28, 0,0 ).date())
+        self.assertEqual(entered_date_string_to_date("2014-12-20"), datetime(2014, 12, 20, 0,0 ).date())
+        self.assertEqual(entered_date_string_to_date("2017-01-20"), datetime(2017, 1, 20, 0,0 ).date())
+        self.assertEqual(entered_date_string_to_date("2017-01-07"), datetime(2017, 1, 7, 0,0 ).date())
+        self.assertEqual(entered_date_string_to_date("01-15-2017"), datetime(2017, 1, 15, 0,0 ).date())
+        self.assertEqual(entered_date_string_to_date("02-28-2017"), datetime(2017, 2, 28, 0,0 ).date())
     
     def test_parse_contact_time_references_real_datetimes(self):
         self.assertEqual(datetime(2017, 6, 12, 16, 0, 3, tzinfo=timezone.get_default_timezone()),
