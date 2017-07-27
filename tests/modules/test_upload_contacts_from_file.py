@@ -8,6 +8,7 @@ from freezegun import freeze_time
 from datetime import datetime
 from django.utils import timezone
 from management.models import Contact, Group
+from modules.utils import phone_number_is_valid
 from modules.upload_contacts_from_file import csv_upload, make_contact_dict, assign_groups_to_contact, \
                                               previous_vaccination, monthly_income, parse_or_create_delay_num, \
                                               entered_date_string_to_date, parse_or_create_functional_dob, \
@@ -58,6 +59,13 @@ class UploadContactsContactFieldsTests(TestCase):
         new_contacts_count = Contact.objects.count()
         self.assertNotEqual(old_all_contacts, new_all_contacts)
         self.assertNotEqual(old_contacts_count, new_contacts_count)
+
+    def test_only_contacts_with_valid_numbers_created(self):
+    	"""tests/data/example.csv file being tested contains
+    	   a contact with name: FakestNumber and phone number: 511234567890"""
+    	self.upload_file()
+    	with self.assertRaises(Contact.DoesNotExist):
+    		Contact.objects.get(name="FakestNumber")
 
     def test_hindi_names_are_preserved(self):
         """tests/data/example.csv file being tested contains
