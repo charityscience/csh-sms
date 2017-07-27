@@ -64,8 +64,7 @@ class UploadContactsContactFieldsTests(TestCase):
     	"""tests/data/example.csv file being tested contains
     	   a contact with name: FakestNumber and phone number: 511234567890"""
     	self.upload_file()
-    	with self.assertRaises(Contact.DoesNotExist):
-    		Contact.objects.get(name="FakestNumber")
+    	self.assertFalse(Contact.objects.filter(name="FakestNumber").exists())
 
     def test_hindi_names_are_preserved(self):
         """tests/data/example.csv file being tested contains
