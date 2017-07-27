@@ -4,6 +4,7 @@ import csv
 import tempfile
 from django.test import TestCase
 
+from freezegun import freeze_time
 from datetime import datetime
 from django.utils import timezone
 from management.models import Contact, Group
@@ -269,4 +270,9 @@ class UploadContactsInputParserTests(TestCase):
         with self.assertRaises(ValueError):
             parse_contact_time_references(fake_time2)
 
-    
+    def test_parse_contact_time_references_empty_times(self):
+    	freezer = freeze_time('2017-07-21')
+    	freezer.start()
+    	self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()),
+    		parse_contact_time_references(""))
+    	freezer.stop()
