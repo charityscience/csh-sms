@@ -1,7 +1,4 @@
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'LONGstringOFsecrets'
-
 
 DATABASES = {
     'default': {
@@ -13,3 +10,7 @@ DATABASES = {
         'PORT': '',
     }
 }
+
+REMOTE = {'user': 'travis',
+          'keyfile': '~/.ssh/travis.pem',
+          'host': 'localhost'}

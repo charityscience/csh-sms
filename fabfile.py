@@ -40,7 +40,7 @@ def install():
     with virtualenv():
         run("pip install -r requirements.txt")
         run("mkdir logs")
-        run("touch log/cshsms.logs")
+        run("touch logs/cshsms.log")
         put("cshsms/settings_secret.py", "/home/ubuntu/csh-sms/cshsms/settings_secret.py")
         
 
