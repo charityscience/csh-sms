@@ -114,7 +114,8 @@ TEST_RUNNER = 'rainbowtests.test.runner.RainbowDiscoverRunner'
 # Logging (log all errors to .log file and ERRORs to console as well)
 logger = logging.getLogger()
 logging_format = "%(asctime)s | %(levelname)s | %(filename)s:%(lineno)d | %(message)s"
-logging.basicConfig(filename="logs/cshsms.log", level=logging.INFO, format=logging_format)
+logfile = os.path.join(os.getcwd(), 'logs', 'cshsms.log')
+logging.basicConfig(filename=logfile, level=logging.INFO, format=logging_format)
 logging_handler_out = logging.StreamHandler(sys.stdout)
 logging_handler_out.setLevel(logging.ERROR)
 logging_handler_out.setFormatter(logging.Formatter(logging_format))
