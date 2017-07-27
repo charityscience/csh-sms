@@ -51,6 +51,7 @@ def deploy():
         run("git pull")
         run("python manage.py migrate")
         run("python manage.py test")
+        run("python manage.py crontab add")
 
 
 def verify_server():
@@ -59,5 +60,7 @@ def verify_server():
         run("env TZ=':America/Los_Angeles' date -r cshsms/settings.py")
         print("Last commit was...")
         run("git log -1 --format=%cd | cat")
+        print("Checking crontab...")
+        run("crontab -l")
         print("Verifying remote tests...")
         run("python manage.py test")
