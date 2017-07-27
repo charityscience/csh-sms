@@ -5,7 +5,7 @@ import sys
 from fabric.context_managers import settings
 
 from cshsms.settings import REMOTE
-from fabfile import deploy, verify_host
+from fabfile import deploy, verify_server
 
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cshsms.settings")
@@ -30,7 +30,7 @@ if __name__ == "__main__":
                   user=REMOTE['user']):
         if sys.argv[1] == "deploy":
             deploy()
-        elif sys.argv[1] == "verify_host":
-            verify_host()
+        elif sys.argv[1] == "verify_server":
+            verify_server()
         else:
             execute_from_command_line(sys.argv)

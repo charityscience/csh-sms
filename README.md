@@ -49,3 +49,21 @@ To run tests...
 ```
 python manage.py test
 ```
+
+
+#### Deployment
+
+
+To deploy the existing server, run:
+
+```
+python manage.py deploy
+```
+
+
+To verify the remote server is running correctly, run:
+```
+python manage.py verify_server
+```
+
+(To set up a new remote server, configure the server on AWS, edit the `REMOTE` file in `cshsms/settings.py`, and then run `fab install`. Don't do this unless you know what you are doing.)

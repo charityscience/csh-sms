@@ -53,6 +53,6 @@ def deploy():
         run("python manage.py test")
 
 
-def verify_host():
+def verify_server():
     with virtualenv():
         run("python manage.py test")
