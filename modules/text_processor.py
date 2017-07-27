@@ -124,7 +124,7 @@ class TextProcessor(object):
         else:
             logging.error("Keyword " + quote(keyword) + " in message " + quote(message) +
                           " was not understood by the system.")
-            self.language = "English" if keyword[0] in string.ascii_lowercase else "Hindi"
+            self.language = "Hindi" if keyword and keyword[0] not in string.ascii_lowercase else "English"
             action = self.process_failure
 
         if action == self.process_subscribe:

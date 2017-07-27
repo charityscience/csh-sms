@@ -409,3 +409,12 @@ class TextProcessorProcessTests(TestCase):
         self.assertEqual(response, msg_failed_date("Hindi"))
         logging_mock.assert_called_with("Date in message " + quote(invalid_text_message) + " is invalid.")
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+
+    @patch("logging.error")
+    @patch("modules.text_processor.Texter.send")
+    def test_blank_message(self, texting_mock, logging_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        response = t.process(" ")
+        self.assertEqual(response, msg_failure("English"))
+        logging_mock.assert_called_with("Keyword `` in message ` ` was not understood by the system.")
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
