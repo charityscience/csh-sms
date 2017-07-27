@@ -19,7 +19,7 @@ def csv_upload(filepath):
 
         		assign_groups_to_contact(new_contact, row["Groups"])
         	else:
-        		logging.error("Contact: {name} - {date_of_birth} has invalid phone number: {phone}".format(
+        		logging.error("Entry: {name} - {date_of_birth} has invalid phone number: {phone}".format(
         			name=new_dict["name"], phone=new_dict["phone_number"], date_of_birth=new_dict["date_of_birth"]))
 
 
