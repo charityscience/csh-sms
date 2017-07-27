@@ -2,7 +2,6 @@ from __future__ import with_statement
 from contextlib import contextmanager as _contextmanager
 
 from fabric.api import env, sudo, run, prefix
-from fabric.contrib.files import append
 from fabric.context_managers import cd
 from fabric.operations import put
 
@@ -13,7 +12,7 @@ PASSWORD =  DATABASES['default']['PASSWORD']
 
 env.user = 'ubuntu'
 env.key_filename = '~/.ssh/cshsms.pem'
-env.hosts = ['ec2-34-211-61-253.us-west-2.compute.amazonaws.com']
+env.hosts = ['ec2-34-213-135-118.us-west-2.compute.amazonaws.com']
 
 @_contextmanager
 def virtualenv():
@@ -30,15 +29,14 @@ def install():
     sudo("psql -c 'CREATE DATABASE {};'".format(DBNAME), user="postgres")
     sudo("psql -c 'CREATE ROLE {};'".format(USER), user="postgres")
     sudo("psql -c 'ALTER ROLE {} WITH LOGIN;'".format(USER), user="postgres")
-    sudo("psql -c 'ALTER USER {} WITH PASSWORD {}'".format(USER, PASSWORD), user="postgres")
+    sudo("psql -c \"ALTER USER {} WITH PASSWORD '{}'\"".format(USER, PASSWORD), user="postgres")
     sudo("psql -c 'ALTER ROLE {} WITH CREATEDB;'".format(USER), user="postgres")
     sudo("psql -c 'GRANT ALL PRIVILEGES ON DATABASE {} TO {};'".format(DBNAME, USER), user="postgres")
     run("git clone https://github.com/charityscience/csh-sms.git")
     run("pip install virtualenvwrapper")
-    append("~/.bashrc", "\nexport VIRTUALENVWRAPPER_PYTHON='/usr/bin/python'")
-    append("~/.bashrc", "\nexport WORKON_HOME=$HOME/.virtualenvs")
-    append("~/.bashrc", "\nsource /home/ubuntu/.local/bin/virtualenvwrapper.sh")
-    run("source ~/.bashrc")
+    with prefix("export WORKON_HOME=$HOME/.virtualenvs"):
+        with prefix("source /home/ubuntu/.local/bin/virtualenvwrapper.sh"):
+            run("mkvirtualenv csh")
     with virtualenv():
         run("pip install -r requirements.txt")
         run("mkdir logs")
