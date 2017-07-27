@@ -10,7 +10,7 @@ USER = DATABASES['default']['USER']
 DBNAME = DATABASES['default']['NAME']
 PASSWORD =  DATABASES['default']['PASSWORD']
 
-env.user = REMOTE['host']
+env.user = REMOTE['user']
 env.key_filename = REMOTE['keyfile']
 env.hosts = [REMOTE['host']]
 
@@ -55,4 +55,9 @@ def deploy():
 
 def verify_server():
     with virtualenv():
+        print("Last deployment time was...")
+        run("env TZ=':America/Los_Angeles' date -r cshsms/settings.py")
+        print("Last commit was...")
+        run("git log -1 --format=%cd | cat")
+        print("Verifying remote tests...")
         run("python manage.py test")
