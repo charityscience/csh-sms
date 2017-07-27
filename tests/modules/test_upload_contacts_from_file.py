@@ -270,9 +270,7 @@ class UploadContactsInputParserTests(TestCase):
         with self.assertRaises(ValueError):
             parse_contact_time_references(fake_time2)
 
+    @freeze_time(datetime(2017, 7, 21, 0, 0).replace(tzinfo=timezone.get_default_timezone()))
     def test_parse_contact_time_references_empty_times(self):
-    	freezer = freeze_time('2017-07-21')
-    	freezer.start()
     	self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()),
     		parse_contact_time_references(""))
-    	freezer.stop()
