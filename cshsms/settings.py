@@ -16,7 +16,7 @@ import os
 
 
 if not os.getenv('IS_TRAVIS', False):
-    from cshsms.settings_secret import SECRET_KEY, DATABASES
+    from cshsms.settings_secret import SECRET_KEY, DATABASES, REMOTE
 else:
     from cshsms.settings_travis import SECRET_KEY, DATABASES
 
@@ -124,9 +124,3 @@ CRONJOBS = [
     ('*/10 * * * *', 'jobs.text_reminder_job.remind_all'),                   # Run every 10 min
     ('5 4 * * *', 'jobs.text_processor_job.check_and_process_registrations') # Run daily at 4:05am
 ]
-
-
-# Remotes
-REMOTE = {'user': 'ubuntu',
-          'keyfile': '~/.ssh/cshsms.pem',
-          'host': 'ec2-34-213-135-118.us-west-2.compute.amazonaws.com'}
