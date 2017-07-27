@@ -61,7 +61,7 @@ class UploadContactsContactFieldsTests(TestCase):
 	def test_hindi_names_are_preserved(self):
 		"""tests/data/example.csv file being tested contains
 		   a contact with name: \u0906\u0930\u0935 and phone number: 912222277777"""
-		hindi_name = r'\u0906\u0930\u0935'
+		hindi_name = u'\\u0906\\u0930\\u0935'
 		self.upload_file()
 		hin_contact = Contact.objects.get(phone_number="912222277777")
 		self.assertNotEqual(hindi_name, hin_contact.name)
@@ -71,7 +71,7 @@ class UploadContactsContactFieldsTests(TestCase):
 	def test_gujarati_names_are_preserved(self):
 		"""tests/data/example.csv file being tested contains
 		   a contact with name: \u0A90\u0AC5\u0A94 and phone number: 915555511111"""
-		guj_name = r'\u0A90\u0AC5\u0A94'
+		guj_name = u'\\u0A90\\u0AC5\\u0A94'
 		self.upload_file()
 		guj_contact = Contact.objects.get(phone_number="915555511111")
 		self.assertNotEqual(guj_name, guj_contact.name)
