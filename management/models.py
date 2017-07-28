@@ -8,8 +8,9 @@ from django.utils.encoding import python_2_unicode_compatible
 class Contact(models.Model):
     # Vitals
     name = models.CharField(max_length=50)
-    phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$',
-        message="Phone number must be entered in the format: '+9199999999'. Up to 15 digits allowed.")
+    phone_regex = RegexValidator(regex=r'^\+?91?\d{9,15}$',
+        message="Phone number must be entered in the format: '+9199999999'. Up to 15 digits allowed.",
+        code="Invalid phone_number")
     phone_number = models.CharField(validators=[phone_regex], blank=False,
         max_length=20, default="012345") # validators should be a list
     alt_phone_number = models.CharField(validators=[phone_regex], blank=False,

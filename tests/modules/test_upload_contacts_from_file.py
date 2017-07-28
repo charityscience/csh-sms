@@ -4,10 +4,12 @@ import csv
 import tempfile
 from django.test import TestCase
 
+from mock import patch
 from freezegun import freeze_time
 from datetime import datetime
 from django.utils import timezone
 from management.models import Contact, Group
+from modules.utils import phone_number_is_valid
 from modules.upload_contacts_from_file import csv_upload, make_contact_dict, assign_groups_to_contact, \
                                               previous_vaccination, monthly_income, parse_or_create_delay_num, \
                                               entered_date_string_to_date, parse_or_create_functional_dob, \
@@ -33,7 +35,8 @@ class UploadContactsFileTests(TestCase):
         with self.assertRaises(IOError):
             csv_upload(fake_txt_path)
 
-    def test_processes_csv(self):
+    @patch("logging.error")
+    def test_processes_csv(self, logging_mock):
         csv_path = "tests/data/example.csv" 
         csv_upload(csv_path)
 
@@ -43,14 +46,16 @@ class UploadContactsContactFieldsTests(TestCase):
         csv_path = "tests/data/example.csv" 
         csv_upload(csv_path)        
 
-    def test_existing_contacts_are_updated(self):
+    @patch("logging.error")
+    def test_existing_contacts_are_updated(self, logging_mock):
         old_contact = create_sample_contact()
 
         self.upload_file()
         updated_contact = Contact.objects.get(name=old_contact.name, phone_number=old_contact.phone_number)
         self.assertNotEqual(old_contact.date_of_birth, updated_contact.date_of_birth)
 
-    def test_new_contacts_are_created(self):
+    @patch("logging.error")
+    def test_new_contacts_are_created(self, logging_mock):
         old_all_contacts = Contact.objects.all()
         old_contacts_count = Contact.objects.count()
         self.upload_file()
@@ -59,7 +64,16 @@ class UploadContactsContactFieldsTests(TestCase):
         self.assertNotEqual(old_all_contacts, new_all_contacts)
         self.assertNotEqual(old_contacts_count, new_contacts_count)
 
-    def test_hindi_names_are_preserved(self):
+    @patch("logging.error")
+    def test_only_contacts_with_valid_numbers_created(self, logging_mock):
+    	"""tests/data/example.csv file being tested contains
+    	   a contact with name: FakestNumber and phone number: 511234567890"""
+    	self.upload_file()
+    	self.assertFalse(Contact.objects.filter(name="FakestNumber").exists())
+    	logging_mock.assert_called_with("Entry: FakestNumber - 2016-09-14 has invalid phone number: 511234567890")
+
+    @patch("logging.error")
+    def test_hindi_names_are_preserved(self, logging_mock):
         """tests/data/example.csv file being tested contains
            a contact with name: \u0906\u0930\u0935 and phone number: 912222277777"""
         hindi_name = u'\\u0906\\u0930\\u0935'
@@ -69,7 +83,8 @@ class UploadContactsContactFieldsTests(TestCase):
         self.assertTrue("\\" not in hin_contact.name)
         self.assertEqual(hindi_name.encode("utf-8").decode('unicode-escape'), hin_contact.name)
 
-    def test_gujarati_names_are_preserved(self):
+    @patch("logging.error")
+    def test_gujarati_names_are_preserved(self, logging_mock):
         """tests/data/example.csv file being tested contains
            a contact with name: \u0A90\u0AC5\u0A94 and phone number: 915555511111"""
         guj_name = u'\\u0A90\\u0AC5\\u0A94'
@@ -79,7 +94,8 @@ class UploadContactsContactFieldsTests(TestCase):
         self.assertTrue("\\" not in guj_contact.name)
         self.assertEqual(guj_name.encode("utf-8").decode('unicode-escape'), guj_contact.name)
 
-    def test_unicode_literal_names_are_encoded(self):
+    @patch("logging.error")
+    def test_unicode_literal_names_are_encoded(self, logging_mock):
         self.upload_file()
         self.assertFalse(Contact.objects.filter(name__startswith="\\"))
 

@@ -1,8 +1,9 @@
 import csv
 import re
 import datetime
+import logging
 from django.utils import timezone
-from modules.utils import add_contact_to_group
+from modules.utils import add_contact_to_group, phone_number_is_valid
 from modules.date_helper import date_string_ymd_to_date, date_string_mdy_to_date, datetime_string_mdy_to_datetime, \
                                 add_or_subtract_days
 from management.models import Contact
@@ -11,10 +12,15 @@ def csv_upload(filepath):
     with open(filepath) as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            new_dict = make_contact_dict(row)
-            new_contact, created = Contact.objects.update_or_create(name=new_dict["name"],
-                phone_number=new_dict["phone_number"], defaults=new_dict)
-            assign_groups_to_contact(new_contact, row["Groups"])
+        	new_dict = make_contact_dict(row)
+        	if phone_number_is_valid(new_dict["phone_number"]):
+        		new_contact, created = Contact.objects.update_or_create(name=new_dict["name"],
+        			phone_number=new_dict["phone_number"], defaults=new_dict)
+
+        		assign_groups_to_contact(new_contact, row["Groups"])
+        	else:
+        		logging.error("Entry: {name} - {date_of_birth} has invalid phone number: {phone}".format(
+        			name=new_dict["name"], phone=new_dict["phone_number"], date_of_birth=new_dict["date_of_birth"]))
 
 
 def make_contact_dict(row):
