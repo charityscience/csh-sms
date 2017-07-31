@@ -4,6 +4,7 @@ from contextlib import contextmanager as _contextmanager
 from fabric.api import env, sudo, run, prefix
 from fabric.context_managers import cd
 from fabric.operations import put
+from fabric.colors import red, yellow
 
 from cshsms.settings import DATABASES, REMOTE
 USER = DATABASES['default']['USER']
@@ -71,3 +72,12 @@ def verify_server():
 def read_server_log():
     with virtualenv():
         run("cat logs/cshsms.log")
+
+def kill_server():
+    with virtualenv():
+        print(red("Shutting down the server..."))
+        run("python manage.py crontab remove")
+        print(red("Crontab now offline."))
+        print(yellow("Note: The server is still running, but is idle and will no longer process texts or send reminders. Shut down the actual app via AWS to stop the server from running. The server can be re-enabled with `python manage.py deploy`."))
+        print(yellow("Note: Future deploys will re-enable the server."))
+
