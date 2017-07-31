@@ -5,7 +5,7 @@ import sys
 from fabric.context_managers import settings
 
 from cshsms.settings import REMOTE
-from fabfile import deploy, verify_server, read_server_log, kill_server
+from fabfile import deploy, verify_server, read_server_log, fetch_server_log, kill_server
 
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cshsms.settings")
@@ -34,6 +34,8 @@ if __name__ == "__main__":
             verify_server()
         elif sys.argv[1] == "read_server_log":
             read_server_log()
+        elif sys.argv[1] == "fetch_server_log":
+            fetch_server_log()
         elif sys.argv[1] == "kill_server":
             kill_server()
         else:

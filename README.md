@@ -64,17 +64,23 @@ python manage.py deploy
 
 -
 
+```
 To verify the remote server is running correctly, run:
 
 ```
 python manage.py verify_server
 ```
 
-To read server logs:
+To read the last twenty server logs:
 
 ```
 python manage.py read_server_log
 ```
+
+To download a copy of the server logs (downloaded to `logs/server_log.log`):
+
+```
+python manage.py fetch_server_log
 
 -
 
