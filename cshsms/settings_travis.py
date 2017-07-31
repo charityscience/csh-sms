@@ -14,3 +14,7 @@ DATABASES = {
 REMOTE = {'user': 'travis',
           'keyfile': '~/.ssh/travis.pem',
           'host': 'localhost'}
+
+# TextLocal
+TEXTLOCAL_API = 'secretKeyisStillSoosecret'
+TEXTLOCAL_PRIMARY_ID = 'SoSecrety'
