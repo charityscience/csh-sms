@@ -7,7 +7,7 @@ class TextLocal(object):
 	def __init__(self, apikey):
 		self.apikey = apikey
 
-	def all_inboxes():
+	def all_inboxes(self):
 		params = {'apikey': self.apikey}
 		inboxes_url = 'https://api.textlocal.in/get_inboxes/?'
 		f = request.urlopen(inboxes_url + parse.urlencode(params))

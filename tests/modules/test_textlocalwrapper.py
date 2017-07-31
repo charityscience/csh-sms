@@ -4,11 +4,15 @@ from modules.textlocalwrapper import TextLocal
 
 
 class TextLocalGetInboxesTests(TestCase):
-	def test_all_inboxes(self):
-
+	def test_create_object(self):
 		textlocal = TextLocal("fakekey")
-		response, status = textlocal.all_inboxes()
 		self.assertIsInstance(textlocal, TextLocal)
+		
+	def test_get_all_inboxes(self):
+		textlocal = TextLocal(TEXTLOCAL_API)
+		response, status = textlocal.all_inboxes()
+		self.assertIsInstance(response, dict)
+		self.assertGreaterEqual(int(response['num_inboxes']), 1)
 
 	def test_get_primary_inbox(self):
 		pass
