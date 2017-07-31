@@ -26,3 +26,11 @@ class TextLocal(object):
 
 	def is_message_new(self, message):
 		return True if message['isNew'] == 'True'.lower() else False
+
+	def new_messages_by_number(self, messages):
+		num_message_dict = {}
+		for message in messages:
+			if self.is_message_new(message):
+				num_message_dict.setdefault(message['number'], []).append(message['message'])
+
+		return num_message_dict
