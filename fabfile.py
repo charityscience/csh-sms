@@ -1,9 +1,10 @@
 from __future__ import with_statement
 from contextlib import contextmanager as _contextmanager
 
-from fabric.api import env, sudo, run, prefix
+from fabric.api import env, sudo, run, prefix, hide, settings
+from fabric.colors import green, red
 from fabric.context_managers import cd
-from fabric.operations import put
+from fabric.operations import put, get
 
 from cshsms.settings import DATABASES, REMOTE
 USER = DATABASES['default']['USER']
@@ -57,17 +58,32 @@ def deploy():
 
 def verify_server():
     with virtualenv():
-        print("Last deployment time was...")
-        run("env TZ=':America/Los_Angeles' date -r cshsms/settings.py")
-        print("Last log entry was...")
-        run("env TZ=':America/Los_Angeles' date -r logs/cshsms.log")
-        print("Last commit was...")
-        run("git log -1 --format=%cd | cat")
-        print("Checking crontab...")
-        run("crontab -l")
+        with hide('output', 'running', 'warnings'), settings(warn_only=True):
+            last_deploy_time = run("env TZ=':America/Los_Angeles' date -r cshsms/settings.py")
+            print("Last deployment time was {}.".format(last_deploy_time))
+            last_log_entry_time = run("env TZ=':America/Los_Angeles' date -r logs/cshsms.log")
+            print("Last log entry was {}.".format(last_log_entry_time))
+            last_commit_time = run("git log -1 --format=%cd | cat")
+            print("Last commit was {}.".format(last_commit_time))
+            crontab = run("crontab -l")
+            if len(crontab) == 0:
+                print(red("Crontab is offline!"))
+            else:
+                print(green("Crontab installed and running..."))
+                print(crontab)
         print("Verifying remote tests...")
         run("python manage.py test")
 
+
 def read_server_log():
     with virtualenv():
-        run("cat logs/cshsms.log")
+        with hide('output', 'running', 'warnings'), settings(warn_only=True):
+            logs = run("head -n 20 logs/cshsms.log")
+            print(logs)
+
+def fetch_server_log():
+    with virtualenv():
+        with hide('output', 'running', 'warnings'), settings(warn_only=True):
+            print("Downloading server logs...")
+            get("logs/cshsms.log", "logs/server_log.log")
+            print("...Downloaded to `logs/server_log.log`")
