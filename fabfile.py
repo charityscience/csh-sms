@@ -4,7 +4,7 @@ from contextlib import contextmanager as _contextmanager
 from fabric.api import env, sudo, run, prefix, hide, settings
 from fabric.colors import green, red
 from fabric.context_managers import cd
-from fabric.operations import put
+from fabric.operations import put, get
 
 from cshsms.settings import DATABASES, REMOTE
 USER = DATABASES['default']['USER']
@@ -77,5 +77,13 @@ def verify_server():
 
 def read_server_log():
     with virtualenv():
-        run("cat logs/cshsms.log")
+        with hide('output', 'running', 'warnings'), settings(warn_only=True):
+            logs = run("head -n 20 logs/cshsms.log")
+            print(logs)
 
+def fetch_server_log():
+    with virtualenv():
+        with hide('output', 'running', 'warnings'), settings(warn_only=True):
+            print("Downloading server logs...")
+            get("logs/cshsms.log", "logs/server_log.log")
+            print("...Downloaded to `logs/server_log.log`")
