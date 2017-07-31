@@ -77,18 +77,6 @@ def verify_server():
 
 def read_server_log():
     with virtualenv():
-<<<<<<< HEAD
-        run("cat logs/cshsms.log")
-
-def kill_server():
-    with virtualenv():
-        print(red("Shutting down the server..."))
-        run("python manage.py crontab remove")
-        print(red("Crontab now offline."))
-        print(yellow("Note: The server is still running, but is idle and will no longer process texts or send reminders. Shut down the actual app via AWS to stop the server from running. The server can be re-enabled with `python manage.py deploy`."))
-        print(yellow("Note: Future deploys will re-enable the server."))
-
-=======
         with hide('output', 'running', 'warnings'), settings(warn_only=True):
             logs = run("head -n 20 logs/cshsms.log")
             print(logs)
@@ -99,4 +87,12 @@ def fetch_server_log():
             print("Downloading server logs...")
             get("logs/cshsms.log", "logs/server_log.log")
             print("...Downloaded to `logs/server_log.log`")
->>>>>>> master
+
+
+def kill_server():
+    with virtualenv():
+        print(red("Shutting down the server..."))
+        run("python manage.py crontab remove")
+        print(red("Crontab now offline."))
+        print(yellow("Note: The server is still running, but is idle and will no longer process texts or send reminders. Shut down the actual app via AWS to stop the server from running. The server can be re-enabled with `python manage.py deploy`."))
+        print(yellow("Note: Future deploys will re-enable the server."))
