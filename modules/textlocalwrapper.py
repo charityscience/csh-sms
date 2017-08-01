@@ -1,5 +1,5 @@
 import json
-from urllib import request, parse
+from six.moves.urllib import request, parse
 from cshsms.settings import TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID
 
 class TextLocal(object):
