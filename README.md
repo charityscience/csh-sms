@@ -60,7 +60,11 @@ To deploy the existing server, run:
 python manage.py deploy
 ```
 
+(To set up a new remote server, configure the server on AWS, edit the `REMOTE` file in `cshsms/settings.py`, and then run `fab install`. Don't do this unless you know what you are doing.)
 
+-
+
+```
 To verify the remote server is running correctly, run:
 
 ```
@@ -77,6 +81,13 @@ To download a copy of the server logs (downloaded to `logs/server_log.log`):
 
 ```
 python manage.py fetch_server_log
+
+-
+
+To stop the server from running:
+
+```
+python manage.py kill_server
 ```
 
-(To set up a new remote server, configure the server on AWS, edit the `REMOTE` file in `cshsms/settings.py`, and then run `fab install`. Don't do this unless you know what you are doing.)
+This will idle processes and prevent anything from running (no texts will be processed and no reminders will be sent), but it will not shutdown the actual server. To do this, you must stop or terminate the box from within AWS.
