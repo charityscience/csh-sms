@@ -15,6 +15,5 @@ REMOTE = {'user': 'travis',
           'keyfile': '~/.ssh/travis.pem',
           'host': 'localhost'}
 
-# TextLocal
-TEXTLOCAL_API = 'secretKeyisStillSoosecret'
-TEXTLOCAL_PRIMARY_ID = 'SoSecrety'
+os.getenv("TEXTLOCAL_API")
+os.getenv("TEXTLOCAL_PRIMARY_ID")
