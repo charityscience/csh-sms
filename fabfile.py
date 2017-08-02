@@ -46,18 +46,15 @@ def install():
         
 
 def deploy():
-    run("killall python")
-    run("python manage.py crontab remove")
-    run("virtualenv --clear csh")
     with virtualenv():
+        run("python manage.py crontab remove")
         run("git reset HEAD --hard")
-        run("git checkout master")
+        run("git checkout run_webserver")
         run("git pull")
         run("pip install -r requirements.txt")
         run("python manage.py migrate")
         run("python manage.py test")
         run("python manage.py crontab add")
-        run("python python manage.py runserver {}:8000".format(env.hosts[0]))
 
 
 def verify_server():
@@ -95,10 +92,12 @@ def fetch_server_log():
 
 def kill_server():
     with virtualenv():
-        print(red("Shutting down the server..."))
-        run("killall python")
-        print(red("Server now offline."))
-        run("python manage.py crontab remove")
-        print(red("Crontab now offline."))
-        print(yellow("Note: The server is still running, but is idle and will no longer process texts or send reminders. Shut down the actual app via AWS to stop the server from running. The server can be re-enabled with `python manage.py deploy`."))
-        print(yellow("Note: Future deploys will re-enable the server."))
+        with settings(warn_only=True):
+            print(red("Shutting down the server..."))
+            run("killall python")
+            run("python manage.py crontab remove")
+            print(red("Server now offline."))
+            run("python manage.py crontab remove")
+            print(red("Crontab now offline."))
+            print(yellow("Note: The server is still running, but is idle and will no longer process texts or send reminders. Shut down the actual app via AWS to stop the server from running. The server can be re-enabled with `python manage.py deploy`."))
+            print(yellow("Note: Future deploys will re-enable the server."))
