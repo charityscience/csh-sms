@@ -7,3 +7,11 @@ class HspsmsSendingTests(TestCase):
 		hspsms = Hspsms(apikey=HSPSMS_API, username=HSPSMS_USERNAME, sendername=HSPSMS_SENDERNAME)
 		self.assertIsInstance(hspsms, Hspsms)
 
+	def test_send_transactional_message(self):
+		hspsms = Hspsms(apikey=HSPSMS_API, username=HSPSMS_USERNAME, sendername=HSPSMS_SENDERNAME)
+		fr = hspsms.send_transactional_message(message='Example message', phone_number='0000000')
+		self.assertTrue(fr)
+		self.assertIsInstance(fr, list)
+		self.assertTrue(fr[0]['responseCode'])
+		self.assertEqual(fr[0]['responseCode'], "Message SuccessFully Submitted")
+		self.assertTrue(fr[1])
