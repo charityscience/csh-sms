@@ -81,6 +81,13 @@ To download a copy of the server logs (downloaded to `logs/server_log.log`):
 
 ```
 python manage.py fetch_server_log
+```
+
+To connect to the server directly:
+
+```
+python manage.py ssh_server
+```
 
 -
 
