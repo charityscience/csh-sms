@@ -78,7 +78,7 @@ def verify_server():
 def read_server_log():
     with virtualenv():
         with hide('output', 'running', 'warnings'), settings(warn_only=True):
-            logs = run("head -n 20 logs/cshsms.log")
+            logs = run("tail -n 20 logs/cshsms.log")
             print(logs)
 
 def fetch_server_log():
