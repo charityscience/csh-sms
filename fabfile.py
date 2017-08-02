@@ -1,7 +1,7 @@
 from __future__ import with_statement
 from contextlib import contextmanager as _contextmanager
 
-from fabric.api import env, sudo, run, prefix, hide, settings
+from fabric.api import env, sudo, run, local, prefix, hide, settings
 from fabric.colors import green, yellow, red
 from fabric.context_managers import cd
 from fabric.operations import put, get
@@ -54,6 +54,12 @@ def deploy():
         run("python manage.py migrate")
         run("python manage.py test")
         run("python manage.py crontab add")
+
+
+def ssh_server():
+    local("ssh -i {pemfile} {user}@{server}".format(pemfile=env.key_filename,
+                                                    user=env.user,
+                                                    server=env.hosts[0]))
 
 
 def verify_server():
