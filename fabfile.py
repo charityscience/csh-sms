@@ -49,7 +49,8 @@ def deploy():
     with virtualenv():
         run("python manage.py crontab remove")
         run("git reset HEAD --hard")
-        run("git checkout run_webserver")
+        run("git fetch")
+        run("git checkout master")
         run("git pull")
         run("pip install -r requirements.txt")
         run("python manage.py migrate")
