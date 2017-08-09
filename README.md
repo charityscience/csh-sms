@@ -33,7 +33,7 @@ python manage.py migrate
 python manage.py crontab add
 ```
 
-Logs can be checked at `/logs/cshsms.log`.
+Logs can be checked at `logs/cshsms.log`.
 
 
 #### Run
