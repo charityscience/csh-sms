@@ -62,9 +62,6 @@ python manage.py deploy
 
 (To set up a new remote server, configure the server on AWS, edit the `REMOTE` file in `cshsms/settings.py`, and then run `fab install`. Don't do this unless you know what you are doing.)
 
--
-
-```
 To verify the remote server is running correctly, run:
 
 ```
@@ -88,8 +85,6 @@ To connect to the server directly:
 ```
 python manage.py ssh_server
 ```
-
--
 
 To stop the server from running:
 
