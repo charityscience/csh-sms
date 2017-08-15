@@ -25,7 +25,7 @@ class TextLocal(object):
 		return inbox['messages']
 
 	def is_message_new(self, message):
-		return True if message['isNew'] == 'True'.lower() else False
+		return True if message['isNew'] == True else False
 
 	def new_messages_by_number(self, messages):
 		num_message_dict = {}

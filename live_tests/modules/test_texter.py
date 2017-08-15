@@ -11,7 +11,7 @@ class TexterGetInboxesTests(TestCase):
 
 	def test_send(self):
 		texter = Texter()
-		send_status = texter.send(message="Testing example message", phone_number=TEXTLOCAL_PHONENUMBER)
+		send_status = texter.send(message="Testing example message in Texter.", phone_number=TEXTLOCAL_PHONENUMBER)
 		time.sleep(120)
-		num_message_dict = texter.read_inbox()
-		# To do: implement real check
+		new_message_dict = texter.read_inbox()
+		self.assertTrue("Testing example message in Texter." in new_message_dict[0])
