@@ -1,5 +1,6 @@
-from cshsms.settings import TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID
+from cshsms.settings import TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID, HSPSMS_API, HSPSMS_USERNAME, HSPSMS_SENDERNAME
 from modules.textlocalwrapper import TextLocal
+from modules.hspsmswrapper import Hspsms
 
 class Texter(object):
 	def read_inbox(self):
@@ -9,6 +10,6 @@ class Texter(object):
 	    return num_message_dict
 
 	def send(self, message, phone_number):
-		#TODO: Implement for real
-		print("I SENT THIS TEXT: '" + message + "`.")
-		return None
+		hspsms = Hspsms(apikey=HSPSMS_API, username=HSPSMS_USERNAME, sendername=HSPSMS_SENDERNAME)
+		send_status = hspsms.send_transactional_message(message=message, phone_number=phone_number)
+		return send_status
