@@ -10,18 +10,19 @@ class TextLocal(object):
 	def get_all_inboxes(self):
 		params = {'apikey': self.apikey}
 		inboxes_url = 'https://api.textlocal.in/get_inboxes/?'
-		f = request.urlopen(inboxes_url + parse.urlencode(params))
-		return json.loads(f.read().decode('latin1')), f.code
+		return self.get_url_response(request_url=inboxes_url, params=params)
 
 	def get_primary_inbox(self):
 		params = {'apikey': self.apikey, 'inbox_id': self.primary_id}
 		messages_url = 'https://api.textlocal.in/get_messages/?'
-		f = request.urlopen(messages_url + parse.urlencode(params))
-		return json.loads(f.read().decode('latin1')), f.code
+		return self.get_url_response(request_url=messages_url, params=params)
+
+	def get_url_response(self, request_url, params):
+		f = request.urlopen(request_url + parse.urlencode(params))
+		return json.loads(f.read().decode('latin1'))
 
 	def get_primary_inbox_messages(self):
-		inbox_and_code = self.get_primary_inbox()
-		inbox = inbox_and_code[0]
+		inbox = self.get_primary_inbox()
 		return inbox['messages']
 
 	def is_message_new(self, message):
