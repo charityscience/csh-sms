@@ -11,13 +11,13 @@ class TextLocalInboxesTests(TestCase):
 		
 	def test_get_all_inboxes(self):
 		textlocal = TextLocal(TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID)
-		response, status = textlocal.get_all_inboxes()
+		response = textlocal.get_all_inboxes()
 		self.assertIsInstance(response, dict)
 		self.assertGreaterEqual(int(response['num_inboxes']), 1)
 
 	def test_get_primary_inbox(self):
 		textlocal = TextLocal(TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID)
-		primary_inbox, status = textlocal.get_primary_inbox()
+		primary_inbox = textlocal.get_primary_inbox()
 		self.assertTrue(primary_inbox)
 		self.assertIsInstance(primary_inbox, dict)
 		self.assertTrue(primary_inbox['status'])
@@ -31,6 +31,7 @@ class TextLocalInboxesTests(TestCase):
 
 	def test_new_messages_by_number(self):
 		textlocal = TextLocal(TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID)
+		time.sleep(60)
 		texter = Texter()
 		texter.send(message="This is a live test message.", phone_number=TEXTLOCAL_PHONENUMBER)
 		time.sleep(120)
