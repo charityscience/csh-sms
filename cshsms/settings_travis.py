@@ -14,3 +14,5 @@ DATABASES = {
 REMOTE = {'user': 'travis',
           'keyfile': '~/.ssh/travis.pem',
           'host': 'localhost'}
+
+TEXTLOCAL_PHONENUMBER = os.getenv("TEXTLOCAL_PHONENUMBER")
