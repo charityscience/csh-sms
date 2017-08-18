@@ -43,9 +43,6 @@ class TexterGetInboxesTests(TestCase):
         # Check processing worked
         self.assertTrue(processed)
 
-        # Check person got a subscribed text
-        # TODO
-
         # Check contact object is created
         self.assertTrue(Contact.objects.filter(name="TestPerson",
                                                phone_number=TEXTLOCAL_PHONENUMBER).exists())
@@ -57,6 +54,10 @@ class TexterGetInboxesTests(TestCase):
         expected_groups = ['Everyone - English', 'Text Sign Ups', 'Text Sign Ups - English']
         self.assertEqual(actual_groups, expected_groups)
 
+        # Check person got a subscribed text
+		time.sleep(120)
+        # TODO write code to check
+
         # Check person can be reminded
         r = TextReminder(contact)
         with freeze_time("2017-02-1"): # Two days after...
@@ -66,13 +67,19 @@ class TexterGetInboxesTests(TestCase):
             # TODO: Check no messages went out
         with freeze_time("2017-02-1"): # Six weeks, one day after...
             self.assertTrue(r.remind())  # ...can be reminded
+            time.sleep(120)
             # TODO: Check that a reminder message went out
         with freeze_time("2017-02-1"): # Six weeks, seven days after...
             self.assertTrue(r.remind())  # ...can be reminded
+            time.sleep(120)
             # TODO: Check that a reminder message went out
 
         # Person cancels
         # TODO: Write cancel text
+        time.sleep(120)
+
+        # Check person is cancelled
+        # TODO: Write check
 
         # Person can no longer be reminded
         # TODO: Write code
