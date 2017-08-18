@@ -76,3 +76,6 @@ class TexterGetInboxesTests(TestCase):
 
         # Person can no longer be reminded
         # TODO: Write code
+
+        # Clean up
+        # TODO: Delete customer and associated objects from database
