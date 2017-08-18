@@ -12,16 +12,16 @@ def csv_upload(filepath):
     with open(filepath) as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-        	new_dict = make_contact_dict(row)
-        	if phone_number_is_valid(new_dict["phone_number"]):
-        		new_contact, created = Contact.objects.update_or_create(name=new_dict["name"],
-        			phone_number=new_dict["phone_number"], defaults=new_dict)
+            new_dict = make_contact_dict(row)
+            if phone_number_is_valid(new_dict["phone_number"]):
+                new_contact, created = Contact.objects.update_or_create(name=new_dict["name"],
+                    phone_number=new_dict["phone_number"], defaults=new_dict)
 
-        		assign_groups_to_contact(new_contact, row["Groups"])
-        	else:
-        		logging.error("Entry: {name} - {date_of_birth} has invalid phone number: {phone}".format(
-        			name=new_dict["name"], phone=new_dict["phone_number"], date_of_birth=new_dict["date_of_birth"]))
-
+                assign_groups_to_contact(new_contact, row["Groups"])
+                new_contact.preg_signup = assign_preg_signup(new_contact)
+            else:
+                logging.error("Entry: {name} - {date_of_birth} has invalid phone number: {phone}".format(
+                    name=new_dict["name"], phone=new_dict["phone_number"], date_of_birth=new_dict["date_of_birth"]))
 
 def make_contact_dict(row):
     new_dict = {}
@@ -53,6 +53,7 @@ def make_contact_dict(row):
     new_dict["org_sign_up"] = row["Org Sign Up"]
     new_dict["hospital_name"] = row["Hospital Name"]
     new_dict["doctor_name"] = row["Doctor Name"]
+    new_dict["preg_signup"] = parse_preg_signup(row["Pregnant Signup"])
 
     # System Identification
     new_dict["telerivet_contact_id"] = row["Telerivet Contact ID"]
@@ -99,3 +100,15 @@ def parse_or_create_functional_dob(row_entry, date_of_birth, delay):
 
 def parse_contact_time_references(row_entry):
     return datetime_string_mdy_to_datetime(row_entry) if row_entry else datetime.datetime.now().replace(tzinfo=timezone.get_default_timezone())
+
+def parse_preg_signup(row_entry):
+    row_entry = str(row_entry).lower()
+    if not row_entry:
+        return False
+    elif row_entry[0] == "f" or row_entry == "0":
+        return False
+    else:
+        return True
+
+def assign_preg_signup(contact):
+    return True if contact.preg_signup or not contact.has_been_born() else False

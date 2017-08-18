@@ -13,7 +13,7 @@ from modules.utils import phone_number_is_valid
 from modules.upload_contacts_from_file import csv_upload, make_contact_dict, assign_groups_to_contact, \
                                               previous_vaccination, monthly_income, parse_or_create_delay_num, \
                                               entered_date_string_to_date, parse_or_create_functional_dob, \
-                                              parse_contact_time_references
+                                              parse_contact_time_references, parse_preg_signup, assign_preg_signup
 
 def create_sample_contact(name="Aaarsh"):
     contact, created = Contact.objects.get_or_create(name=name, phone_number="911234567890",
@@ -270,5 +270,41 @@ class UploadContactsInputParserTests(TestCase):
 
     @freeze_time(datetime(2017, 7, 21, 0, 0).replace(tzinfo=timezone.get_default_timezone()))
     def test_parse_contact_time_references_empty_times(self):
-    	self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()),
-    		parse_contact_time_references(""))
+        self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()),
+            parse_contact_time_references(""))
+
+    def test_parse_preg_signup(self):
+        self.assertTrue(parse_preg_signup("True"))
+        self.assertTrue(parse_preg_signup("TRUE"))
+        self.assertTrue(parse_preg_signup("T"))
+        self.assertTrue(parse_preg_signup("t"))
+        self.assertTrue(parse_preg_signup("to"))
+        self.assertFalse(parse_preg_signup("False"))
+        self.assertFalse(parse_preg_signup("FALSE"))
+        self.assertFalse(parse_preg_signup("false"))
+        self.assertFalse(parse_preg_signup("F"))
+        self.assertFalse(parse_preg_signup("f"))
+        self.assertFalse(parse_preg_signup("fo"))
+        self.assertFalse(parse_preg_signup("0"))
+        self.assertTrue(parse_preg_signup("1"))
+        self.assertFalse(parse_preg_signup(0))
+        self.assertTrue(parse_preg_signup(1))
+        self.assertFalse(parse_preg_signup(""))
+
+    @freeze_time(datetime(2017, 7, 21, 0, 0).replace(tzinfo=timezone.get_default_timezone()))
+    def test_assign_preg_signup(self):
+        true_contact = create_sample_contact()
+        true_contact.preg_signup = True
+        self.assertEqual(assign_preg_signup(true_contact), True)
+        false_contact = create_sample_contact()
+        false_contact.preg_signup = False
+        self.assertEqual(assign_preg_signup(false_contact), False)
+        none_contact = create_sample_contact()
+        none_contact.preg_signup = None
+        self.assertEqual(assign_preg_signup(none_contact), False)
+        
+        # Contact with birthdate in the future relative to frozen time, but preg_signup assigned by csv as False
+        future_contact = create_sample_contact()
+        future_contact.date_of_birth = datetime(2017, 7, 28, 0, 0).date()
+        future_contact.preg_signup = False
+        self.assertEqual(assign_preg_signup(future_contact), True)
