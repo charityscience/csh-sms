@@ -11,8 +11,12 @@ class Hspsms(object):
 
 	def send_transactional_message(self, message, phone_number):
 		send_url = 'http://sms.hspsms.com/sendSMS?'
-		data = parse.urlencode({'username': self.username, 'message': message, 'sendername': self.sendername,
-		          'smstype': 'TRANS', 'numbers': phone_number, 'apikey': self.apikey})
+		data = parse.urlencode({'username': self.username,
+                                'message': message,
+                                'sendername': self.sendername,
+                                'smstype': 'TRANS',
+                                'numbers': phone_number,
+                                'apikey': self.apikey})
 		data = data.encode('utf-8')
 		requester = request.Request(send_url)
 		f = request.urlopen(requester, data)
