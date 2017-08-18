@@ -44,10 +44,16 @@ Run Postgres then...
 python manage.py runserver
 ```
 
-To run tests...
+To run unit tests...
 
 ```
-python manage.py test
+python manage.py test tests/
+```
+
+To run functional / live / E2E tests...
+
+```
+python manage.py test live_tests/
 ```
 
 
