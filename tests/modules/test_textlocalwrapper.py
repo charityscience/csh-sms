@@ -36,3 +36,6 @@ class TextLocalInboxesTests(TestCase):
 		self.assertTrue(new_message['message'] in fake_num_message_dict['910987654321'])
 		self.assertTrue(new_message2['message'] in fake_num_message_dict['910987654321'])
 		self.assertTrue(new_message2['message'] in one_message_num_dict['910987654321'])
+
+    def test_get_primary_inbox_messages(self):
+        # TODO: Write this.
