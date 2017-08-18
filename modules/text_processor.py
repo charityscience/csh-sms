@@ -30,13 +30,13 @@ class TextProcessor(object):
             contact = Contact.objects.filter(name=child_name, phone_number=self.phone_number)
             if contact.exists():
                 contact = contact.first()
-                contact.preg_update = preg_update
-                if contact.cancelled:
+                if contact.cancelled or preg_update:
                     # Update and resubscribe
                     contact.cancelled = False
                     contact.language_preference = language
                     contact.date_of_birth = date_of_birth
                     contact.functional_date_of_birth = date_of_birth
+                    contact.preg_update = preg_update
                     contact.save()
                     return True
                 else:

@@ -7,7 +7,7 @@ from modules.utils import quote
 from modules.text_processor import TextProcessor
 from modules.i18n import hindi_remind, hindi_information, msg_placeholder_child, \
                          msg_subscribe, msg_unsubscribe, msg_failure, msg_failed_date, \
-                         msg_already_sub
+                         msg_already_sub, hindi_born
 
 class TextProcessorGetDataTests(TestCase):
     def test_all_caps(self):
@@ -52,6 +52,13 @@ class TextProcessorGetDataTests(TestCase):
         self.assertEqual(child_name, "charles")
         self.assertEqual(date, datetime(2012, 12, 19, 0, 0).date())
 
+    def test_born_keyword(self):
+        t = TextProcessor(phone_number="1-111-1111")
+        keyword, child_name, date = t.get_data_from_message("Born Charles 19/12/2012")
+        self.assertEqual(keyword, "born")
+        self.assertEqual(child_name, "charles")
+        self.assertEqual(date, datetime(2012, 12, 19, 0, 0).date())
+
     def test_hindi_remind(self):
         t = TextProcessor(phone_number="1-111-1111")
         keyword, child_name, date = t.get_data_from_message(hindi_remind() + " Sai 11/09/2013")
@@ -70,6 +77,13 @@ class TextProcessorGetDataTests(TestCase):
         t = TextProcessor(phone_number="1-111-1111")
         keyword, child_name, date = t.get_data_from_message(hindi_information() + " Sai 11/09/2013")
         self.assertEqual(keyword, hindi_information())
+        self.assertEqual(child_name, "sai")
+        self.assertEqual(date, datetime(2013, 9, 11, 0, 0).date())
+
+    def test_hindi_born(self):
+        t = TextProcessor(phone_number="1-111-1111")
+        keyword, child_name, date = t.get_data_from_message(hindi_born() + " Sai 11/09/2013")
+        self.assertEqual(keyword, hindi_born())
         self.assertEqual(child_name, "sai")
         self.assertEqual(date, datetime(2013, 9, 11, 0, 0).date())
 
@@ -235,6 +249,67 @@ class TextProcessorProcessTests(TestCase):
         actual_groups = [str(g) for g in t2.get_contacts().first().group_set.all()]
         expected_groups = ['Everyone - English', 'Text Sign Ups', 'Text Sign Ups - English']
         self.assertEqual(actual_groups, expected_groups)
+
+    @patch("logging.info")
+    @patch("modules.text_processor.Texter.send")
+    def test_pregnancy_birthdate_update_english(self, texting_mock, logging_info_mock):
+        t = TextProcessor(phone_number="1-111-1114")
+        self.assertFalse(Contact.objects.filter(name="Rose", phone_number="1-111-1114").exists())
+        first_response = t.process("JOIN ROSE 25-10-2012")
+        self.assertEqual(first_response, msg_subscribe("English").format(name="Rose"))
+        texting_mock.assert_called_with(message=first_response, phone_number="1-111-1114")
+        self.assertTrue(Contact.objects.filter(name="Rose", phone_number="1-111-1114",date_of_birth=datetime(2012, 10, 25, 0, 0), preg_update=False).exists())
+        self.assertTrue(t.get_contacts().exists())
+        t2 = TextProcessor(phone_number="1-111-1114")
+        second_response = t2.process("Born ROSE 25-11-2012")
+        self.assertTrue(t2.get_contacts().exists())
+        self.assertEqual(second_response, msg_subscribe("English").format(name="Rose"))
+        texting_mock.assert_called_with(message=second_response, phone_number="1-111-1114")
+        self.assertTrue(Contact.objects.filter(name="Rose", phone_number="1-111-1114", date_of_birth=datetime(2012, 11, 25, 0, 0), preg_update=True).exists())
+        self.assertTrue(t2.get_contacts().exists())
+        actual_groups = [str(g) for g in t2.get_contacts().first().group_set.all()]
+        expected_groups = ['Everyone - English', 'Text Sign Ups', 'Text Sign Ups - English']
+        self.assertEqual(actual_groups, expected_groups)
+
+    @patch("logging.info")
+    @patch("modules.text_processor.Texter.send")
+    def test_pregnancy_birthdate_update_hindi(self, texting_mock, logging_info_mock):
+        t = TextProcessor(phone_number="1-111-1114")
+        self.assertFalse(Contact.objects.filter(name="Sanjiv", phone_number="1-111-1114").exists())
+        first_response = t.process(hindi_remind() + " Sanjiv 25-10-2012")
+        self.assertEqual(first_response, msg_subscribe("Hindi").format(name="Sanjiv"))
+        texting_mock.assert_called_with(message=first_response, phone_number="1-111-1114")
+        self.assertTrue(Contact.objects.filter(name="Sanjiv", phone_number="1-111-1114", date_of_birth=datetime(2012, 10, 25, 0, 0), preg_update=False).exists())
+        self.assertTrue(t.get_contacts().exists())
+        t2 = TextProcessor(phone_number="1-111-1114")
+        second_response = t2.process(hindi_born() + " Sanjiv 25-11-2012")
+        self.assertTrue(t2.get_contacts().exists())
+        self.assertEqual(second_response, msg_subscribe("Hindi").format(name="Sanjiv"))
+        texting_mock.assert_called_with(message=second_response, phone_number="1-111-1114")
+        self.assertTrue(Contact.objects.filter(name="Sanjiv", phone_number="1-111-1114", date_of_birth=datetime(2012, 11, 25, 0, 0), preg_update=True).exists())
+        self.assertTrue(t2.get_contacts().exists())
+        actual_groups = [str(g) for g in t2.get_contacts().first().group_set.all()]
+        expected_groups = ['Everyone - Hindi', 'Text Sign Ups', 'Text Sign Ups - Hindi']
+        self.assertEqual(actual_groups, expected_groups)
+
+    @patch("logging.error")
+    @patch("logging.info")
+    @patch("modules.text_processor.Texter.send")
+    def test_non_pregnancy_updates_dont_change_preg_update(self, texting_mock, logging_info_mock, logging_error_mock):
+        t = TextProcessor(phone_number="1-111-1114")
+        self.assertFalse(Contact.objects.filter(name="Rose", phone_number="1-111-1114").exists())
+        first_response = t.process("JOIN ROSE 25-10-2012")
+        texting_mock.assert_called_with(message=first_response, phone_number="1-111-1114")
+        self.assertTrue(Contact.objects.filter(name="Rose", phone_number="1-111-1114",date_of_birth=datetime(2012, 10, 25, 0, 0), preg_update=False).exists())
+        t2 = TextProcessor(phone_number="1-111-1114")
+        second_response = t2.process("JOIN ROSE 25-10-2012")
+        self.assertTrue(t2.get_contacts().exists())
+        self.assertEqual(second_response, msg_already_sub("English"))
+        texting_mock.assert_called_with(message=second_response, phone_number="1-111-1114")
+        logging_error_mock.assert_called_with("Contact for Rose at 1-111-1114 was subscribed but already exists!")
+        self.assertTrue(Contact.objects.filter(name="Rose", phone_number="1-111-1114").exists())
+        self.assertFalse(Contact.objects.filter(name="Rose", phone_number="1-111-1114",date_of_birth=datetime(2012, 10, 25, 0, 0), preg_update=True).exists())
+        self.assertTrue(t2.get_contacts().exists())
 
     @patch("logging.error")
     @patch("logging.info")
