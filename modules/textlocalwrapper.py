@@ -1,4 +1,5 @@
 import json
+import re
 from six.moves.urllib import request, parse
 from cshsms.settings import TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID
 

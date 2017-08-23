@@ -1,7 +1,7 @@
 from cshsms.settings import TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID
 from django.test import TestCase
 from modules.textlocalwrapper import TextLocal
-
+from mock import patch
 
 class TextLocalInboxesTests(TestCase):
 	def test_create_object(self):
@@ -37,5 +37,19 @@ class TextLocalInboxesTests(TestCase):
 		self.assertTrue(new_message2['message'] in fake_num_message_dict['910987654321'])
 		self.assertTrue(new_message2['message'] in one_message_num_dict['910987654321'])
 
-    def test_get_primary_inbox_messages(self):
-        # TODO: Write this.
+	@patch("modules.textlocalwrapper.TextLocal.get_primary_inbox")
+	def test_get_primary_inbox_messages(self, mock_primary_inbox):
+		textlocal = TextLocal(TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID)
+		mock_primary_inbox.return_value = {'inbox_id': 10001, 'num_messages': 2, 'min_time': 1010101101, 'max_time': 101010101101, 'sort_order': 'asc', 'sort_field': 'date', 'start': 0, 'limit': 1000,
+			'messages': [{'id': '000000024', 'number': 1112223334, 'message': 'Testy test', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'},
+			{'id': '00000449', 'number': 0, 'message': 'Example message testy', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}]}
+
+		self.assertIsInstance(textlocal.get_primary_inbox_messages(), list)
+		self.assertEqual(textlocal.get_primary_inbox_messages(), [{'id': '000000024', 'number': 1112223334,
+			'message': 'Testy test', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'},
+			{'id': '00000449', 'number': 0, 'message': 'Example message testy', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}])
+		mock_primary_inbox.return_value = {'inbox_id': 10001, 'num_messages': 1, 'min_time': 1010101101, 'max_time': 101010101101, 'sort_order': 'asc', 'sort_field': 'date', 'start': 0, 'limit': 1000,
+			'messages': [{'id': '000000024', 'number': 1112223334, 'message': 'Testy test', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'}]}
+		self.assertEqual(textlocal.get_primary_inbox_messages(), [{'id': '000000024', 'number': 1112223334, 'message': 'Testy test', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'}])
+		mock_primary_inbox.return_value = {'inbox_id': 10001, 'num_messages': 0, 'min_time': 1010101101, 'max_time': 101010101101, 'sort_order': 'asc', 'sort_field': 'date', 'start': 0, 'limit': 1000, 'messages': []}
+		self.assertEqual(textlocal.get_primary_inbox_messages(), [])
