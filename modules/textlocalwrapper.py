@@ -1,5 +1,6 @@
 import json
 import re
+from six import u
 from six.moves.urllib import request, parse
 from cshsms.settings import TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID
 
@@ -25,6 +26,19 @@ class TextLocal(object):
 	def get_primary_inbox_messages(self):
 		inbox = self.get_primary_inbox()
 		return inbox['messages']
+
+	def unicode_inbox_messages(self):
+		inbox = self.get_primary_inbox_messages()
+
+		for message in inbox:
+			all_matches = re.findall('09\w{2}', message['message'])
+
+			if all_matches:
+				for match in all_matches:
+					altered = u("\\u" + match)
+					message['message'] = re.sub(match, altered, message['message'])
+
+		return inbox
 
 	def is_message_new(self, message):
 		return True if message['isNew'] == True else False
