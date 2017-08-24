@@ -35,12 +35,12 @@ class TextLocalInboxesTests(TestCase):
 
     def test_new_messages_by_number(self):
         textlocal = TextLocal(TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID)
-        logging.info("sleeping for 60 before sending a text.")
+        logging.info("sleeping one minute before sending a text.")
         time.sleep(60)
         logging.info("sending text")
         texter = Texter()
         texter.send(message="This is a live test message.", phone_number=TEXTLOCAL_PHONENUMBER)
-        logging.info("sleeping for 120 before reading text")
+        logging.info("sleeping two minutes before reading text")
         time.sleep(120)
         logging.info("reading text")
         messages = textlocal.get_primary_inbox_messages()

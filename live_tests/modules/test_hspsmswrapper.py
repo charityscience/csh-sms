@@ -11,7 +11,7 @@ HSPSMS = Hspsms(apikey=HSPSMS_API, username=HSPSMS_USERNAME, sendername=HSPSMS_S
 
 class HspsmsSendingTests(TestCase):
     def test_send_message_to_fake_number(self):
-        logging.info("sleeping 60 before sending transactional message")
+        logging.info("sleeping one minute before sending transactional message")
         time.sleep(60)
         logging.info("sending transactional message")
         fr = HSPSMS.send_transactional_message(message='Example Hspsms message to fake number',
@@ -25,14 +25,15 @@ class HspsmsSendingTests(TestCase):
         self.assertEqual(fr[2]['invalidnumber'], '0000000')
 
     def test_send_transactional_message(self):
-        logging.info("sleeping 60 before sending transactional message")
+        logging.info("sleeping one minute before sending transactional message")
         time.sleep(60)
         logging.info("sending transactional message")
         fr = HSPSMS.send_transactional_message(message='Testing example message in Hspsms.',
                                                phone_number=TEXTLOCAL_PHONENUMBER)
         texter = Texter()
-        logging.info("sleeping 120 before reading the inbox")
+        logging.info("sleeping two minutes before reading the inbox")
         time.sleep(120)
+        logging.info("reading the inbox")
         new_message_dict = texter.read_inbox()
         self.assertTrue(fr)
         self.assertIsInstance(fr, list)

@@ -18,13 +18,13 @@ class TexterGetInboxesTests(TestCase):
 
 
     def test_send(self):
-        logging.info("sleeping 120 before sending a text")
+        logging.info("sleeping two minutes before sending a text")
         time.sleep(120)
         t = Texter()
         logging.info("sending text")
         send_status = t.send(message="Testing example message in Texter.",
                              phone_number=TEXTLOCAL_PHONENUMBER)
-        logging.info("sleeping 120 before reading the text")
+        logging.info("sleeping two minutes before reading the text")
         time.sleep(120)
         logging.info("reading text")
         new_message_dict = t.read_inbox()
@@ -33,16 +33,18 @@ class TexterGetInboxesTests(TestCase):
 
     @patch("logging.info")
     def test_full_e2e_english_signup_and_cancel_flow(self, logging_mock):
-        logging.info("sleeping 120 before sending a text")
+        logging.info("sleeping two minutes before sending a text")
         time.sleep(120)
         logging.info("sending text")
         t = Texter()
         send_status = t.send(message="JOIN TestPerson 30/1/2017",
                              phone_number=TEXTLOCAL_PHONENUMBER)
-        logging.info("sleeping 120 before reading the text")
+        import pdb
+        pdb.set_trace()
+        logging.info("sleeping two minutes before reading the text")
         time.sleep(120)
         logging.info("reading text")
-        new_messages = TEXTER.read_inbox()[0]
+        new_messages = t.read_inbox()[0]
         p = TextProcessor(TEXTLOCAL_PHONENUMBER)
         processed = False
         logging.info("checking text can be processed")
@@ -64,11 +66,9 @@ class TexterGetInboxesTests(TestCase):
         expected_groups = ['Everyone - English', 'Text Sign Ups', 'Text Sign Ups - English']
         self.assertEqual(actual_groups, expected_groups)
 
-        logging.info("sleeping 120 before checking for subscription text")
+        logging.info("sleeping two minutes before checking for subscription text")
         time.sleep(120)
         logging.info("checking subscription text")
-        import pdb
-        pdb.set_trace()
         # TODO write code to check
 
         logging.info("checking person can be reminded at the correct times")
@@ -80,13 +80,13 @@ class TexterGetInboxesTests(TestCase):
             # TODO: Check no messages went out
         with freeze_time("2017-02-1"): # Six weeks, one day after...
             self.assertTrue(r.remind())  # ...can be reminded
-            logging.info("sleeping for 120 before checking for reminder text")
+            logging.info("sleeping two minutes before checking for reminder text")
             time.sleep(120)
             logging.info("checking for reminder text")
             # TODO: Check that a reminder message went out
         with freeze_time("2017-02-1"): # Six weeks, seven days after...
             self.assertTrue(r.remind())  # ...can be reminded
-            logging.info("sleeping for 120 before checking for reminder text")
+            logging.info("sleeping two minutes before checking for reminder text")
             time.sleep(120)
             logging.info("checking for reminder text")
             # TODO: Check that a reminder message went out
