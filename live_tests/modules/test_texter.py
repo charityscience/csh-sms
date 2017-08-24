@@ -56,6 +56,8 @@ class TexterGetInboxesTests(TestCase):
 
         # Check person got a subscribed text
 		time.sleep(120)
+        import pdb
+        pdb.set_trace()
         # TODO write code to check
 
         # Check person can be reminded
@@ -83,9 +85,6 @@ class TexterGetInboxesTests(TestCase):
 
         # Person can no longer be reminded
         # TODO: Write code
-
-        # Clean up
-        # TODO: Delete customer and associated objects from database
 
 
     @patch("logging.info")
