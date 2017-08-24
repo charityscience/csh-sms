@@ -31,12 +31,13 @@ class TextLocal(object):
 		inbox = self.get_primary_inbox_messages()
 
 		for message in inbox:
-			all_matches = re.findall('09\w{2}', message['message'])
+			all_matches = re.findall("(?<!\\\w)09\w{2}", message['message'])
 
 			if all_matches:
-				for match in all_matches:
-					altered = u("\\u" + match)
+				for match in set(all_matches):
+					altered = "\\u" + match
 					message['message'] = re.sub(match, altered, message['message'])
+					message['message'] = message['message']
 
 		return inbox
 
