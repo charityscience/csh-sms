@@ -51,8 +51,8 @@ class TextProcessor(object):
                                          functional_date_of_birth=date_of_birth,
                                          method_of_sign_up="Text")
         for group_name in ["Text Sign Ups",
-                           "Text Sign Ups - " + language,
-                           "Everyone - " + language]:
+                           "Text Sign Ups - " + language.title(),
+                           "Everyone - " + language.title()]:
             add_contact_to_group(contact, group_name)
         self.get_contacts()
         return True

@@ -10,6 +10,11 @@ def date_string_to_date(date_string):
     pattern = "%d" + sep + "%m" + sep + year
     return datetime.strptime(date_string, pattern).date()
 
+def date_to_date_string(date):
+    return '{d}/{m}/{y}'.format(d = subscribe_date.day,
+                                m = subscribe_date.month,
+                                y = subscribe_date.year)
+
 def date_is_valid(date_string):
     try:
         date = date_string_to_date(date_string)
