@@ -25,7 +25,7 @@ class TexterGetInboxesTests(TestCase):
 
 
     @patch("logging.info")
-	def test_full_e2e(self, logging_mock):
+	def test_full_e2e_english_signup_and_cancel_flow(self, logging_mock):
 		time.sleep(120)
         t = Texter()
 		send_status = t.send(message="JOIN TestPerson 30/1/2017",
@@ -86,3 +86,8 @@ class TexterGetInboxesTests(TestCase):
 
         # Clean up
         # TODO: Delete customer and associated objects from database
+
+
+    @patch("logging.info")
+	def test_full_e2e_hindi_signup_and_cancel_flow(self, logging_mock):
+        self.assertTrue(False)
