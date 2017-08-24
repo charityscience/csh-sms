@@ -40,7 +40,7 @@ class TexterGetInboxesTests(TestCase):
                                    person_name="Testjohnson",
                                    join_keyword="JOIN")
 
-    def test_full_e2e_english_signup_and_cancel_flow(self):
+    def test_full_e2e_hindi_signup_and_cancel_flow(self):
         logging.info("running e2e full flow for sign up + cancel in Hindi...")
         self.run_flow_for_language(language="Hindi",
                                    person_name=u'\u0906\u0930\u0935',
