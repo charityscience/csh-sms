@@ -51,7 +51,7 @@ class TexterGetInboxesTests(TestCase):
         time.sleep(120)
         logging.info("sending text")
         subscribe_date = datetime(2017, 1, 30).date()
-        join_text = join_keyword + " " + person_name " " + date_to_date_string(subscribe_date)
+        join_text = join_keyword + " " + person_name + " " + date_to_date_string(subscribe_date)
         t = Texter()
         send_status = t.send(message=join_text,
                              phone_number=TEXTLOCAL_PHONENUMBER)
