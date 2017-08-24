@@ -25,7 +25,7 @@ class TexterGetInboxesTests(TestCase):
 
 
     @patch("logging.info")
-	def test_full_e2e(self, logging_mock):
+	def test_full_e2e_english_signup_and_cancel_flow(self, logging_mock):
 		time.sleep(120)
         t = Texter()
 		send_status = t.send(message="JOIN TestPerson 30/1/2017",
@@ -56,6 +56,8 @@ class TexterGetInboxesTests(TestCase):
 
         # Check person got a subscribed text
 		time.sleep(120)
+        import pdb
+        pdb.set_trace()
         # TODO write code to check
 
         # Check person can be reminded
@@ -84,5 +86,7 @@ class TexterGetInboxesTests(TestCase):
         # Person can no longer be reminded
         # TODO: Write code
 
-        # Clean up
-        # TODO: Delete customer and associated objects from database
+
+    @patch("logging.info")
+	def test_full_e2e_hindi_signup_and_cancel_flow(self, logging_mock):
+        self.assertTrue(False)

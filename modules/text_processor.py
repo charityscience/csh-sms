@@ -149,5 +149,5 @@ class TextProcessor(object):
         response_text_message = action(child_name=child_name,
                                        date_of_birth=date)
         Texter().send(message=response_text_message,
-                      phone_number=self.phone_number)  # TODO: Actually implement this.
+                      phone_number=self.phone_number)
         return response_text_message

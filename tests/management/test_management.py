@@ -20,9 +20,6 @@ def create_contact(name, days):
 
 
 class ContactModelTests(TestCase):
-    # TODO: Test validation
-    # TODO: Test group assignment
-
 	def test_has_been_born_with_future_birth(self):
 		"""
 		has_been_born() returns False for contacts whose date_of_birth

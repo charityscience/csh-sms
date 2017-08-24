@@ -1,5 +1,3 @@
-#TODO: Verify Hindi and Gujarati language.
-
 def msg_subscribe(language):
     if language == "English":
         return "{name} has been subscribed to CSH health reminders. Text STOP to unsubscribe."
