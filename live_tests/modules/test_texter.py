@@ -1,5 +1,6 @@
 import logging
 import time
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 from django.test import TestCase
@@ -148,7 +149,3 @@ class TexterGetInboxesTests(TestCase):
             logging.info("sleeping two minutes before checking for reminder text")
             time.sleep(120)
             self.assertEqual(t.read_inbox(), {})
-
-
-    def test_full_e2e_hindi_signup_and_cancel_flow(self):
-        self.assertTrue(False)
