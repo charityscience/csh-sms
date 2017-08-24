@@ -17,10 +17,10 @@ class TextReminderJobTests(TestCase):
     def test_remind_two_people(self, mocked_send_text, mocked_logger):
         c1 = contact_object(name="Roland",
                             phone_number="1-111-1111",
-                            date_of_birth="29/5/2017") # 6 weeks, 7 days ago
+                            date_of_birth="12/6/2017") # 7 days before 6 week appointment
         c2 = contact_object(name="Sai",
                             phone_number="1-112-1111",
-                            date_of_birth="29/5/2017",
+                            date_of_birth="12/6/2017",
                             language="Hindi")
         text_reminder_job.remind_all()
         calls = [call(message=TextReminder(c1).get_reminder_msg(),
@@ -36,14 +36,14 @@ class TextReminderJobTests(TestCase):
     def test_remind_two_people_but_not_the_cancelled_one(self, mocked_send_text, mocked_logger):
         c1 = contact_object(name="Roland",
                             phone_number="1-111-1111",
-                            date_of_birth="29/5/2017") # 6 weeks, 7 days ago
+                            date_of_birth="12/6/2017") # 7 days before 6 week appointment
         c2 = contact_object(name="Sai",
                             phone_number="1-112-1111",
-                            date_of_birth="29/5/2017",
+                            date_of_birth="12/6/2017",
                             language="Hindi")
         c3 = contact_object(name="Cancelled",
                             phone_number="1-111-1112",
-                            date_of_birth="29/5/2017")
+                            date_of_birth="12/6/2017")
         c3.cancelled = True
         c3.save()
         text_reminder_job.remind_all()

@@ -21,28 +21,37 @@ class TextReminderTests(TestCase):
     def test_no_eligible_reminders(self):
         tr = text_reminder_object("14/7/2017") # Born 3 days ago (relative to FAKE_NOW)
         self.assertFalse(tr.should_remind_today())
-        self.assertFalse(tr.correct_date_for_reminder(weeks=6, days=7))
-        self.assertFalse(tr.correct_date_for_reminder(weeks=6, days=1))
-        self.assertFalse(tr.correct_date_for_reminder(weeks=10, days=7))
-        self.assertFalse(tr.correct_date_for_reminder(months=9, days=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=6,
+                                                      days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=6,
+                                                      days_before_appointment=1))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=10,
+                                                      days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(months_after_birth=9,
+                                                      days_before_appointment=7))
         self.assertEqual(tr.get_reminder_msg(), None)
 
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_six_weeks_seven_days_english(self):
         tr = text_reminder_object("12/6/2017") # 7 days before the 6 week appointment
-        self.assertTrue(tr.correct_date_for_reminder(weeks=6, days=7))
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=6,
+                                                     days_before_appointment=7))
         self.assertTrue(tr.should_remind_today())
-        self.assertFalse(tr.correct_date_for_reminder(weeks=6, days=1))
-        self.assertFalse(tr.correct_date_for_reminder(weeks=10, days=7))
-        self.assertFalse(tr.correct_date_for_reminder(months=9, days=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=6,
+                                                      days_before_appointment=1))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=10,
+                                                      days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(months_after_birth=9,
+                                                      days_before_appointment=7))
         self.assertEqual(tr.get_reminder_msg(),
                          six_week_reminder_seven_days("English").format(name="Roland"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_six_weeks_seven_days_hindi(self):
         tr = text_reminder_object("12/6/2017", language="Hindi")
-        self.assertTrue(tr.correct_date_for_reminder(weeks=6, days=7))
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=6,
+                                                     days_before_appointment=7))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          six_week_reminder_seven_days('Hindi').format(name=u'\u0906\u0930\u0935'))
@@ -50,7 +59,8 @@ class TextReminderTests(TestCase):
     @freeze_time(FAKE_NOW)
     def test_remind_at_six_weeks_seven_days_gujarati(self):
         tr = text_reminder_object("12/6/2017", language="Gujarati")
-        self.assertTrue(tr.correct_date_for_reminder(weeks=6, days=7))
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=6,
+                                                     days_before_appointment=7))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          six_week_reminder_seven_days("Gujarati").format(name=u'\u0906\u0930\u0935'))
@@ -58,27 +68,33 @@ class TextReminderTests(TestCase):
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_six_weeks_one_day_english(self):
-        tr = text_reminder_object("4/6/2017") # One day before the 6 week appointment
-        self.assertTrue(tr.correct_date_for_reminder(weeks=6, days=1))
+        tr = text_reminder_object("6/6/2017") # One day before the 6 week appointment
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=6,
+                                                     days_before_appointment=1))
         self.assertTrue(tr.should_remind_today())
-        self.assertFalse(tr.correct_date_for_reminder(weeks=6, days=7))
-        self.assertFalse(tr.correct_date_for_reminder(weeks=10, days=7))
-        self.assertFalse(tr.correct_date_for_reminder(months=9, days=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=6,
+                                                      days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=10,
+                                                      days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(months_after_birth=9,
+                                                      days_before_appointment=7))
         self.assertEqual(tr.get_reminder_msg(),
                          six_week_reminder_one_day("English").format(name="Roland"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_six_weeks_one_day_hindi(self):
-        tr = text_reminder_object("4/6/2017", language="Hindi")
-        self.assertTrue(tr.correct_date_for_reminder(weeks=6, days=1))
+        tr = text_reminder_object("6/6/2017", language="Hindi")
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=6,
+                                                     days_before_appointment=1))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          six_week_reminder_one_day("Hindi").format(name=u'\u0906\u0930\u0935'))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_six_weeks_one_day_gujarati(self):
-        tr = text_reminder_object("4/6/2017", language="Gujarati")
-        self.assertTrue(tr.correct_date_for_reminder(weeks=6, days=1))
+        tr = text_reminder_object("6/6/2017", language="Gujarati")
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=6,
+                                                     days_before_appointment=1))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          six_week_reminder_one_day("Gujarati").format(name=u'\u0906\u0930\u0935'))
@@ -87,18 +103,23 @@ class TextReminderTests(TestCase):
     @freeze_time(FAKE_NOW)
     def test_remind_at_ten_weeks_seven_days_english(self):
         tr = text_reminder_object("15/5/2017") # 7 days before the 10 week appointment
-        self.assertTrue(tr.correct_date_for_reminder(weeks=10, days=7))
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=10,
+                                                     days_before_appointment=7))
         self.assertTrue(tr.should_remind_today())
-        self.assertFalse(tr.correct_date_for_reminder(weeks=10, days=1))
-        self.assertFalse(tr.correct_date_for_reminder(weeks=6, days=7))
-        self.assertFalse(tr.correct_date_for_reminder(months=9, days=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=10,
+                                                      days_before_appointment=1))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=6,
+                                                      days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(months_after_birth=9,
+                                                      days_before_appointment=7))
         self.assertEqual(tr.get_reminder_msg(),
                          ten_week_reminder_seven_days("English").format(name="Roland"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_ten_weeks_seven_days_hindi(self):
         tr = text_reminder_object("15/5/2017", language="Hindi")
-        self.assertTrue(tr.correct_date_for_reminder(weeks=10, days=7))
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=10,
+                                                     days_before_appointment=7))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          ten_week_reminder_seven_days("Hindi").format(name=u'\u0906\u0930\u0935'))
@@ -106,7 +127,8 @@ class TextReminderTests(TestCase):
     @freeze_time(FAKE_NOW)
     def test_remind_at_ten_weeks_seven_days_gujarati(self):
         tr = text_reminder_object("15/5/2017", language="Gujarati")
-        self.assertTrue(tr.correct_date_for_reminder(weeks=10, days=7))
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=10,
+                                                     days_before_appointment=7))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          ten_week_reminder_seven_days("Gujarati").format(name=u'\u0906\u0930\u0935'))
@@ -115,18 +137,23 @@ class TextReminderTests(TestCase):
     @freeze_time(FAKE_NOW)
     def test_remind_at_ten_weeks_one_day_english(self):
         tr = text_reminder_object("9/5/2017") # 1 day before the 10 week appointment
-        self.assertTrue(tr.correct_date_for_reminder(weeks=10, days=1))
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=10,
+                                                     days_before_appointment=1))
         self.assertTrue(tr.should_remind_today())
-        self.assertFalse(tr.correct_date_for_reminder(weeks=10, days=7))
-        self.assertFalse(tr.correct_date_for_reminder(weeks=6, days=7))
-        self.assertFalse(tr.correct_date_for_reminder(months=9, days=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=10,
+                                                      days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=6,
+                                                      days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(months_after_birth=9,
+                                                      days_before_appointment=7))
         self.assertEqual(tr.get_reminder_msg(),
                          ten_week_reminder_one_day("English").format(name="Roland"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_ten_weeks_one_day_hindi(self):
         tr = text_reminder_object("9/5/2017", language="Hindi")
-        self.assertTrue(tr.correct_date_for_reminder(weeks=10, days=1))
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=10,
+                                                     days_before_appointment=1))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          ten_week_reminder_one_day("Hindi").format(name=u'\u0906\u0930\u0935'))
@@ -134,7 +161,8 @@ class TextReminderTests(TestCase):
     @freeze_time(FAKE_NOW)
     def test_remind_at_ten_weeks_one_day_gujarati(self):
         tr = text_reminder_object("9/5/2017", language="Gujarati")
-        self.assertTrue(tr.correct_date_for_reminder(weeks=10, days=1))
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=10,
+                                                     days_before_appointment=1))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          ten_week_reminder_one_day("Gujarati").format(name=u'\u0906\u0930\u0935'))
@@ -143,18 +171,23 @@ class TextReminderTests(TestCase):
     @freeze_time(FAKE_NOW)
     def test_remind_at_fourteen_weeks_seven_days_english(self):
         tr = text_reminder_object("17/4/2017") # 7 days before the 14 week appointment
-        self.assertTrue(tr.correct_date_for_reminder(weeks=14, days=7))
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=14,
+                                                     days_before_appointment=7))
         self.assertTrue(tr.should_remind_today())
-        self.assertFalse(tr.correct_date_for_reminder(weeks=10, days=1))
-        self.assertFalse(tr.correct_date_for_reminder(weeks=6, days=7))
-        self.assertFalse(tr.correct_date_for_reminder(months=9, days=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=10,
+                                                      days_before_appointment=1))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=6,
+                                                      days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(months_after_birth=9,
+                                                      days_before_appointment=7))
         self.assertEqual(tr.get_reminder_msg(),
                          fourteen_week_reminder_seven_days("English").format(name="Roland"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_fourteen_weeks_seven_days_hindi(self):
         tr = text_reminder_object("17/4/2017", language="Hindi")
-        self.assertTrue(tr.correct_date_for_reminder(weeks=14, days=7))
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=14,
+                                                     days_before_appointment=7))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          fourteen_week_reminder_seven_days("Hindi").format(name=u'\u0906\u0930\u0935'))
@@ -162,7 +195,8 @@ class TextReminderTests(TestCase):
     @freeze_time(FAKE_NOW)
     def test_remind_at_fourteen_weeks_seven_days_gujarati(self):
         tr = text_reminder_object("17/4/2017", language="Gujarati")
-        self.assertTrue(tr.correct_date_for_reminder(weeks=14, days=7))
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=14,
+                                                     days_before_appointment=7))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          fourteen_week_reminder_seven_days("Gujarati").format(name=u'\u0906\u0930\u0935'))
@@ -171,18 +205,23 @@ class TextReminderTests(TestCase):
     @freeze_time(FAKE_NOW)
     def test_remind_at_fourteen_weeks_one_day_english(self):
         tr = text_reminder_object("11/4/2017") # 1 day before the 14 week appointment
-        self.assertTrue(tr.correct_date_for_reminder(weeks=14, days=1))
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=14,
+                                                     days_before_appointment=1))
         self.assertTrue(tr.should_remind_today())
-        self.assertFalse(tr.correct_date_for_reminder(weeks=10, days=7))
-        self.assertFalse(tr.correct_date_for_reminder(weeks=6, days=7))
-        self.assertFalse(tr.correct_date_for_reminder(months=9, days=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=10,
+                                                      days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=6,
+                                                      days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(months_after_birth=9,
+                                                      days_before_appointment=7))
         self.assertEqual(tr.get_reminder_msg(),
                          fourteen_week_reminder_one_day("English").format(name="Roland"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_fourteen_weeks_one_day_hindi(self):
         tr = text_reminder_object("11/4/2017", language="Hindi")
-        self.assertTrue(tr.correct_date_for_reminder(weeks=14, days=1))
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=14,
+                                                     days_before_appointment=1))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          fourteen_week_reminder_one_day("Hindi").format(name=u'\u0906\u0930\u0935'))
@@ -190,7 +229,8 @@ class TextReminderTests(TestCase):
     @freeze_time(FAKE_NOW)
     def test_remind_at_fourteen_weeks_one_day_gujarati(self):
         tr = text_reminder_object("11/4/2017", language="Gujarati")
-        self.assertTrue(tr.correct_date_for_reminder(weeks=14, days=1))
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=14,
+                                                     days_before_appointment=1))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          fourteen_week_reminder_one_day("Gujarati").format(name=u'\u0906\u0930\u0935'))
@@ -199,18 +239,23 @@ class TextReminderTests(TestCase):
     @freeze_time(FAKE_NOW)
     def test_remind_at_nine_months_seven_days_english(self):
         tr = text_reminder_object("24/10/2016") # 7 days before the 9 month appointment
-        self.assertTrue(tr.correct_date_for_reminder(months=9, days=7))
+        self.assertTrue(tr.correct_date_for_reminder(months_after_birth=9,
+                                                     days_before_appointment=7))
         self.assertTrue(tr.should_remind_today())
-        self.assertFalse(tr.correct_date_for_reminder(weeks=10, days=1))
-        self.assertFalse(tr.correct_date_for_reminder(weeks=6, days=7))
-        self.assertFalse(tr.correct_date_for_reminder(weeks=14, days=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=10,
+                                                      days_before_appointment=1))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=6,
+                                                      days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=14,
+                                                      days_before_appointment=7))
         self.assertEqual(tr.get_reminder_msg(),
                          nine_month_reminder_seven_days("English").format(name="Roland"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_nine_months_seven_days_hindi(self):
         tr = text_reminder_object("24/10/2016", language="Hindi")
-        self.assertTrue(tr.correct_date_for_reminder(months=9, days=7))
+        self.assertTrue(tr.correct_date_for_reminder(months_after_birth=9,
+                                                     days_before_appointment=7))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          nine_month_reminder_seven_days("Hindi").format(name=u'\u0906\u0930\u0935'))
@@ -218,7 +263,8 @@ class TextReminderTests(TestCase):
     @freeze_time(FAKE_NOW)
     def test_remind_at_nine_months_seven_days_gujarati(self):
         tr = text_reminder_object("24/10/2016", language="Gujarati")
-        self.assertTrue(tr.correct_date_for_reminder(months=9, days=7))
+        self.assertTrue(tr.correct_date_for_reminder(months_after_birth=9,
+                                                     days_before_appointment=7))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          nine_month_reminder_seven_days("Gujarati").format(name=u'\u0906\u0930\u0935'))
@@ -227,18 +273,23 @@ class TextReminderTests(TestCase):
     @freeze_time(FAKE_NOW)
     def test_remind_at_nine_months_one_day_english(self):
         tr = text_reminder_object("18/10/2016") # 1 day before the 9 month appointment
-        self.assertTrue(tr.correct_date_for_reminder(months=9, days=1))
+        self.assertTrue(tr.correct_date_for_reminder(months_after_birth=9,
+                                                     days_before_appointment=1))
         self.assertTrue(tr.should_remind_today())
-        self.assertFalse(tr.correct_date_for_reminder(weeks=10, days=1))
-        self.assertFalse(tr.correct_date_for_reminder(weeks=6, days=1))
-        self.assertFalse(tr.correct_date_for_reminder(months=9, days=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=10,
+                                                      days_before_appointment=1))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=6,
+                                                      days_before_appointment=1))
+        self.assertFalse(tr.correct_date_for_reminder(months_after_birth=9,
+                                                      days_before_appointment=7))
         self.assertEqual(tr.get_reminder_msg(),
                          nine_month_reminder_one_day("English").format(name="Roland"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_nine_months_one_day_hindi(self):
         tr = text_reminder_object("18/10/2016", language="Hindi")
-        self.assertTrue(tr.correct_date_for_reminder(months=9, days=1))
+        self.assertTrue(tr.correct_date_for_reminder(months_after_birth=9,
+                                                     days_before_appointment=1))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          nine_month_reminder_one_day("Hindi").format(name=u'\u0906\u0930\u0935'))
@@ -246,7 +297,8 @@ class TextReminderTests(TestCase):
     @freeze_time(FAKE_NOW)
     def test_remind_at_nine_months_one_day_gujarati(self):
         tr = text_reminder_object("18/10/2016", language="Gujarati")
-        self.assertTrue(tr.correct_date_for_reminder(months=9, days=1))
+        self.assertTrue(tr.correct_date_for_reminder(months_after_birth=9,
+                                                     days_before_appointment=1))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          nine_month_reminder_one_day("Gujarati").format(name=u'\u0906\u0930\u0935'))
@@ -255,18 +307,23 @@ class TextReminderTests(TestCase):
     @freeze_time(FAKE_NOW)
     def test_remind_at_sixteen_months_seven_days_english(self):
         tr = text_reminder_object("24/3/2016") # 7 days before the 16 month appointment
-        self.assertTrue(tr.correct_date_for_reminder(months=16, days=7))
+        self.assertTrue(tr.correct_date_for_reminder(months_after_birth=16,
+                                                     days_before_appointment=7))
         self.assertTrue(tr.should_remind_today())
-        self.assertFalse(tr.correct_date_for_reminder(weeks=10, days=1))
-        self.assertFalse(tr.correct_date_for_reminder(weeks=6, days=7))
-        self.assertFalse(tr.correct_date_for_reminder(months=16, days=1))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=10,
+                                                      days_before_appointment=1))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=6,
+                                                      days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(months_after_birth=16,
+                                                      days_before_appointment=1))
         self.assertEqual(tr.get_reminder_msg(),
                          sixteen_month_reminder_seven_days("English").format(name="Roland"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_sixteen_months_seven_days_hindi(self):
         tr = text_reminder_object("24/3/2016", language="Hindi")
-        self.assertTrue(tr.correct_date_for_reminder(months=16, days=7))
+        self.assertTrue(tr.correct_date_for_reminder(months_after_birth=16,
+                                                     days_before_appointment=7))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          sixteen_month_reminder_seven_days("Hindi").format(name=u'\u0906\u0930\u0935'))
@@ -274,7 +331,8 @@ class TextReminderTests(TestCase):
     @freeze_time(FAKE_NOW)
     def test_remind_at_sixteen_months_seven_days_gujarati(self):
         tr = text_reminder_object("24/3/2016", language="Gujarati")
-        self.assertTrue(tr.correct_date_for_reminder(months=16, days=7))
+        self.assertTrue(tr.correct_date_for_reminder(months_after_birth=16,
+                                                     days_before_appointment=7))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          sixteen_month_reminder_seven_days("Gujarati").format(name=u'\u0906\u0930\u0935'))
@@ -283,18 +341,23 @@ class TextReminderTests(TestCase):
     @freeze_time(FAKE_NOW)
     def test_remind_at_sixteen_months_one_day_english(self):
         tr = text_reminder_object("18/3/2016") # 1 day before the 16 month appointment
-        self.assertTrue(tr.correct_date_for_reminder(months=16, days=1))
+        self.assertTrue(tr.correct_date_for_reminder(months_after_birth=16,
+                                                     days_before_appointment=1))
         self.assertTrue(tr.should_remind_today())
-        self.assertFalse(tr.correct_date_for_reminder(weeks=10, days=7))
-        self.assertFalse(tr.correct_date_for_reminder(weeks=6, days=7))
-        self.assertFalse(tr.correct_date_for_reminder(months=16, days=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=10,
+                                                      days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=6,
+                                                      days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(months_after_birth=16,
+                                                      days_before_appointment=7))
         self.assertEqual(tr.get_reminder_msg(),
                          sixteen_month_reminder_one_day("English").format(name="Roland"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_sixteen_months_one_day_hindi(self):
         tr = text_reminder_object("18/3/2016", language="Hindi")
-        self.assertTrue(tr.correct_date_for_reminder(months=16, days=1))
+        self.assertTrue(tr.correct_date_for_reminder(months_after_birth=16,
+                                                     days_before_appointment=1))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          sixteen_month_reminder_one_day("Hindi").format(name=u'\u0906\u0930\u0935'))
@@ -302,7 +365,8 @@ class TextReminderTests(TestCase):
     @freeze_time(FAKE_NOW)
     def test_remind_at_sixteen_months_one_day_gujarati(self):
         tr = text_reminder_object("18/3/2016", language="Gujarati")
-        self.assertTrue(tr.correct_date_for_reminder(months=16, days=1))
+        self.assertTrue(tr.correct_date_for_reminder(months_after_birth=16,
+                                                     days_before_appointment=1))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          sixteen_month_reminder_one_day("Gujarati").format(name=u'\u0906\u0930\u0935'))
@@ -311,18 +375,23 @@ class TextReminderTests(TestCase):
     @freeze_time(FAKE_NOW)
     def test_remind_at_five_years_seven_days_english(self):
         tr = text_reminder_object("24/7/2012") # 7 days before the 5 year appointment
-        self.assertTrue(tr.correct_date_for_reminder(years=5, days=7))
+        self.assertTrue(tr.correct_date_for_reminder(years_after_birth=5,
+                                                     days_before_appointment=7))
         self.assertTrue(tr.should_remind_today())
-        self.assertFalse(tr.correct_date_for_reminder(weeks=10, days=1))
-        self.assertFalse(tr.correct_date_for_reminder(weeks=6, days=7))
-        self.assertFalse(tr.correct_date_for_reminder(years=5, days=1))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=10,
+                                                      days_before_appointment=1))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=6,
+                                                      days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(years_after_birth=5,
+                                                      days_before_appointment=1))
         self.assertEqual(tr.get_reminder_msg(),
                          five_year_reminder_seven_days("English").format(name="Roland"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_five_years_seven_days_hindi(self):
         tr = text_reminder_object("24/7/2012", language="Hindi")
-        self.assertTrue(tr.correct_date_for_reminder(years=5, days=7))
+        self.assertTrue(tr.correct_date_for_reminder(years_after_birth=5,
+                                                     days_before_appointment=7))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          five_year_reminder_seven_days("Hindi").format(name=u'\u0906\u0930\u0935'))
@@ -330,7 +399,8 @@ class TextReminderTests(TestCase):
     @freeze_time(FAKE_NOW)
     def test_remind_at_five_years_seven_days_gujarati(self):
         tr = text_reminder_object("24/7/2012", language="Gujarati")
-        self.assertTrue(tr.correct_date_for_reminder(years=5, days=7))
+        self.assertTrue(tr.correct_date_for_reminder(years_after_birth=5,
+                                                     days_before_appointment=7))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          five_year_reminder_seven_days("Gujarati").format(name=u'\u0906\u0930\u0935'))
@@ -339,18 +409,23 @@ class TextReminderTests(TestCase):
     @freeze_time(FAKE_NOW)
     def test_remind_at_five_years_one_day_english(self):
         tr = text_reminder_object("18/7/2012") # 1 day before the 5 year appointment
-        self.assertTrue(tr.correct_date_for_reminder(years=5, days=1))
+        self.assertTrue(tr.correct_date_for_reminder(years_after_birth=5,
+                                                     days_before_appointment=1))
         self.assertTrue(tr.should_remind_today())
-        self.assertFalse(tr.correct_date_for_reminder(weeks=10, days=7))
-        self.assertFalse(tr.correct_date_for_reminder(weeks=6, days=7))
-        self.assertFalse(tr.correct_date_for_reminder(years=5, days=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=10,
+                                                      days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=6,
+                                                      days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(years_after_birth=5,
+                                                      days_before_appointment=7))
         self.assertEqual(tr.get_reminder_msg(),
                          five_year_reminder_one_day("English").format(name="Roland"))
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_five_years_one_day_hindi(self):
         tr = text_reminder_object("18/7/2012", language="Hindi")
-        self.assertTrue(tr.correct_date_for_reminder(years=5, days=1))
+        self.assertTrue(tr.correct_date_for_reminder(years_after_birth=5,
+                                                     days_before_appointment=1))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          five_year_reminder_one_day("Hindi").format(name=u'\u0906\u0930\u0935'))
@@ -358,7 +433,8 @@ class TextReminderTests(TestCase):
     @freeze_time(FAKE_NOW)
     def test_remind_at_five_years_one_day_gujarati(self):
         tr = text_reminder_object("18/7/2012", language="Gujarati")
-        self.assertTrue(tr.correct_date_for_reminder(years=5, days=1))
+        self.assertTrue(tr.correct_date_for_reminder(years_after_birth=5,
+                                                     days_before_appointment=1))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          five_year_reminder_one_day("Gujarati").format(name=u'\u0906\u0930\u0935'))
