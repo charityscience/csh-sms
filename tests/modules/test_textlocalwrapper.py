@@ -8,11 +8,11 @@ from mock import patch
 
 class TextLocalInboxesTests(TestCase):
 	def test_create_object(self):
-		textlocal = TextLocal(TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID)
+		textlocal = TextLocal(apikey='mock_key', primary_id='mock_id')
 		self.assertIsInstance(textlocal, TextLocal)
 
 	def test_is_message_new(self):
-		textlocal = TextLocal(TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID)
+		textlocal = TextLocal(apikey='mock_key', primary_id='mock_id')
 		new_message = {'number': '910987654321', 'message': 'New message',
 			'isNew': True}
 		old_message = {'number': '910987654321', 'message': 'Old message',
@@ -22,7 +22,7 @@ class TextLocalInboxesTests(TestCase):
 		self.assertFalse(textlocal.is_message_new(old_message))
 
 	def test_new_messages_by_number(self):
-		textlocal = TextLocal(TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID)
+		textlocal = TextLocal(apikey='mock_key', primary_id='mock_id')
 		new_message = {'number': '910987654321', 'message': 'New message',
 			'isNew': True}
 		new_message2 = {'number': '910987654321', 'message': 'Newer message',
@@ -41,18 +41,32 @@ class TextLocalInboxesTests(TestCase):
 		self.assertTrue(new_message2['message'] in one_message_num_dict['910987654321'])
 
 	@patch("modules.textlocalwrapper.request")
-    def test_get_primary_inbox_messages(self, mock_request):
-        class MockResponse():
-            def read(self):
-                return json.dumps({'messages': 'yay'}).encode('latin1')
-        mock_request.urlopen.return_value = MockResponse()
-        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id')
-        self.assertEqual(textlocal.get_primary_inbox_messages(), 'yay')
+	def test_get_primary_inbox_messages(self, mock_request):
+		class MockResponse():
+			def __init__(self, read_value):
+				self.read_value = read_value
 
-	
+			def read(self):
+				return self.read_value
+
+		mock_request.urlopen.return_value = MockResponse(read_value=json.dumps({'messages': ['yay']}).encode('latin1'))
+		textlocal = TextLocal(apikey='mock_key', primary_id='mock_id')
+		self.assertEqual(textlocal.get_primary_inbox_messages(), ['yay'])
+		mock_request.urlopen.return_value = MockResponse(read_value=json.dumps({'messages': [{'id': '000000024', 'number': 1112223334,
+			'message': 'Testy test', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'},
+			{'id': '00000449', 'number': 0, 'message': 'Example message testy', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}]}).encode('latin1'))
+		self.assertEqual(textlocal.get_primary_inbox_messages(), [{'id': '000000024', 'number': 1112223334,
+			'message': 'Testy test', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'},
+			{'id': '00000449', 'number': 0, 'message': 'Example message testy', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}])
+		mock_request.urlopen.return_value = MockResponse(read_value=json.dumps({'inbox_id': 10001, 'num_messages': 1, 'min_time': 1010101101, 'max_time': 101010101101, 'sort_order': 'asc', 'sort_field': 'date', 'start': 0, 'limit': 1000,
+			'messages': [{'id': '000000024', 'number': 1112223334, 'message': 'Testy test', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'}]}).encode('latin1'))
+		self.assertEqual(textlocal.get_primary_inbox_messages(), [{'id': '000000024', 'number': 1112223334, 'message': 'Testy test', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'}])
+		mock_request.urlopen.return_value = MockResponse(read_value=json.dumps({'inbox_id': 10001, 'num_messages': 0, 'min_time': 1010101101, 'max_time': 101010101101, 'sort_order': 'asc', 'sort_field': 'date', 'start': 0, 'limit': 1000, 'messages': []}).encode('latin1'))
+		self.assertEqual(textlocal.get_primary_inbox_messages(), [])
+
 	@patch("modules.textlocalwrapper.TextLocal.get_primary_inbox_messages")
 	def test_unicode_inbox_messages(self, mock_primary_inbox_messages):
-		textlocal = TextLocal(TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID)
+		textlocal = TextLocal(apikey='mock_key', primary_id='mock_id')
 		mock_primary_inbox_messages.return_value = [{'id': '000000024', 'number': 1112223334, 'message': 'Testy test', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'},
 			{'id': '00000449', 'number': 0, 'message': 'Example message testy', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}]
 
