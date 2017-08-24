@@ -37,7 +37,6 @@ class TextLocal(object):
 				for match in set(all_matches):
 					altered = "\\u" + match
 					message['message'] = re.sub(match, altered, message['message'])
-					message['message'] = message['message']
 
 		return inbox
 
