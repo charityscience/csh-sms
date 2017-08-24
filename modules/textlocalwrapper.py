@@ -48,5 +48,4 @@ class TextLocal(object):
 		for message in messages:
 			if self.is_message_new(message):
 				num_message_dict.setdefault(message['number'], []).append(message['message'])
-
 		return num_message_dict
