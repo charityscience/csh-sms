@@ -1,8 +1,9 @@
 #TODO: Verify Hindi and Gujarati language.
+from cshsms.settings import TEXTLOCAL_PHONENUMBER
 
 def msg_subscribe(language):
     if language == "English":
-        return "{name} has been subscribed to CSH health reminders. Text STOP to unsubscribe."
+        return "{name} has been subscribed to CSH health reminders. Text STOP to " + TEXTLOCAL_PHONENUMBER + " to unsubscribe."
     elif language == "Hindi":
         return u'{name} \u0938\u0940 \u090f\u0938 \u090f\u091a \u0939\u0947\u0932\u094d\u0925 \u0905\u0928\u0941\u0938\u094d\u092e\u0930\u0928 \u0915\u0947 \u0938\u0926\u0938\u094d\u092f \u0939\u0948\u0902. \u0938\u0926\u0938\u094d\u092f\u0924\u093e \u0930\u0926\u094d\u0926 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f STOP \u0932\u093f\u0916\u0947\u0902.'
 
@@ -31,7 +32,7 @@ def msg_placeholder_child(language):
 
 def msg_failure(language):
     if language == "English":
-        return "Sorry, we didn't understand that message. Text STOP to unsubscribe."
+        return "Sorry, we didn't understand that message. Text STOP to " + TEXTLOCAL_PHONENUMBER + " to unsubscribe."
     elif language == "Hindi":
         return u'\u0915\u094d\u0937\u092e\u093e \u0915\u0930\u0947\u0902, \u0939\u092e\u0928\u0947 \u0909\u0938 \u0938\u0902\u0926\u0947\u0936 \u0915\u094b \u0928\u0939\u0940\u0902 \u0938\u092e\u091d\u093e.'
 
