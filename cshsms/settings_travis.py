@@ -1,3 +1,5 @@
+import os
+
 SECRET_KEY = 'LONGstringOFsecrets'
 
 DATABASES = {

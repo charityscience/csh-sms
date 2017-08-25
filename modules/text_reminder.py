@@ -26,39 +26,44 @@ class TextReminder(object):
             self.contact.refresh_from_db()
         return self.contact
 
-    def correct_date_for_reminder(self, years=0, months=0, weeks=0, days=0):
-        delta = relativedelta(years=years, months=months, weeks=weeks, days=days)
-        return self.date_of_birth == (datetime.now() - delta).date()
+    def correct_date_for_reminder(self, years_after_birth=0, months_after_birth=0,
+                                  weeks_after_birth=0, days_before_appointment=0):
+        time_after_dob = relativedelta(years=years_after_birth,
+                                       months=months_after_birth,
+                                       weeks=weeks_after_birth)
+        time_before_appointment = relativedelta(days=days_before_appointment)
+        target_date = (datetime.now() - time_after_dob + time_before_appointment).date()
+        return self.date_of_birth == target_date
 
     def get_reminder_msg(self):
         if self.preg_signup_check():
-            if self.correct_date_for_reminder(weeks=2, days=0):
+            if self.correct_date_for_reminder(weeks_after_birth=2, days_before_appointment=0):
                 reminder = verify_pregnant_signup_birthdate
-            elif self.correct_date_for_reminder(weeks=4, days=0):
+            elif self.correct_date_for_reminder(weeks_after_birth=4, days_before_appointment=0):
                 reminder = verify_pregnant_signup_birthdate
-        elif self.correct_date_for_reminder(weeks=6, days=7):
+        elif self.correct_date_for_reminder(weeks_after_birth=6, days_before_appointment=7):
             reminder = six_week_reminder_seven_days
-        elif self.correct_date_for_reminder(weeks=6, days=1):
+        elif self.correct_date_for_reminder(weeks_after_birth=6, days_before_appointment=1):
             reminder = six_week_reminder_one_day
-        elif self.correct_date_for_reminder(weeks=10, days=7):
+        elif self.correct_date_for_reminder(weeks_after_birth=10, days_before_appointment=7):
             reminder = ten_week_reminder_seven_days
-        elif self.correct_date_for_reminder(weeks=10, days=1):
+        elif self.correct_date_for_reminder(weeks_after_birth=10, days_before_appointment=1):
             reminder = ten_week_reminder_one_day
-        elif self.correct_date_for_reminder(weeks=14, days=7):
+        elif self.correct_date_for_reminder(weeks_after_birth=14, days_before_appointment=7):
             reminder = fourteen_week_reminder_seven_days
-        elif self.correct_date_for_reminder(weeks=14, days=1):
+        elif self.correct_date_for_reminder(weeks_after_birth=14, days_before_appointment=1):
             reminder = fourteen_week_reminder_one_day
-        elif self.correct_date_for_reminder(months=9, days=7):
+        elif self.correct_date_for_reminder(months_after_birth=9, days_before_appointment=7):
             reminder = nine_month_reminder_seven_days
-        elif self.correct_date_for_reminder(months=9, days=1):
+        elif self.correct_date_for_reminder(months_after_birth=9, days_before_appointment=1):
             reminder = nine_month_reminder_one_day
-        elif self.correct_date_for_reminder(months=16, days=7):
+        elif self.correct_date_for_reminder(months_after_birth=16, days_before_appointment=7):
             reminder = sixteen_month_reminder_seven_days
-        elif self.correct_date_for_reminder(months=16, days=1):
+        elif self.correct_date_for_reminder(months_after_birth=16, days_before_appointment=1):
             reminder = sixteen_month_reminder_one_day
-        elif self.correct_date_for_reminder(years=5, days=7):
+        elif self.correct_date_for_reminder(years_after_birth=5, days_before_appointment=7):
             reminder = five_year_reminder_seven_days
-        elif self.correct_date_for_reminder(years=5, days=1):
+        elif self.correct_date_for_reminder(years_after_birth=5, days_before_appointment=1):
             reminder = five_year_reminder_one_day
         else:
             reminder = None
