@@ -16,9 +16,9 @@ import os
 
 
 if not os.getenv('IS_TRAVIS', False):
-    from cshsms.settings_secret import SECRET_KEY, DATABASES, REMOTE
+    from cshsms.settings_secret import SECRET_KEY, DATABASES, REMOTE, TEXTLOCAL_PHONENUMBER
 else:
-    from cshsms.settings_travis import SECRET_KEY, DATABASES, REMOTE
+    from cshsms.settings_travis import SECRET_KEY, DATABASES, REMOTE, TEXTLOCAL_PHONENUMBER
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
