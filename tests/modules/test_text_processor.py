@@ -250,9 +250,8 @@ class TextProcessorProcessTests(TestCase):
         expected_groups = ['Everyone - English', 'Text Sign Ups', 'Text Sign Ups - English']
         self.assertEqual(actual_groups, expected_groups)
 
-    @patch("logging.info")
     @patch("modules.text_processor.Texter.send")
-    def test_pregnancy_birthdate_update_english(self, texting_mock, logging_info_mock):
+    def test_text_in_pregnancy_birthdate_update_english(self, texting_mock):
         t = TextProcessor(phone_number="1-111-1114")
         self.assertFalse(Contact.objects.filter(name="Rose", phone_number="1-111-1114").exists())
         first_response = t.process("JOIN ROSE 25-10-2012")
@@ -265,15 +264,30 @@ class TextProcessorProcessTests(TestCase):
         self.assertTrue(t2.get_contacts().exists())
         self.assertEqual(second_response, msg_subscribe("English").format(name="Rose"))
         texting_mock.assert_called_with(message=second_response, phone_number="1-111-1114")
+        self.assertFalse(Contact.objects.filter(name="Rose", phone_number="1-111-1114",date_of_birth=datetime(2012, 10, 25, 0, 0), preg_update=False).exists())
+        self.assertFalse(Contact.objects.filter(name="Rose", phone_number="1-111-1114",date_of_birth=datetime(2012, 11, 25, 0, 0), preg_update=False).exists())
         self.assertTrue(Contact.objects.filter(name="Rose", phone_number="1-111-1114", date_of_birth=datetime(2012, 11, 25, 0, 0), preg_update=True).exists())
         self.assertTrue(t2.get_contacts().exists())
         actual_groups = [str(g) for g in t2.get_contacts().first().group_set.all()]
         expected_groups = ['Everyone - English', 'Text Sign Ups', 'Text Sign Ups - English']
         self.assertEqual(actual_groups, expected_groups)
 
-    @patch("logging.info")
     @patch("modules.text_processor.Texter.send")
-    def test_pregnancy_birthdate_update_hindi(self, texting_mock, logging_info_mock):
+    def test_existing_contact_pregnancy_birthdate_update_english(self, texting_mock):
+        new_contact, _ = Contact.objects.update_or_create(name="Tina", phone_number="910003456789", language_preference="English", date_of_birth=datetime(2017, 7, 10, 0, 0), preg_signup=True)
+        t3 = TextProcessor(phone_number="910003456789")
+        self.assertTrue(t3.get_contacts().exists())
+        self.assertTrue(Contact.objects.filter(name="Tina", phone_number="910003456789", language_preference="English", date_of_birth=datetime(2017, 7, 10, 0, 0), preg_signup=True, preg_update=False).exists())
+        existing_contact_update = t3.process("Born Tina 25-07-2017")
+        self.assertEqual(existing_contact_update, msg_subscribe("English").format(name="Tina"))
+        texting_mock.assert_called_with(message=existing_contact_update, phone_number="910003456789")
+        self.assertFalse(Contact.objects.filter(name="Tina", phone_number="910003456789", language_preference="English", date_of_birth=datetime(2017, 7, 10, 0, 0), preg_signup=True, preg_update=False).exists())
+        self.assertFalse(Contact.objects.filter(name="Tina", phone_number="910003456789", language_preference="English", date_of_birth=datetime(2017, 7, 25, 0, 0), preg_signup=True, preg_update=False).exists())
+        self.assertTrue(Contact.objects.filter(name="Tina", phone_number="910003456789", language_preference="English", date_of_birth=datetime(2017, 7, 25, 0, 0), preg_signup=True, preg_update=True).exists())
+        new_contact.delete()
+
+    @patch("modules.text_processor.Texter.send")
+    def test_text_in_pregnancy_birthdate_update_hindi(self, texting_mock):
         t = TextProcessor(phone_number="1-111-1114")
         self.assertFalse(Contact.objects.filter(name="Sanjiv", phone_number="1-111-1114").exists())
         first_response = t.process(hindi_remind() + " Sanjiv 25-10-2012")
@@ -286,11 +300,27 @@ class TextProcessorProcessTests(TestCase):
         self.assertTrue(t2.get_contacts().exists())
         self.assertEqual(second_response, msg_subscribe("Hindi").format(name="Sanjiv"))
         texting_mock.assert_called_with(message=second_response, phone_number="1-111-1114")
+        self.assertFalse(Contact.objects.filter(name="Sanjiv", phone_number="1-111-1114", date_of_birth=datetime(2012, 10, 25, 0, 0), preg_update=False).exists())
+        self.assertFalse(Contact.objects.filter(name="Sanjiv", phone_number="1-111-1114", date_of_birth=datetime(2012, 11, 25, 0, 0), preg_update=False).exists())
         self.assertTrue(Contact.objects.filter(name="Sanjiv", phone_number="1-111-1114", date_of_birth=datetime(2012, 11, 25, 0, 0), preg_update=True).exists())
         self.assertTrue(t2.get_contacts().exists())
         actual_groups = [str(g) for g in t2.get_contacts().first().group_set.all()]
         expected_groups = ['Everyone - Hindi', 'Text Sign Ups', 'Text Sign Ups - Hindi']
         self.assertEqual(actual_groups, expected_groups)
+
+    @patch("modules.text_processor.Texter.send")
+    def test_existing_contact_pregnancy_birthdate_update_hindi(self, texting_mock):
+        new_contact, _ = Contact.objects.update_or_create(name="Sanjiv", phone_number="910003456789", language_preference="Hindi", date_of_birth=datetime(2017, 7, 10, 0, 0), preg_signup=True)
+        t3 = TextProcessor(phone_number="910003456789")
+        self.assertTrue(t3.get_contacts().exists())
+        self.assertTrue(Contact.objects.filter(name="Sanjiv", phone_number="910003456789", language_preference="Hindi", date_of_birth=datetime(2017, 7, 10, 0, 0), preg_signup=True, preg_update=False).exists())
+        existing_contact_update = t3.process(hindi_born() + " Sanjiv 25-07-2017")
+        self.assertEqual(existing_contact_update, msg_subscribe("Hindi").format(name="Sanjiv"))
+        texting_mock.assert_called_with(message=existing_contact_update, phone_number="910003456789")
+        self.assertFalse(Contact.objects.filter(name="Sanjiv", phone_number="910003456789", language_preference="Hindi", date_of_birth=datetime(2017, 7, 10, 0, 0), preg_signup=True, preg_update=False).exists())
+        self.assertFalse(Contact.objects.filter(name="Sanjiv", phone_number="910003456789", language_preference="Hindi", date_of_birth=datetime(2017, 7, 25, 0, 0), preg_signup=True, preg_update=False).exists())
+        self.assertTrue(Contact.objects.filter(name="Sanjiv", phone_number="910003456789", language_preference="Hindi", date_of_birth=datetime(2017, 7, 25, 0, 0), preg_signup=True, preg_update=True).exists())
+        new_contact.delete()
 
     @patch("logging.error")
     @patch("logging.info")
