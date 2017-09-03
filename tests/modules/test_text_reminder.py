@@ -538,7 +538,7 @@ class TextReminderTests(TestCase):
         update_no_signup = text_reminder_object("19/6/2017", language="English", preg_signup=False, preg_update=True) # 4 weeks, 0 days ago
         self.assertIsNone(update_no_signup.get_reminder_msg())
         self.assertFalse(update_no_signup.should_remind_today())
-        signup_and_update = text_reminder_object("19/6/2017", language="English", preg_signup=False, preg_update=True) # 4 weeks, 0 days ago
+        signup_and_update = text_reminder_object("19/6/2017", language="English", preg_signup=True, preg_update=True) # 4 weeks, 0 days ago
         self.assertIsNone(signup_and_update.get_reminder_msg())
         self.assertFalse(signup_and_update.should_remind_today())
 
@@ -579,6 +579,6 @@ class TextReminderTests(TestCase):
         update_no_signup = text_reminder_object("19/6/2017", language="Hindi", preg_signup=False, preg_update=True) # 4 weeks, 0 days ago
         self.assertIsNone(update_no_signup.get_reminder_msg())
         self.assertFalse(update_no_signup.should_remind_today())
-        signup_and_update = text_reminder_object("19/6/2017", language="Hindi", preg_signup=False, preg_update=True) # 4 weeks, 0 days ago
+        signup_and_update = text_reminder_object("19/6/2017", language="Hindi", preg_signup=True, preg_update=True) # 4 weeks, 0 days ago
         self.assertIsNone(signup_and_update.get_reminder_msg())
         self.assertFalse(signup_and_update.should_remind_today())
