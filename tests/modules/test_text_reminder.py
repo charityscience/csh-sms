@@ -501,6 +501,18 @@ class TextReminderTests(TestCase):
                          verify_pregnant_signup_birthdate("English").format(name="Roland"))
 
     @freeze_time(FAKE_NOW)
+    def test_dont_remind_at_two_weeks_english(self):
+        no_signup_no_update = text_reminder_object("03/7/2017", language="English", preg_signup=False, preg_update=False) # 2 weeks, 0 days ago
+        self.assertIsNone(no_signup_no_update.get_reminder_msg())
+        self.assertFalse(no_signup_no_update.should_remind_today())
+        update_no_signup = text_reminder_object("03/7/2017", language="English", preg_signup=False, preg_update=True) # 2 weeks, 0 days ago
+        self.assertIsNone(update_no_signup.get_reminder_msg())
+        self.assertFalse(update_no_signup.should_remind_today())
+        signup_and_update = text_reminder_object("03/7/2017", language="English", preg_signup=True, preg_update=True) # 2 weeks, 0 days ago
+        self.assertIsNone(signup_and_update.get_reminder_msg())
+        self.assertFalse(signup_and_update.should_remind_today())
+
+    @freeze_time(FAKE_NOW)
     def test_remind_at_four_weeks_english(self):
         tr = text_reminder_object("19/6/2017", preg_signup=True, preg_update=False) # 4 weeks, 0 days ago
         self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=2, days_before_appointment=0))
@@ -518,6 +530,18 @@ class TextReminderTests(TestCase):
         self.assertEqual(tr.get_reminder_msg(),
                          verify_pregnant_signup_birthdate("English").format(name="Roland"))
 
+    @freeze_time(FAKE_NOW)
+    def test_dont_remind_at_four_weeks_english(self):
+        no_signup_no_update = text_reminder_object("19/6/2017", language="English", preg_signup=False, preg_update=False) # 4 weeks, 0 days ago
+        self.assertIsNone(no_signup_no_update.get_reminder_msg())
+        self.assertFalse(no_signup_no_update.should_remind_today())
+        update_no_signup = text_reminder_object("19/6/2017", language="English", preg_signup=False, preg_update=True) # 4 weeks, 0 days ago
+        self.assertIsNone(update_no_signup.get_reminder_msg())
+        self.assertFalse(update_no_signup.should_remind_today())
+        signup_and_update = text_reminder_object("19/6/2017", language="English", preg_signup=False, preg_update=True) # 4 weeks, 0 days ago
+        self.assertIsNone(signup_and_update.get_reminder_msg())
+        self.assertFalse(signup_and_update.should_remind_today())
+
 
     @freeze_time(FAKE_NOW)
     def test_remind_at_two_weeks_hindi(self):
@@ -528,9 +552,33 @@ class TextReminderTests(TestCase):
                          verify_pregnant_signup_birthdate('Hindi').format(name=u'\u0906\u0930\u0935'))
 
     @freeze_time(FAKE_NOW)
+    def test_dont_remind_at_two_weeks_hindiHindi(self):
+        no_signup_no_update = text_reminder_object("03/7/2017", language="Hindi", preg_signup=False, preg_update=False) # 2 weeks, 0 days ago
+        self.assertIsNone(no_signup_no_update.get_reminder_msg())
+        self.assertFalse(no_signup_no_update.should_remind_today())
+        update_no_signup = text_reminder_object("03/7/2017", language="Hindi", preg_signup=False, preg_update=True) # 2 weeks, 0 days ago
+        self.assertIsNone(update_no_signup.get_reminder_msg())
+        self.assertFalse(update_no_signup.should_remind_today())
+        signup_and_update = text_reminder_object("03/7/2017", language="Hindi", preg_signup=True, preg_update=True) # 2 weeks, 0 days ago
+        self.assertIsNone(signup_and_update.get_reminder_msg())
+        self.assertFalse(signup_and_update.should_remind_today())
+
+    @freeze_time(FAKE_NOW)
     def test_remind_at_four_weeks_hindi(self):
         tr = text_reminder_object("19/6/2017", language="Hindi", preg_signup=True, preg_update=False)
         self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=4, days_before_appointment=0))
         self.assertTrue(tr.should_remind_today())
         self.assertEqual(tr.get_reminder_msg(),
                          verify_pregnant_signup_birthdate('Hindi').format(name=u'\u0906\u0930\u0935'))
+
+    @freeze_time(FAKE_NOW)
+    def test_dont_remind_at_four_weeks_hindi(self):
+        no_signup_no_update = text_reminder_object("19/6/2017", language="Hindi", preg_signup=False, preg_update=False) # 4 weeks, 0 days ago
+        self.assertIsNone(no_signup_no_update.get_reminder_msg())
+        self.assertFalse(no_signup_no_update.should_remind_today())
+        update_no_signup = text_reminder_object("19/6/2017", language="Hindi", preg_signup=False, preg_update=True) # 4 weeks, 0 days ago
+        self.assertIsNone(update_no_signup.get_reminder_msg())
+        self.assertFalse(update_no_signup.should_remind_today())
+        signup_and_update = text_reminder_object("19/6/2017", language="Hindi", preg_signup=False, preg_update=True) # 4 weeks, 0 days ago
+        self.assertIsNone(signup_and_update.get_reminder_msg())
+        self.assertFalse(signup_and_update.should_remind_today())
