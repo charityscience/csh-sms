@@ -119,7 +119,7 @@ class TextProcessor(object):
         elif keyword in subscribe_keywords("Hindi"):
             self.language = "Hindi"
             action = self.process_subscribe
-        elif keyword == "stop":
+        elif keyword == "end":
             action = self.process_unsubscribe
         else:
             logging.error("Keyword " + quote(keyword) + " in message " + quote(message) +
