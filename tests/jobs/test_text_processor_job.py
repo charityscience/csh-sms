@@ -13,7 +13,7 @@ class TextProcessorJobTests(TestCase):
     def test_check_and_process_registrations(self, mocked_texter_read, mocked_texter_send, mocked_logger):
         mocked_texter_read.return_value = {'1-111-1111': ["JOIN ROLAND 29/5/2017"],
                                            '1-112-1111': [hindi_remind() + " SAI 29/5/2017",
-                                                          "STOP"]}
+                                                          "END"]}
         text_processor_job.check_and_process_registrations()
         calls = [call(message=msg_subscribe("English").format(name="Roland"),
                       phone_number="1-111-1111"),

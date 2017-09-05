@@ -126,7 +126,7 @@ class TextProcessor(object):
             if keyword == hindi_born():
                 preg_update = True
             action = self.process_subscribe
-        elif keyword == "stop":
+        elif keyword == "end":
             action = self.process_unsubscribe
         else:
             logging.error("Keyword " + quote(keyword) + " in message " + quote(message) +
