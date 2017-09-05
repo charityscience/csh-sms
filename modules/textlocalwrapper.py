@@ -1,6 +1,6 @@
 import json
 import re
-from six import u
+from six import u, unichr
 from six.moves.urllib import request, parse
 from cshsms.settings import TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID
 
@@ -28,17 +28,27 @@ class TextLocal(object):
 		return inbox['messages']
 
 	def unicode_inbox_messages(self):
-		inbox = self.get_primary_inbox_messages()
+		messages = self.get_primary_inbox_messages()
+		for message in messages:
+			corrupt_unicode_matches = self.find_corrupted_hindi_unicode_matches(message=message['message'])
+			if corrupt_unicode_matches:
+				message['message'] = self.correct_corrupted_unicode_matches(matches=corrupt_unicode_matches, original_message=message['message'])
+		return messages
 
-		for message in inbox:
-			all_matches = re.findall("(?<!\\\w)09\w{2}", message['message'])
+	def find_corrupted_hindi_unicode_matches(self, message):
+		return re.findall("(?<!\\\w)09\w{2}", message)
 
-			if all_matches:
-				for match in set(all_matches):
-					altered = "\\u" + match
-					message['message'] = re.sub(match, altered, message['message'])
+	def correct_corrupted_unicode_matches(self, matches, original_message):
+		updated_message = ""
+		for match in set(matches):
+			altered = unichr(int(match, 16))
+			if updated_message:
+				updated_message = re.sub(match, altered, updated_message)
+			else:
+				updated_message = re.sub(match, altered, original_message)
 
-		return inbox
+		return u(updated_message)
+		 
 
 	def is_message_new(self, message):
 		return True if message['isNew'] == True else False
