@@ -83,8 +83,8 @@ class TexterGetInboxesTests(TestCase):
                            'Text Sign Ups - {}'.format(language.title())]
         self.assertEqual(actual_groups, expected_groups)
 
-        logging.info("sleeping two minutes before checking for subscription text")
-        time.sleep(120)
+        logging.info("sleeping three minutes before checking for subscription text")
+        time.sleep(180)
         logging.info("checking subscription text")
         new_message = t.read_inbox()[0][0]
         self.assertEqual(new_message, msg_subscribe(language).format(name=person_name))

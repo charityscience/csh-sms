@@ -43,6 +43,5 @@ class TextLocalInboxesTests(TestCase):
         logging.info("sleeping two minutes before reading text")
         time.sleep(120)
         logging.info("reading text")
-        messages = textlocal.get_primary_inbox_messages()
-        new_message_dict = textlocal.new_messages_by_number(messages)
+        new_message_dict = textlocal.new_messages_by_number()
         self.assertTrue("This is a live test message." in new_message_dict[0])
