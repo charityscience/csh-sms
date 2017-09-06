@@ -100,18 +100,8 @@ class TexterGetInboxesTests(TestCase):
             time.sleep(120)
             self.assertEqual(t.read_inbox(), {})
 
-        logging.info("Six weeks, one day after...")
-        with freeze_time(subscribe_date + relativedelta(weeks = 6, days = 1)):  # TODO: These dates seem off.
-            self.assertTrue(r.remind())
-            logging.info("sleeping two minutes before checking for reminder text")
-            time.sleep(120)
-            logging.info("checking for reminder text")
-            new_message = t.read_inbox()[0][0]
-            self.assertEqual(new_message,
-                             six_week_reminder_one_day(language).format(name=person_name))
-
-        logging.info("Six weeks, seven days after...")
-        with freeze_time(subscribe_date + relativedelta(weeks = 6, days = 7)): 
+        logging.info("Seven days before the six week mark...")
+        with freeze_time(subscribe_date + relativedelta(weeks = 6) - relativedelta(days = 7)): 
             self.assertTrue(r.remind())
             logging.info("sleeping two minutes before checking for reminder text")
             time.sleep(120)
@@ -120,20 +110,30 @@ class TexterGetInboxesTests(TestCase):
             self.assertEqual(new_message,
                              six_week_reminder_seven_days(language).format(name=person_name))
 
+        logging.info("One day before the six week mark...")
+        with freeze_time(subscribe_date + relativedelta(weeks = 6) - relativedelta(days = 1)):
+            self.assertTrue(r.remind())
+            logging.info("sleeping two minutes before checking for reminder text")
+            time.sleep(120)
+            logging.info("checking for reminder text")
+            new_message = t.read_inbox()[0][0]
+            self.assertEqual(new_message,
+                             six_week_reminder_one_day(language).format(name=person_name))
+
+        logging.info("checking contact is not yet cancelled")
+        contact = tp.get_contacts().first()
+        self.assertTrue(contact.cancelled)
+
         logging.info("sending cancel text")
         send_status = t.send(message='END',
                              phone_number=TEXTLOCAL_PHONENUMBER)
-        self.assertTrue('SuccessFully' in send_status[0]['responseCode'])
+        self.assertTrue("SuccessFully" in send_status[0]["responseCode"])
         logging.info("sleeping one minute before checking for confirmation")
         time.sleep(60)
         logging.info("checking cancellation text can be processed")
-        new_messages = t.read_inbox()[0]
-        processed = False
-        for text in new_messages:
-            if text == "END":
-                processed = True
-                tp.process(text)
-        self.assertTrue(processed)
+        new_message = t.read_inbox()[0][0]
+        self.ssertEqual(new_message, "END")
+        tp.process("END")
         logging.info("sleeping two minutes before checking for confirmation")
         time.sleep(120)
         logging.info("checking person is cancelled")
@@ -143,9 +143,9 @@ class TexterGetInboxesTests(TestCase):
         self.assertTrue(contact.cancelled)
 
         logging.info("checking that cancelled person can no longer be reminded")
-        with freeze_time(subscribe_date + relativedelta(weeks = 6, days = 1)):
+        with freeze_time(subscribe_date + relativedelta(weeks = 6) - relativedelta(days = 1)):
             self.assertFalse(r.remind())  # ...cannot be reminded
             self.assertEqual(r.why_not_remind_reasons(), ["Contact is cancelled."])
-            logging.info("sleeping two minutes before checking for reminder text")
+            logging.info("sleeping two minutes before checking for lack of reminder text")
             time.sleep(120)
             self.assertEqual(t.read_inbox(), {})
