@@ -11,9 +11,9 @@ def date_string_to_date(date_string):
     return datetime.strptime(date_string, pattern).date()
 
 def date_to_date_string(date):
-    return '{d}/{m}/{y}'.format(d = subscribe_date.day,
-                                m = subscribe_date.month,
-                                y = subscribe_date.year)
+    return '{d}/{m}/{y}'.format(d = date.day,
+                                m = date.month,
+                                y = date.year)
 
 def date_is_valid(date_string):
     try:
