@@ -80,10 +80,10 @@ class TextProcessorGetDataTests(TestCase):
         self.assertEqual(child_name, None)
         self.assertEqual(date, datetime(2015, 11, 25, 0, 0).date())
 
-    def test_stop(self):
+    def test_end(self):
         t = TextProcessor(phone_number="1-111-1111")
-        keyword, child_name, date = t.get_data_from_message("STOP")
-        self.assertEqual(keyword, "stop")
+        keyword, child_name, date = t.get_data_from_message("END")
+        self.assertEqual(keyword, "end")
         self.assertEqual(child_name, None)
         self.assertEqual(date, None)
 
@@ -178,7 +178,7 @@ class TextProcessorProcessTests(TestCase):
     def test_unsubscribe_english(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1112")
         t.process("JOIN Roland 12/11/2017")
-        response = t.process("STOP")
+        response = t.process("END")
         self.assertTrue(t.get_contacts().first().cancelled)
         self.assertEqual(response, msg_unsubscribe("English"))
         logging_mock.assert_called_with("Unsubscribing `1-111-1112`...")
@@ -196,7 +196,7 @@ class TextProcessorProcessTests(TestCase):
                                language_preference="Hindi",
                                method_of_sign_up="Text")
         t = TextProcessor(phone_number="1-112-1112")
-        response = t.process("STOP")
+        response = t.process("END")
         self.assertTrue(t.get_contacts().first().cancelled)
         self.assertEqual(response, msg_unsubscribe("Hindi"))
         logging_mock.assert_called_with("Unsubscribing `1-112-1112`...")
@@ -208,7 +208,7 @@ class TextProcessorProcessTests(TestCase):
     def test_unsubscribe_without_contact(self, texting_mock, logging_info_mock, logging_error_mock):
         self.assertFalse(Contact.objects.filter(phone_number="1-111-1112").exists())
         t = TextProcessor(phone_number="1-111-1112")
-        response = t.process("STOP")
+        response = t.process("END")
         self.assertFalse(Contact.objects.filter(phone_number="1-111-1112").exists())
         self.assertEqual(response, msg_unsubscribe("English"))
         logging_error_mock.assert_called_with("`1-111-1112` asked to be unsubscribed but does not exist.")
@@ -290,7 +290,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertEqual(contacts.count(), 1)
         self.assertFalse(contacts.first().cancelled)
         t2 = TextProcessor(phone_number="1-111-1116")
-        t2.process("STOP")
+        t2.process("END")
         contacts = Contact.objects.filter(name="Rob", phone_number="1-111-1116")
         self.assertTrue(contacts.exists())
         self.assertTrue(contacts.first().cancelled)
@@ -308,7 +308,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertTrue(contacts.exists())
         self.assertFalse(contacts.first().cancelled)
         t2 = TextProcessor(phone_number="1-111-1117")
-        t2.process("STOP")
+        t2.process("END")
         contacts = Contact.objects.filter(name="Cheyenne", phone_number="1-111-1117")
         self.assertTrue(contacts.exists())
         self.assertTrue(contacts.first().cancelled)
@@ -331,7 +331,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertTrue(contacts.exists())
         self.assertEqual(contacts.first().date_of_birth, datetime(2012, 11, 25, 0, 0).date())
         t2 = TextProcessor(phone_number="1-111-1118")
-        t2.process("STOP")
+        t2.process("END")
         contacts = Contact.objects.filter(name="Cheyenne", phone_number="1-111-1118")
         self.assertTrue(contacts.exists())
         self.assertEqual(contacts.first().date_of_birth, datetime(2012, 11, 25, 0, 0).date())
@@ -355,7 +355,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertTrue(contacts.exists())
         self.assertEqual(contacts.first().language_preference, "English")
         t2 = TextProcessor(phone_number="1-111-1118")
-        t2.process("STOP")
+        t2.process("END")
         t3 = TextProcessor(phone_number="1-111-1118")
         third_response = t.process(hindi_remind() + " LARISSA 25-11-2012")
         self.assertEqual(third_response, msg_subscribe("Hindi").format(name="Larissa"))
