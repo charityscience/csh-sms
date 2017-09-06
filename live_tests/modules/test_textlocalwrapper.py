@@ -6,6 +6,7 @@ from django.test import TestCase
 from cshsms.settings import TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID, TEXTLOCAL_PHONENUMBER
 from modules.textlocalwrapper import TextLocal
 from modules.texter import Texter
+from modules.i18n import hindi_remind, msg_placeholder_child
 
 
 class TextLocalInboxesTests(TestCase):
@@ -35,13 +36,23 @@ class TextLocalInboxesTests(TestCase):
 
     def test_new_messages_by_number(self):
         textlocal = TextLocal(TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID)
-        logging.info("sleeping one minute before sending a text.")
-        time.sleep(60)
         logging.info("sending text")
         texter = Texter()
         texter.send(message="This is a live test message.", phone_number=TEXTLOCAL_PHONENUMBER)
-        logging.info("sleeping two minutes before reading text")
-        time.sleep(120)
+        logging.info("sleeping three minutes before reading text")
+        time.sleep(180)
         logging.info("reading text")
         new_message_dict = textlocal.new_messages_by_number()
         self.assertTrue("This is a live test message." in new_message_dict[0])
+
+    def test_new_messages_by_number_hindi(self):
+        textlocal = TextLocal(TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID)
+        logging.info("sending text")
+        texter = Texter()
+        hindi_message = hindi_remind() + ' ' + msg_placeholder_child('Hindi')
+        texter.send(message=hindi_message, phone_number=TEXTLOCAL_PHONENUMBER)
+        logging.info("sleeping three minutes before reading hindi text")
+        time.sleep(180)
+        logging.info("reading text")
+        new_message_dict = textlocal.new_messages_by_number()
+        self.assertTrue(hindi_message in new_message_dict[0])

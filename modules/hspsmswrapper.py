@@ -1,6 +1,5 @@
 import json
 from cshsms.settings import HSPSMS_API, HSPSMS_USERNAME, HSPSMS_SENDERNAME
-from six import u
 from six.moves.urllib import request, parse
 
 class Hspsms(object):
@@ -11,6 +10,8 @@ class Hspsms(object):
 
     def send_transactional_message(self, message, phone_number):
         send_url = 'http://sms.hspsms.com/sendSMS?'
+        if not isinstance(message, str):
+            message = message.encode('utf-8')
         data = parse.urlencode({'username': self.username,
                                 'message': message,
                                 'sendername': self.sendername,
@@ -18,6 +19,8 @@ class Hspsms(object):
                                 'numbers': phone_number,
                                 'apikey': self.apikey})
         data = data.encode('utf-8')
-        requester = request.Request(send_url)
+        # Avoid triggering bot errors by setting a user agent
+        user_agent = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'}
+        requester = request.Request(send_url, headers=user_agent)
         f = request.urlopen(requester, data)
-        return u(json.loads(f.read().decode('latin1')))
+        return json.loads(f.read().decode('latin1'))

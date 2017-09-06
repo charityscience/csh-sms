@@ -2,7 +2,7 @@ import json
 import re
 import string
 
-from six import u, unichr
+from six import unichr
 from six.moves.urllib import request, parse
 from datetime import timedelta
 
@@ -91,7 +91,7 @@ class TextLocal(object):
         fixed_message = []
         for message_part in message.split(' '):
             if all(c in string.hexdigits for c in message_part) and '0' in message_part and len(message_part) >= 4:
-                fixed_message.append(u(''.join([unichr(int(message_part[i:i + 4], 16)) for i in range(0, len(message_part), 4)])))
+                fixed_message.append(''.join([unichr(int(message_part[i:i + 4], 16)) for i in range(0, len(message_part), 4)]))
             else:
                 fixed_message.append(message_part)
         return ' '.join(fixed_message)
