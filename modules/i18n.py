@@ -1,4 +1,5 @@
 from cshsms.settings import TEXTLOCAL_PHONENUMBER
+from six import u
 
 def msg_subscribe(language):
     if language == "English":
@@ -50,11 +51,14 @@ def hindi_remind():
 def hindi_information():
     return u'\u0907\u0924\u094d\u0924\u093f\u0932\u093e'
 
+def hindi_born():
+    return u'\u091c\u0928\u094d\u092e'
+
 def subscribe_keywords(language):
     if language == "English":
-        return ["remind", "join"]
+        return ["remind", "join", "born"]
     elif language == "Hindi":
-        return [hindi_remind(), hindi_information()]
+        return [hindi_remind(), hindi_information(), hindi_born()]
     else:
         return []
 
@@ -129,3 +133,9 @@ def five_year_reminder_seven_days(language):
 
 def five_year_reminder_one_day(language):
     return fourteen_week_reminder_one_day(language)
+
+def verify_pregnant_signup_birthdate(language):
+    if language == "English":
+        return "You signed up for health reminders while pregnant. If your child has been born, text 'BORN Name DD-MM-YY' to "+ TEXTLOCAL_PHONENUMBER + " to register for  English. An example message is 'BORN Aarav 14-01-17' where 'Aarav' is your child's first name and '14-01-17' is your child's birthday."
+    elif language == "Hindi":
+        return u'\u0905\u092a\u0928\u0940 \u0917\u0930\u094d\u092d\u093e\u0935\u0938\u094d\u0920\u093e \u0915\u0947 \u0926\u094c\u0930\u093e\u0928 \u0906\u092a\u0928\u0947 \u0938\u094d\u0935\u093e\u0938\u094d\u0925\u094d\u092f \u0938\u094d\u092e\u0930\u0923 \u0915\u0940 \u0938\u0926\u0938\u094d\u092f\u0924\u093e \u0932\u0940 \u0925\u0940. \u092f\u0926\u093f \u0906\u092a\u0915\u093e \u092c\u091a\u094d\u091a\u093e \u091c\u0928\u094d\u092e \u0932\u0947 \u091a\u0942\u0915\u093e \u0939\u0948 \u0924\u094b \u0932\u093f\u0916\u0947 \u201c \u091c\u0928\u094d\u092e \u0928\u093e\u092e DD-MM-YY \u201d \u0914\u0930 \u092d\u0947\u0902\u091c \u0926\u0947 \u201c' + TEXTLOCAL_PHONENUMBER + '\u201d \u092a\u0930 \u0939\u093f\u0902\u0926\u0940 \u092e\u0947\u0902 \u092a\u0902\u091c\u0940\u0915\u0930\u0923 \u0915\u0947 \u0932\u093f\u090f.'

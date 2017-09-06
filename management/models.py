@@ -43,6 +43,8 @@ class Contact(models.Model):
     org_sign_up = models.CharField(max_length=40, blank=True)
     hospital_name = models.CharField(max_length=50, blank=True)
     doctor_name = models.CharField(max_length=30, blank=True)
+    preg_signup = models.NullBooleanField(default=False)
+    preg_update = models.NullBooleanField(default=False)
 
     def has_been_born(self):
         today = datetime.date.today()

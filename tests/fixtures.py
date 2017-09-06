@@ -3,7 +3,7 @@ from management.models import Contact
 from modules.text_reminder import TextReminder
 from modules.date_helper import date_string_to_date
 
-def contact_object(name=None, phone_number="1-111-1111", date_of_birth=None, language="English"):
+def contact_object(name=None, phone_number="1-111-1111", date_of_birth=None, language="English", preg_update=False, preg_signup=False):
     if name is None:
         name = 'Roland' if language == 'English' else u'\u0906\u0930\u0935'
     if date_of_birth is None:
@@ -16,7 +16,10 @@ def contact_object(name=None, phone_number="1-111-1111", date_of_birth=None, lan
                                   language_preference=language,
                                   date_of_birth=date_of_birth,
                                   functional_date_of_birth=date_of_birth,
-                                  method_of_sign_up="text")
+                                  method_of_sign_up="text",
+                                  preg_signup=preg_signup,
+                                  preg_update=preg_update)
 
-def text_reminder_object(date_of_birth, language="English"):
-    return TextReminder(contact_object(date_of_birth=date_of_birth, language=language))
+def text_reminder_object(date_of_birth, language="English", preg_update=False, preg_signup=False):
+    return TextReminder(contact_object(date_of_birth=date_of_birth, language=language,
+                                        preg_signup=preg_signup, preg_update=preg_update))
