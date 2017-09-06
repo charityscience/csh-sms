@@ -121,7 +121,7 @@ class TexterGetInboxesTests(TestCase):
                              six_week_reminder_seven_days(language).format(name=person_name))
 
         logging.info("sending cancel text")
-        send_status = t.send(message='STOP',
+        send_status = t.send(message='END',
                              phone_number=TEXTLOCAL_PHONENUMBER)
         self.assertTrue('SuccessFully' in send_status[0]['responseCode'])
         logging.info("sleeping one minute before checking for confirmation")
@@ -130,7 +130,7 @@ class TexterGetInboxesTests(TestCase):
         new_messages = t.read_inbox()[0]
         processed = False
         for text in new_messages:
-            if text == "STOP":
+            if text == "END":
                 processed = True
                 tp.process(text)
         self.assertTrue(processed)
