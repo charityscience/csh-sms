@@ -552,7 +552,7 @@ class TextReminderTests(TestCase):
                          verify_pregnant_signup_birthdate('Hindi').format(name=u'\u0906\u0930\u0935'))
 
     @freeze_time(FAKE_NOW)
-    def test_dont_remind_at_two_weeks_hindiHindi(self):
+    def test_dont_remind_at_two_weeks_hindi(self):
         no_signup_no_update = text_reminder_object("03/7/2017", language="Hindi", preg_signup=False, preg_update=False) # 2 weeks, 0 days ago
         self.assertIsNone(no_signup_no_update.get_reminder_msg())
         self.assertFalse(no_signup_no_update.should_remind_today())
