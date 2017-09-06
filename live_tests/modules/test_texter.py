@@ -122,7 +122,7 @@ class TexterGetInboxesTests(TestCase):
 
         logging.info("checking contact is not yet cancelled")
         contact = tp.get_contacts().first()
-        self.assertTrue(contact.cancelled)
+        self.assertFalse(contact.cancelled)
 
         logging.info("sending cancel text")
         send_status = t.send(message='END',
