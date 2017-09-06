@@ -128,11 +128,11 @@ class TexterGetInboxesTests(TestCase):
         send_status = t.send(message='END',
                              phone_number=TEXTLOCAL_PHONENUMBER)
         self.assertTrue("SuccessFully" in send_status[0]["responseCode"])
-        logging.info("sleeping one minute before checking for confirmation")
-        time.sleep(60)
+        logging.info("sleeping two minutes before checking for confirmation")
+        time.sleep(120)
         logging.info("checking cancellation text can be processed")
         new_message = t.read_inbox()[0][0]
-        self.ssertEqual(new_message, "END")
+        self.assertEqual(new_message, "END")
         tp.process("END")
         logging.info("sleeping two minutes before checking for confirmation")
         time.sleep(120)
