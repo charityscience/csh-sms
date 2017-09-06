@@ -7,7 +7,8 @@ from modules.i18n import six_week_reminder_seven_days, six_week_reminder_one_day
                          fourteen_week_reminder_seven_days, fourteen_week_reminder_one_day, \
                          nine_month_reminder_seven_days, nine_month_reminder_one_day, \
                          sixteen_month_reminder_seven_days, sixteen_month_reminder_one_day, \
-                         five_year_reminder_seven_days, five_year_reminder_one_day
+                         five_year_reminder_seven_days, five_year_reminder_one_day, \
+                         verify_pregnant_signup_birthdate
 
 class TextReminder(object):
     def __init__(self, contact):
@@ -16,6 +17,8 @@ class TextReminder(object):
         self.date_of_birth = contact.date_of_birth
         self.phone_number = contact.phone_number
         self.language = contact.language_preference
+        self.preg_signup = contact.preg_signup
+        self.preg_update = contact.preg_update
 
     # self.get_contact() is preferred to self.contact due to triggering a Django DB refresh.
     def get_contact(self):
@@ -33,7 +36,12 @@ class TextReminder(object):
         return self.date_of_birth == target_date
 
     def get_reminder_msg(self):
-        if self.correct_date_for_reminder(weeks_after_birth=6, days_before_appointment=7):
+        if self.preg_signup_check():
+            if self.correct_date_for_reminder(weeks_after_birth=2, days_before_appointment=0):
+                reminder = verify_pregnant_signup_birthdate
+            elif self.correct_date_for_reminder(weeks_after_birth=4, days_before_appointment=0):
+                reminder = verify_pregnant_signup_birthdate
+        elif self.correct_date_for_reminder(weeks_after_birth=6, days_before_appointment=7):
             reminder = six_week_reminder_seven_days
         elif self.correct_date_for_reminder(weeks_after_birth=6, days_before_appointment=1):
             reminder = six_week_reminder_one_day
@@ -79,3 +87,6 @@ class TextReminder(object):
             return True
         else:
             return False
+
+    def preg_signup_check(self):
+        return True if self.preg_signup and not self.preg_update else False
