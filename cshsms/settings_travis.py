@@ -17,9 +17,9 @@ REMOTE = {'user': 'travis',
           'keyfile': '~/.ssh/travis.pem',
           'host': 'localhost'}
 
-TEXTLOCAL_API = os.getenv("TEXTLOCAL_API")
-TEXTLOCAL_PRIMARY_ID = os.getenv("TEXTLOCAL_PRIMARY_ID")
-HSPSMS_API = os.getenv("HSPSMS_API")
-HSPSMS_USERNAME = os.getenv("HSPSMS_USERNAME")
-HSPSMS_SENDERNAME = os.getenv("HSPSMS_SENDERNAME")
-TEXTLOCAL_PHONENUMBER = os.getenv("TEXTLOCAL_PHONENUMBER")
+TEXTLOCAL_API = "travis"
+TEXTLOCAL_PRIMARY_ID = "travis"
+HSPSMS_API = "travis"
+HSPSMS_USERNAME = "travis"
+HSPSMS_SENDERNAME = "travis"
+TEXTLOCAL_PHONENUMBER = "1111111111"
