@@ -49,7 +49,7 @@ class TextLocal(object):
             if i == len(messages) - 1:
                 combined_messages.append(messages[i])
                 i += 1
-            else:
+            elif messages[i]['number'] == messages[i + 1]['number']:
                 first_message_date = datetime_from_date_string(messages[i]['date'], "%Y-%m-%d %H:%M:%S")
                 second_message_date = datetime_from_date_string(messages[i + 1]['date'], "%Y-%m-%d %H:%M:%S")
                 ten_seconds = timedelta(0, 10)
@@ -57,7 +57,7 @@ class TextLocal(object):
                     if len(messages[i]['message']) > 250:
                         message = messages[i]['message'] + messages[i + 1]['message']
                         combined_messages.append({'id': messages[i + 1]['id'],
-                                                  'number': messages[i + 1]['number'],
+                                                  'number': messages[i]['number'],
                                                   'message': message,
                                                   'date': messages[i + 1]['date'],
                                                   'isNew': messages[i]['isNew'] or messages[i + 1]['isNew'],
@@ -66,7 +66,7 @@ class TextLocal(object):
                     elif len(messages[i + 1]['message']) > 250:
                         message = messages[i + 1]['message'] + messages[i]['message']
                         combined_messages.append({'id': messages[i + 1]['id'],
-                                                  'number': messages[i + 1]['number'],
+                                                  'number': messages[i]['number'],
                                                   'message': message,
                                                   'date': messages[i + 1]['date'],
                                                   'isNew': messages[i]['isNew'] or messages[i + 1]['isNew'],
@@ -78,6 +78,9 @@ class TextLocal(object):
                 else:
                     combined_messages.append(messages[i])
                     i += 1
+            else:
+                combined_messages.append(messages[i])
+                i += 1
         return combined_messages
 
 

@@ -79,7 +79,20 @@ class TextLocalInboxesTests(TestCase):
                     'date': with_this['date'],
                     'isNew': with_this['isNew'],
                     'status': with_this['status']}
-        self.assertEqual(textlocal.combine_messages(textlocal.get_primary_inbox_messages()), [not_combine, also_not_combine, combine])
+        self.assertEqual(textlocal.combine_messages(textlocal.get_primary_inbox_messages()),
+                                                    [not_combine, also_not_combine, combine])
+
+
+    @patch("modules.textlocalwrapper.request")
+    def test_dont_combine_messages_if_they_come_from_different_numbers(self, mock_request):
+        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id')
+        not_combine = {'id': '000000024', 'number': 1112223334, 'message': 'Not combine', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'}
+        also_not_combine = {'id': '00000449', 'number': 0, 'message': 'Also do not combine', 'date': '2017-08-05 21:11:07', 'isNew': None, 'status': '?'}
+        combine_this = {'id': '00000450', 'number': 0, 'message': 'This message might just be long enough to be worth combining with the next message that comes up. Getting to 250+ characters is pretty hard though and requires concerted effort and a lot of mocked text to read. If you are expecting something cool you are looking in the wrong place.', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}
+        wrong_number = {'id': '00000451', 'number': 1, 'message': 'This message should combine onto the prior one.', 'date': '2017-08-05 21:12:09', 'isNew': None, 'status': '?'}
+        mock_request.urlopen.return_value = MockResponse(read_value=json.dumps({'messages': [not_combine, also_not_combine, combine_this, wrong_number]}).encode('latin1'))
+        self.assertEqual(textlocal.combine_messages(textlocal.get_primary_inbox_messages()),
+                                                    [not_combine, also_not_combine, combine_this, wrong_number])
 
 
     def test_is_message_new(self):
