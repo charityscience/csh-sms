@@ -37,63 +37,15 @@ class TextLocal(object):
         return self.get_primary_inbox()['messages']
 
 
-    def combine_messages(self, messages):
-        # TextLocal will split messages that are too long into multiple messages.
-        # This can (hopefully) be detected by looking for messages sent less than ten
-        # seconds apart where the first message in the pair has a length of >250 chars.
-        # ...Also, of course, the order of the message can't be guaranteed... :(
-        # TODO: This is a very terrible loop :(
-        combined_messages = []
-        i = 0
-        while i < len(messages):
-            if i == len(messages) - 1:
-                combined_messages.append(messages[i])
-                i += 1
-            elif messages[i]['number'] == messages[i + 1]['number']:
-                first_message_date = datetime_from_date_string(messages[i]['date'], "%Y-%m-%d %H:%M:%S")
-                second_message_date = datetime_from_date_string(messages[i + 1]['date'], "%Y-%m-%d %H:%M:%S")
-                ten_seconds = timedelta(0, 10)
-                if second_message_date - first_message_date < ten_seconds:
-                    if len(messages[i]['message']) > 250:
-                        message = messages[i]['message'] + messages[i + 1]['message']
-                        combined_messages.append({'id': messages[i + 1]['id'],
-                                                  'number': messages[i]['number'],
-                                                  'message': message,
-                                                  'date': messages[i + 1]['date'],
-                                                  'isNew': messages[i]['isNew'] or messages[i + 1]['isNew'],
-                                                  'status': messages[i + 1]['status']})
-                        i += 2
-                    elif len(messages[i + 1]['message']) > 250:
-                        message = messages[i + 1]['message'] + messages[i]['message']
-                        combined_messages.append({'id': messages[i + 1]['id'],
-                                                  'number': messages[i]['number'],
-                                                  'message': message,
-                                                  'date': messages[i + 1]['date'],
-                                                  'isNew': messages[i]['isNew'] or messages[i + 1]['isNew'],
-                                                  'status': messages[i + 1]['status']})
-                        i += 2
-                    else:
-                        combined_messages.append(messages[i])
-                        i += 1
-                else:
-                    combined_messages.append(messages[i])
-                    i += 1
-            else:
-                combined_messages.append(messages[i])
-                i += 1
-        return combined_messages
-
-
     def correct_unicode(self, messages):
         for message in messages:
-            if '09' in message['message']:
-                message['message'] = self.correct_corrupted_unicode_matches(message['message'])
+            message['message'] = self.correct_corrupted_unicode_matches(message['message'])
         return messages
 
     def correct_corrupted_unicode_matches(self, message):
         fixed_message = []
         for message_part in message.split(' '):
-            if all(c in string.hexdigits for c in message_part) and '0' in message_part and len(message_part) >= 4:
+            if all(c in string.hexdigits for c in message_part) and '09' in message_part and len(message_part) >= 4:
                 fixed_message.append(''.join([unichr(int(message_part[i:i + 4], 16)) for i in range(0, len(message_part), 4)]))
             else:
                 fixed_message.append(message_part)
@@ -105,8 +57,7 @@ class TextLocal(object):
 
     def new_messages_by_number(self):
         all_messages = self.get_primary_inbox_messages()
-        combined_messages = self.combine_messages(all_messages)
-        corrected_messages = self.correct_unicode(combined_messages)
+        corrected_messages = self.correct_unicode(all_messages)
         num_message_dict = {}
         for message in corrected_messages:
             if self.is_message_new(message):

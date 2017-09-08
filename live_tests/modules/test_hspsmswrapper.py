@@ -24,7 +24,7 @@ class HspsmsSendingTests(TestCase):
         self.assertEqual(fr[2]['invalidnumber'], '0000000')
 
     def test_send_transactional_message(self):
-        logging.info("sending transactional message")
+        logging.info("sending transactional message - English")
         fr = HSPSMS.send_transactional_message(message='Testing example message in Hspsms.',
                                                phone_number=TEXTLOCAL_PHONENUMBER)
         texter = Texter()
@@ -40,7 +40,7 @@ class HspsmsSendingTests(TestCase):
         self.assertTrue("Testing example message in Hspsms." in new_message_dict[0])
 
     def test_send_transactional_message_in_hindi(self):
-        logging.info("sending transactional message")
+        logging.info("sending transactional message - Hindi")
         hindi_message = hindi_remind() + ' ' + msg_placeholder_child('Hindi')
         fr = HSPSMS.send_transactional_message(message=hindi_message,
                                                phone_number=TEXTLOCAL_PHONENUMBER)

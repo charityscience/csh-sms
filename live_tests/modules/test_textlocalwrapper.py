@@ -36,7 +36,7 @@ class TextLocalInboxesTests(TestCase):
 
     def test_new_messages_by_number(self):
         textlocal = TextLocal(TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID)
-        logging.info("sending text")
+        logging.info("sending text - English")
         texter = Texter()
         texter.send(message="This is a live test message.", phone_number=TEXTLOCAL_PHONENUMBER)
         logging.info("sleeping three minutes before reading text")
@@ -47,7 +47,7 @@ class TextLocalInboxesTests(TestCase):
 
     def test_new_messages_by_number_hindi(self):
         textlocal = TextLocal(TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID)
-        logging.info("sending text")
+        logging.info("sending text - Hindi")
         texter = Texter()
         hindi_message = hindi_remind() + ' ' + msg_placeholder_child('Hindi')
         texter.send(message=hindi_message, phone_number=TEXTLOCAL_PHONENUMBER)
