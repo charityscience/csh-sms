@@ -22,31 +22,6 @@ class TexterGetInboxesTests(TestCase):
         inbox_dict = Texter().read_inbox()
         self.assertIsInstance(inbox_dict, dict)
 
-    def test_send(self):
-        t = Texter()
-        logging.info("sending text")
-        send_status = t.send(message="Testing example message in Texter.",
-                             phone_number=TEXTLOCAL_PHONENUMBER)
-        logging.info("sleeping three minutes before reading the text")
-        time.sleep(180)
-        logging.info("reading text")
-        new_message_dict = t.read_inbox()
-        self.assertTrue("Testing example message in Texter." in new_message_dict[0])
-
-
-    def test_send_hindi(self):
-        t = Texter()
-        logging.info("sending Hindi text")
-        hindi_message = hindi_remind() + ' ' + msg_placeholder_child('Hindi')
-        send_status = t.send(message=hindi_message,
-                             phone_number=TEXTLOCAL_PHONENUMBER)
-        logging.info("sleeping three minutes before reading the text")
-        time.sleep(180)
-        logging.info("reading text")
-        new_message_dict = t.read_inbox()
-        self.assertTrue(hindi_message in new_message_dict[0])
-
-
     def test_full_e2e_english_signup_and_cancel_flow(self):
         logging.info("running e2e full flow for sign up + cancel in English...")
         self.run_e2e_flow_for_language(language="English",
