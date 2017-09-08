@@ -582,3 +582,91 @@ class TextReminderTests(TestCase):
         signup_and_update = text_reminder_object("19/6/2017", language="Hindi", preg_signup=True, preg_update=True) # 4 weeks, 0 days ago
         self.assertIsNone(signup_and_update.get_reminder_msg())
         self.assertFalse(signup_and_update.should_remind_today())
+
+    @freeze_time(FAKE_NOW)
+    def test_preg_signups_with_update_messaged_at_correct_times(self):
+        tr = text_reminder_object("12/6/2017", preg_signup=True, preg_update=True) # 6 weeks, 7 days ago
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=2, days_before_appointment=0))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=4, days_before_appointment=0))
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=6, days_before_appointment=7))
+        tr = text_reminder_object("6/6/2017", preg_signup=True, preg_update=True) # 6 weeks, 1 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=6, days_before_appointment=1))
+        tr = text_reminder_object("15/5/2017", preg_signup=True, preg_update=True) # 10 weeks, 7 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=10, days_before_appointment=7))
+        tr = text_reminder_object("9/5/2017", preg_signup=True, preg_update=True) # 10 weeks, 1 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=10, days_before_appointment=1))
+
+        tr = text_reminder_object("17/4/2017", preg_signup=True, preg_update=True) # 14 weeks, 7 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=14, days_before_appointment=7))
+        tr = text_reminder_object("11/4/2017", preg_signup=True, preg_update=True) # 14 weeks, 1 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=14, days_before_appointment=1))
+
+        tr = text_reminder_object("24/10/2016", preg_signup=True, preg_update=True) # # 9 months, 7 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(months_after_birth=9, days_before_appointment=7))
+        tr = text_reminder_object("18/10/2016", preg_signup=True, preg_update=True) # # 9 months, 1 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(months_after_birth=9, days_before_appointment=1))
+
+        tr = text_reminder_object("24/3/2016", preg_signup=True, preg_update=True) # 16 months, 7 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(months_after_birth=16, days_before_appointment=7))
+        tr = text_reminder_object("18/3/2016", preg_signup=True, preg_update=True) # 16 months, 1 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(months_after_birth=16, days_before_appointment=1))
+        tr = text_reminder_object("24/7/2012", preg_signup=True, preg_update=True) # 5 years, 7 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(years_after_birth=5, days_before_appointment=7))
+        tr = text_reminder_object("18/7/2012", preg_signup=True, preg_update=True) # 5 years, 1 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(years_after_birth=5, days_before_appointment=1))
+
+    @freeze_time(FAKE_NOW)
+    def test_preg_signups_without_updates_messaged_at_correct_times(self):
+        tr = text_reminder_object("12/6/2017", preg_signup=True, preg_update=False) # 6 weeks, 7 days ago
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=2, days_before_appointment=0))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=4, days_before_appointment=0))
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=6, days_before_appointment=7))
+        tr = text_reminder_object("6/6/2017", preg_signup=True, preg_update=False) # 6 weeks, 1 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=6, days_before_appointment=1))
+        tr = text_reminder_object("15/5/2017", preg_signup=True, preg_update=False) # 10 weeks, 7 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=10, days_before_appointment=7))
+        tr = text_reminder_object("9/5/2017", preg_signup=True, preg_update=False) # 10 weeks, 1 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=10, days_before_appointment=1))
+
+        tr = text_reminder_object("17/4/2017", preg_signup=True, preg_update=False) # 14 weeks, 7 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=14, days_before_appointment=7))
+        tr = text_reminder_object("11/4/2017", preg_signup=True, preg_update=False) # 14 weeks, 1 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(weeks_after_birth=14, days_before_appointment=1))
+
+        tr = text_reminder_object("24/10/2016", preg_signup=True, preg_update=False) # # 9 months, 7 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(months_after_birth=9, days_before_appointment=7))
+        tr = text_reminder_object("18/10/2016", preg_signup=True, preg_update=False) # # 9 months, 1 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(months_after_birth=9, days_before_appointment=1))
+
+        tr = text_reminder_object("24/3/2016", preg_signup=True, preg_update=False) # 16 months, 7 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(months_after_birth=16, days_before_appointment=7))
+        tr = text_reminder_object("18/3/2016", preg_signup=True, preg_update=False) # 16 months, 1 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(months_after_birth=16, days_before_appointment=1))
+        tr = text_reminder_object("24/7/2012", preg_signup=True, preg_update=False) # 5 years, 7 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(years_after_birth=5, days_before_appointment=7))
+        tr = text_reminder_object("18/7/2012", preg_signup=True, preg_update=False) # 5 years, 1 days ago
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(tr.correct_date_for_reminder(years_after_birth=5, days_before_appointment=1))
