@@ -36,14 +36,7 @@ class TextReminder(object):
         return self.date_of_birth == target_date
 
     def get_reminder_msg(self):
-        if self.preg_signup_check():
-            if self.correct_date_for_reminder(weeks_after_birth=2, days_before_appointment=0):
-                reminder = verify_pregnant_signup_birthdate
-            elif self.correct_date_for_reminder(weeks_after_birth=4, days_before_appointment=0):
-                reminder = verify_pregnant_signup_birthdate
-            else:
-                reminder = None
-        elif self.correct_date_for_reminder(weeks_after_birth=6, days_before_appointment=7):
+        if self.correct_date_for_reminder(weeks_after_birth=6, days_before_appointment=7):
             reminder = six_week_reminder_seven_days
         elif self.correct_date_for_reminder(weeks_after_birth=6, days_before_appointment=1):
             reminder = six_week_reminder_one_day
@@ -67,6 +60,13 @@ class TextReminder(object):
             reminder = five_year_reminder_seven_days
         elif self.correct_date_for_reminder(years_after_birth=5, days_before_appointment=1):
             reminder = five_year_reminder_one_day
+        elif self.preg_signup_check():
+            if self.correct_date_for_reminder(weeks_after_birth=2, days_before_appointment=0):
+                reminder = verify_pregnant_signup_birthdate
+            elif self.correct_date_for_reminder(weeks_after_birth=4, days_before_appointment=0):
+                reminder = verify_pregnant_signup_birthdate
+            else:
+                reminder = None
         else:
             reminder = None
         return reminder(self.language).format(name=self.child_name) if reminder else None
