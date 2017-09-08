@@ -52,8 +52,8 @@ class TextProcessor(object):
                                          functional_date_of_birth=date_of_birth,
                                          method_of_sign_up="Text")
         for group_name in ["Text Sign Ups",
-                           "Text Sign Ups - " + language,
-                           "Everyone - " + language]:
+                           "Text Sign Ups - " + language.title(),
+                           "Everyone - " + language.title()]:
             add_contact_to_group(contact, group_name)
         self.get_contacts()
         return True
@@ -156,5 +156,5 @@ class TextProcessor(object):
         response_text_message = action(child_name=child_name,
                                        date_of_birth=date, preg_update=preg_update)
         Texter().send(message=response_text_message,
-                      phone_number=self.phone_number)  # TODO: Actually implement this.
+                      phone_number=self.phone_number)
         return response_text_message

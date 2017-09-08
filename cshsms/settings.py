@@ -16,9 +16,13 @@ import os
 
 
 if not os.getenv('IS_TRAVIS', False):
-    from cshsms.settings_secret import SECRET_KEY, DATABASES, REMOTE, TEXTLOCAL_PHONENUMBER
+    from cshsms.settings_secret import SECRET_KEY, DATABASES, REMOTE, TEXTLOCAL_API, \
+                                       TEXTLOCAL_PRIMARY_ID, TEXTLOCAL_PHONENUMBER, \
+                                       HSPSMS_API, HSPSMS_USERNAME, HSPSMS_SENDERNAME
 else:
-    from cshsms.settings_travis import SECRET_KEY, DATABASES, REMOTE, TEXTLOCAL_PHONENUMBER
+    from cshsms.settings_travis import SECRET_KEY, DATABASES, REMOTE, TEXTLOCAL_API, \
+                                       TEXTLOCAL_PRIMARY_ID, TEXTLOCAL_PHONENUMBER, \
+                                       HSPSMS_API, HSPSMS_USERNAME, HSPSMS_SENDERNAME
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -108,18 +112,27 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 STATIC_URL = '/static/'
 
+
+# Test runner
 TEST_RUNNER = 'rainbowtests.test.runner.RainbowDiscoverRunner'
 
 
 # Logging (log all errors to .log file and ERRORs to console as well)
 logger = logging.getLogger()
 logging_format = "%(asctime)s | %(levelname)s | %(filename)s:%(lineno)d | %(message)s"
-logfile = os.path.join(BASE_DIR, 'logs', 'cshsms.log')
-logging.basicConfig(filename=logfile, level=logging.INFO, format=logging_format)
-logging_handler_out = logging.StreamHandler(sys.stdout)
-logging_handler_out.setLevel(logging.ERROR)
-logging_handler_out.setFormatter(logging.Formatter(logging_format))
-logger.addHandler(logging_handler_out)
+
+if os.getenv("CSHSMS_ENV") == "dev":
+    logging.basicConfig(level=logging.INFO, format=logging_format)
+else:
+    logfile = os.path.join(BASE_DIR, 'logs', 'cshsms.log')
+    logging.basicConfig(filename=logfile, level=logging.INFO, format=logging_format)
+    logging_handler_out = logging.StreamHandler(sys.stdout)
+    logging_handler_out.setLevel(logging.ERROR)
+    logging_handler_out.setFormatter(logging.Formatter(logging_format))
+    logger.addHandler(logging_handler_out)
+
+
+# Cronjobs
 CRONJOBS = [
     ('*/10 * * * *', 'jobs.text_reminder_job.remind_all'),                   # Run every 10 min
     ('5 4 * * *', 'jobs.text_processor_job.check_and_process_registrations') # Run daily at 4:05am

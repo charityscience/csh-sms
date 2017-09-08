@@ -27,7 +27,7 @@ class TextReminderJobTests(TestCase):
                       phone_number=c1.phone_number),
                  call(message=TextReminder(c2).get_reminder_msg(),
                       phone_number=c2.phone_number)]
-        mocked_send_text.assert_has_calls(calls)
+        mocked_send_text.assert_has_calls(calls, any_order=True)
         self.assertEqual(mocked_send_text.call_count, 2)
 
     @freeze_time(FAKE_NOW)
@@ -51,5 +51,5 @@ class TextReminderJobTests(TestCase):
                       phone_number=c1.phone_number),
                  call(message=TextReminder(c2).get_reminder_msg(),
                       phone_number=c2.phone_number)]
-        mocked_send_text.assert_has_calls(calls)
+        mocked_send_text.assert_has_calls(calls, any_order=True)
         self.assertEqual(mocked_send_text.call_count, 2)

@@ -21,7 +21,7 @@ class TextProcessorJobTests(TestCase):
                       phone_number="1-112-1111"),
                  call(message=msg_unsubscribe("Hindi"),
                       phone_number="1-112-1111")]
-        mocked_texter_send.assert_has_calls(calls)
+        mocked_texter_send.assert_has_calls(calls, any_order=True)
         self.assertEqual(mocked_texter_send.call_count, 3)
         self.assertEqual(Contact.objects.count(), 2)
         contacts = Contact.objects.all()

@@ -54,7 +54,7 @@ def deploy():
         run("git pull")
         run("pip install -r requirements.txt")
         run("python manage.py migrate")
-        run("python manage.py test")
+        run("python manage.py test tests/")
         run("python manage.py crontab add")
 
 
@@ -79,8 +79,13 @@ def verify_server():
             else:
                 print(green("Crontab installed and running..."))
                 print(crontab)
-        print("Verifying remote tests...")
-        run("python manage.py test")
+        print("Verifying remote unit tests...")
+        run("python manage.py test tests/")
+
+
+def run_remote_live_tests():
+        print("Verifying remote live tests...")
+        run("python manage.py test live_tests/")
 
 
 def read_server_log():

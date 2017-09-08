@@ -2,7 +2,8 @@ from datetime import datetime
 from django.test import TestCase
 
 from modules.utils import quote
-from modules.date_helper import date_string_to_date, date_is_valid
+from modules.date_helper import date_string_to_date, date_is_valid, \
+                                date_to_date_string
 
 class QuoteTests(TestCase):
     def test_quote(self):
@@ -65,3 +66,9 @@ class DateStringToDateTests(TestCase):
         self.assertEqual(date_string_to_date("25/11/2015"), datetime(2015, 11, 25, 0, 0).date())
         self.assertEqual(date_string_to_date("11/12/2012"), datetime(2012, 12, 11, 0, 0).date())
         self.assertEqual(date_string_to_date("9-2-01"), datetime(2001, 2, 9, 0, 0).date())
+
+
+class DateToDateStringTests(TestCase):
+    def test_dates_get_converted_to_date_strings(self):
+        self.assertEqual(date_to_date_string(datetime(2015, 11, 25, 0, 0).date()), "25/11/2015")
+        self.assertEqual(date_to_date_string(datetime(2012, 12, 11, 0, 0).date()), "11/12/2012")

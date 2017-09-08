@@ -44,11 +44,19 @@ Run Postgres then...
 python manage.py runserver
 ```
 
-To run tests...
+To run unit tests...
 
 ```
-python manage.py test
+python manage.py test tests/
 ```
+
+To run functional / live / E2E tests...
+
+```
+python manage.py test live_tests/
+```
+
+Warning: These live tests can take 1.7hrs to complete! Set `export CSHSMS_ENV=dev` to see test logging output during the test run.
 
 
 #### Deployment

@@ -41,6 +41,8 @@ class TextReminder(object):
                 reminder = verify_pregnant_signup_birthdate
             elif self.correct_date_for_reminder(weeks_after_birth=4, days_before_appointment=0):
                 reminder = verify_pregnant_signup_birthdate
+            else:
+                reminder = None
         elif self.correct_date_for_reminder(weeks_after_birth=6, days_before_appointment=7):
             reminder = six_week_reminder_seven_days
         elif self.correct_date_for_reminder(weeks_after_birth=6, days_before_appointment=1):
