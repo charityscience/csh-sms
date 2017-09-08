@@ -670,3 +670,38 @@ class TextReminderTests(TestCase):
         tr = text_reminder_object("18/7/2012", preg_signup=True, preg_update=False) # 5 years, 1 days ago
         self.assertTrue(tr.should_remind_today())
         self.assertTrue(tr.correct_date_for_reminder(years_after_birth=5, days_before_appointment=1))
+
+
+    @freeze_time(FAKE_NOW)
+    def test_preg_signups_not_messaged_at_wrong_times(self):
+        tr = text_reminder_object("1/7/2017", preg_signup=True, preg_update=False) # 2 weeks, 2 days ago
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=2, days_before_appointment=0))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=4, days_before_appointment=0))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=6, days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=6, days_before_appointment=1))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=10, days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=10, days_before_appointment=1))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=14, days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=14, days_before_appointment=1))
+        self.assertFalse(tr.correct_date_for_reminder(months_after_birth=9, days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(months_after_birth=9, days_before_appointment=1))
+        self.assertFalse(tr.correct_date_for_reminder(months_after_birth=16, days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(months_after_birth=16, days_before_appointment=1))
+        self.assertFalse(tr.correct_date_for_reminder(years_after_birth=5, days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(years_after_birth=5, days_before_appointment=1))
+
+        tr = text_reminder_object("21/6/2017", preg_signup=True, preg_update=False) # 4 weeks, 2 days ago
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=2, days_before_appointment=0))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=4, days_before_appointment=0))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=6, days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=6, days_before_appointment=1))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=10, days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=10, days_before_appointment=1))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=14, days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(weeks_after_birth=14, days_before_appointment=1))
+        self.assertFalse(tr.correct_date_for_reminder(months_after_birth=9, days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(months_after_birth=9, days_before_appointment=1))
+        self.assertFalse(tr.correct_date_for_reminder(months_after_birth=16, days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(months_after_birth=16, days_before_appointment=1))
+        self.assertFalse(tr.correct_date_for_reminder(years_after_birth=5, days_before_appointment=7))
+        self.assertFalse(tr.correct_date_for_reminder(years_after_birth=5, days_before_appointment=1))
