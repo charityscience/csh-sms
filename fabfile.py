@@ -55,7 +55,6 @@ def deploy():
         run("pip install -r requirements.txt")
         run("python manage.py migrate")
         run("python manage.py test tests/")
-        run("python manage.py test live_tests/")
         run("python manage.py crontab add")
 
 
@@ -82,6 +81,9 @@ def verify_server():
                 print(crontab)
         print("Verifying remote unit tests...")
         run("python manage.py test tests/")
+
+
+def run_remote_live_tests():
         print("Verifying remote live tests...")
         run("python manage.py test live_tests/")
 
