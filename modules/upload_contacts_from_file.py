@@ -3,7 +3,7 @@ import re
 import datetime
 import logging
 from django.utils import timezone
-from modules.utils import add_contact_to_group, phone_number_is_valid, remove_nondigit_characters
+from modules.utils import add_contact_to_group, phone_number_is_valid
 from modules.date_helper import date_string_ymd_to_date, date_string_mdy_to_date, datetime_string_mdy_to_datetime, \
                                 add_or_subtract_days
 from management.models import Contact

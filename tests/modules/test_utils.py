@@ -1,7 +1,7 @@
 from datetime import datetime
 from django.test import TestCase
 
-from modules.utils import quote, phone_number_is_valid, remove_nondigit_characters
+from modules.utils import quote, phone_number_is_valid, remove_nondigit_characters, add_country_code_to_phone_number
 from modules.date_helper import date_string_to_date, date_is_valid, \
                                 date_to_date_string
 
@@ -108,3 +108,14 @@ class NumberHandlingTests(TestCase):
         self.assertTrue(phone_number_is_valid("911234567890"))
         self.assertTrue(phone_number_is_valid("910987654321"))
         self.assertTrue(phone_number_is_valid("9109876543210"))
+
+    def test_add_country_code_to_phone_number(self):
+        self.assertEqual("9109876543210", add_country_code_to_phone_number("9109876543210"))
+        self.assertEqual("9109876543210", add_country_code_to_phone_number("09876543210"))
+        self.assertEqual("911234567890", add_country_code_to_phone_number("1234567890"))
+        self.assertEqual("91912345678", add_country_code_to_phone_number("912345678"))
+        self.assertEqual("910000000000", add_country_code_to_phone_number("910000000000"))
+        self.assertEqual("919100000000", add_country_code_to_phone_number("9100000000"))
+        self.assertEqual("919876543210", add_country_code_to_phone_number("9876543210"))
+        self.assertEqual("910987654321", add_country_code_to_phone_number("0987654321"))
+        self.assertEqual("", add_country_code_to_phone_number(""))
