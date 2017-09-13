@@ -17,3 +17,6 @@ def phone_number_is_valid(phone_number):
         9 to 15 digits"""
     pattern = '^\+?91?\d{9,15}$'
     return re.match(pattern, phone_number)
+
+def remove_nondigit_characters(phone_number):
+	return re.sub("[^0-9]", "", phone_number)

@@ -1,7 +1,7 @@
 from datetime import datetime
 from django.test import TestCase
 
-from modules.utils import quote
+from modules.utils import quote, remove_nondigit_characters
 from modules.date_helper import date_string_to_date, date_is_valid, \
                                 date_to_date_string
 
@@ -72,3 +72,22 @@ class DateToDateStringTests(TestCase):
     def test_dates_get_converted_to_date_strings(self):
         self.assertEqual(date_to_date_string(datetime(2015, 11, 25, 0, 0).date()), "25/11/2015")
         self.assertEqual(date_to_date_string(datetime(2012, 12, 11, 0, 0).date()), "11/12/2012")
+
+class NumberHandlingTests(TestCase):
+    def test_remove_nondigit_characters(self):
+        self.assertEqual("910123456789", remove_nondigit_characters("+910123456789"))
+        self.assertEqual("910123456789", remove_nondigit_characters("^910123456789"))
+        self.assertEqual("910123456789", remove_nondigit_characters("^+910123456789"))
+        self.assertEqual("910123456789", remove_nondigit_characters("+^910123456789"))
+        self.assertEqual("910123456789", remove_nondigit_characters(" 910123456789"))
+        self.assertEqual("910123456789", remove_nondigit_characters("_910123456789"))
+        self.assertEqual("910123456789", remove_nondigit_characters(" 910123456789"))
+        self.assertEqual("910123456789", remove_nondigit_characters("910123456789 "))
+        self.assertEqual("910123456789", remove_nondigit_characters("910123456789 +"))
+        self.assertEqual("1000", remove_nondigit_characters("1000 adfassfd!"))
+        self.assertEqual("1000", remove_nondigit_characters("$1000"))
+        self.assertEqual("1000", remove_nondigit_characters("₹1000"))
+        self.assertEqual("1000", remove_nondigit_characters("+_income1000 adfassfd!"))
+        self.assertEqual("1000", remove_nondigit_characters("[1000]"))
+        self.assertEqual("1000", remove_nondigit_characters("/1000] /-_-%&*()~?><;:'\"|\\@$#"))
+        self.assertEqual("", remove_nondigit_characters(""))
