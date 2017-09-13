@@ -1,7 +1,8 @@
 from datetime import datetime
 from django.test import TestCase
 
-from modules.utils import quote, phone_number_is_valid, remove_nondigit_characters, add_country_code_to_phone_number
+from modules.utils import quote, phone_number_is_valid, remove_nondigit_characters, \
+                                add_country_code_to_phone_number, prepare_phone_number
 from modules.date_helper import date_string_to_date, date_is_valid, \
                                 date_to_date_string
 
@@ -92,30 +93,65 @@ class NumberHandlingTests(TestCase):
         self.assertEqual("1000", remove_nondigit_characters("/1000] /-_-%&*()~?><;:'\"|\\@$#"))
         self.assertEqual("", remove_nondigit_characters(""))
 
-    def test_phone_number_is_valid(self):
-        self.assertFalse(phone_number_is_valid("9112345678901234567890"))
-        self.assertFalse(phone_number_is_valid("911234567890123456"))
-        self.assertFalse(phone_number_is_valid("911234567890 1234567890"))
-        self.assertFalse(phone_number_is_valid("91123456s7890"))
-        self.assertFalse(phone_number_is_valid("91123456 7890"))
-        self.assertFalse(phone_number_is_valid(" 911234567890"))
-        self.assertFalse(phone_number_is_valid("91 12345 67890"))
-        self.assertFalse(phone_number_is_valid("123456789012"))
-        self.assertFalse(phone_number_is_valid("123-456-8901"))
-        self.assertFalse(phone_number_is_valid("123 456 8901"))
+    def test_valid_phone_numbers(self):
+        self.assertTrue(phone_number_is_valid("91123456s7890"))
+        self.assertTrue(phone_number_is_valid("91123456 7890"))
+        self.assertTrue(phone_number_is_valid(" 911234567890"))
+        self.assertTrue(phone_number_is_valid("91 12345 67890"))
+        self.assertTrue(phone_number_is_valid("123456789012"))
+        self.assertTrue(phone_number_is_valid("1234567890"))
+        self.assertTrue(phone_number_is_valid("0123456789"))
+        self.assertTrue(phone_number_is_valid("123-456-8901"))
+        self.assertTrue(phone_number_is_valid("123 456 8901"))
         self.assertTrue(phone_number_is_valid("+911234567890"))
         self.assertTrue(phone_number_is_valid("+91123456789012345"))
+        self.assertTrue(phone_number_is_valid("91123456789012345"))
+        self.assertTrue(phone_number_is_valid("123456789012345"))
         self.assertTrue(phone_number_is_valid("911234567890"))
         self.assertTrue(phone_number_is_valid("910987654321"))
         self.assertTrue(phone_number_is_valid("9109876543210"))
+
+    def test_invalid_phone_numbers(self):
+        self.assertFalse(phone_number_is_valid("9112345678901234567890"))
+        self.assertFalse(phone_number_is_valid("911234567890123456"))
+        self.assertFalse(phone_number_is_valid("911234567890 1234567890"))
+        self.assertFalse(phone_number_is_valid("123456"))
+        self.assertFalse(phone_number_is_valid("9123456"))
+        self.assertFalse(phone_number_is_valid("912345679"))
+        self.assertFalse(phone_number_is_valid("12345678"))
+        self.assertFalse(phone_number_is_valid("123456789"))
+        self.assertFalse(phone_number_is_valid("1234567890123456"))
+        self.assertFalse(phone_number_is_valid(""))
+        self.assertFalse(phone_number_is_valid(" "))
+        self.assertFalse(phone_number_is_valid("         "))
 
     def test_add_country_code_to_phone_number(self):
         self.assertEqual("9109876543210", add_country_code_to_phone_number("9109876543210"))
         self.assertEqual("9109876543210", add_country_code_to_phone_number("09876543210"))
         self.assertEqual("911234567890", add_country_code_to_phone_number("1234567890"))
-        self.assertEqual("91912345678", add_country_code_to_phone_number("912345678"))
+        self.assertEqual("912345678", add_country_code_to_phone_number("912345678"))
         self.assertEqual("910000000000", add_country_code_to_phone_number("910000000000"))
-        self.assertEqual("919100000000", add_country_code_to_phone_number("9100000000"))
+        self.assertEqual("9100000000", add_country_code_to_phone_number("9100000000"))
         self.assertEqual("919876543210", add_country_code_to_phone_number("9876543210"))
         self.assertEqual("910987654321", add_country_code_to_phone_number("0987654321"))
         self.assertEqual("", add_country_code_to_phone_number(""))
+
+    def test_prepare_phone_number(self):
+        self.assertEqual("9112345678901234567890", prepare_phone_number("9112345678901234567890"))
+        self.assertEqual("911234567890123456", prepare_phone_number("911234567890123456"))
+        self.assertEqual("9112345678901234567890", prepare_phone_number("911234567890 1234567890"))
+        self.assertEqual("911234567890", prepare_phone_number("91123456s7890"))
+        self.assertEqual("911234567890", prepare_phone_number("91123456 7890"))
+        self.assertEqual("911234567890", prepare_phone_number(" 911234567890"))
+        self.assertEqual("911234567890", prepare_phone_number("91 12345 67890"))
+        self.assertEqual("91123456789012", prepare_phone_number("123456789012"))
+        self.assertEqual("911234568901", prepare_phone_number("123-456-8901"))
+        self.assertEqual("911234568901", prepare_phone_number("123 456 8901"))
+        self.assertEqual("911234567890", prepare_phone_number("+911234567890"))
+        self.assertEqual("91123456789012345", prepare_phone_number("+91123456789012345"))
+        self.assertEqual("911234567890", prepare_phone_number("911234567890"))
+        self.assertEqual("910987654321", prepare_phone_number("910987654321"))
+        self.assertEqual("9109876543210", prepare_phone_number("9109876543210"))
+        self.assertEqual("123456", prepare_phone_number("123456"))
+        self.assertEqual("12345678", prepare_phone_number("12345678"))
+        self.assertEqual("", prepare_phone_number(""))

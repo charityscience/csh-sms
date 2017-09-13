@@ -70,7 +70,7 @@ class UploadContactsContactFieldsTests(TestCase):
     	   a contact with name: FakestNumber and phone number: 511234567890"""
     	self.upload_file()
     	self.assertFalse(Contact.objects.filter(name="FakestNumber").exists())
-    	logging_mock.assert_called_with("Entry: FakestNumber - 2016-09-14 has invalid phone number: 511234567890")
+    	logging_mock.assert_called_with("Entry: FakestNumber - 2016-09-14 has invalid phone number: 123456")
 
     @patch("logging.error")
     def test_hindi_names_are_preserved(self, logging_mock):
