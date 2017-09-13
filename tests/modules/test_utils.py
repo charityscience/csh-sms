@@ -1,7 +1,7 @@
 from datetime import datetime
 from django.test import TestCase
 
-from modules.utils import quote, remove_nondigit_characters
+from modules.utils import quote, phone_number_is_valid, remove_nondigit_characters
 from modules.date_helper import date_string_to_date, date_is_valid, \
                                 date_to_date_string
 
@@ -91,3 +91,20 @@ class NumberHandlingTests(TestCase):
         self.assertEqual("1000", remove_nondigit_characters("[1000]"))
         self.assertEqual("1000", remove_nondigit_characters("/1000] /-_-%&*()~?><;:'\"|\\@$#"))
         self.assertEqual("", remove_nondigit_characters(""))
+
+    def test_phone_number_is_valid(self):
+        self.assertFalse(phone_number_is_valid("9112345678901234567890"))
+        self.assertFalse(phone_number_is_valid("911234567890123456"))
+        self.assertFalse(phone_number_is_valid("911234567890 1234567890"))
+        self.assertFalse(phone_number_is_valid("91123456s7890"))
+        self.assertFalse(phone_number_is_valid("91123456 7890"))
+        self.assertFalse(phone_number_is_valid(" 911234567890"))
+        self.assertFalse(phone_number_is_valid("91 12345 67890"))
+        self.assertFalse(phone_number_is_valid("123456789012"))
+        self.assertFalse(phone_number_is_valid("123-456-8901"))
+        self.assertFalse(phone_number_is_valid("123 456 8901"))
+        self.assertTrue(phone_number_is_valid("+911234567890"))
+        self.assertTrue(phone_number_is_valid("+91123456789012345"))
+        self.assertTrue(phone_number_is_valid("911234567890"))
+        self.assertTrue(phone_number_is_valid("910987654321"))
+        self.assertTrue(phone_number_is_valid("9109876543210"))
