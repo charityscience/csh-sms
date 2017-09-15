@@ -14,7 +14,8 @@ from modules.upload_contacts_from_file import csv_upload, make_contact_dict, ass
                                               previous_vaccination, monthly_income, parse_or_create_delay_num, \
                                               entered_date_string_to_date, parse_or_create_functional_dob, \
                                               parse_contact_time_references, parse_preg_signup, assign_preg_signup, \
-                                              estimate_date_of_birth, filter_pregnancy_month
+                                              estimate_date_of_birth, filter_pregnancy_month, determine_language, \
+                                              determine_mother_tongue, language_selector
 from modules.date_helper import add_or_subtract_days, add_or_subtract_months
 from dateutil.relativedelta import relativedelta
 
@@ -384,3 +385,91 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual(3, filter_pregnancy_month(month_of_pregnancy="300"))
         self.assertEqual(4, filter_pregnancy_month(month_of_pregnancy="004"))
         self.assertEqual(4, filter_pregnancy_month(month_of_pregnancy="0040"))
+
+    def test_determine_language(self):
+        self.assertEqual("English", determine_language("English"))
+        self.assertEqual("English", determine_language("English--"))
+        self.assertEqual("Hindi", determine_language("Hindi"))
+        self.assertEqual("Hindi", determine_language(" Hindi"))
+        self.assertEqual("Gujarati", determine_language("Gujarati"))
+        self.assertEqual("Gujarati", determine_language("Gujarati "))
+        self.assertEqual("Hindi", determine_language("Other"))
+        self.assertEqual("Hindi", determine_language("1"))
+        self.assertEqual("Hindi", determine_language("10"))
+        self.assertEqual("Hindi", determine_language(1))
+        self.assertEqual("English", determine_language(200))
+        self.assertEqual("Gujarati", determine_language(300))
+        self.assertEqual("English", determine_language("2"))
+        self.assertEqual("Gujarati", determine_language("3"))
+        self.assertEqual("Gujarati", determine_language("30"))
+        self.assertEqual("Hindi", determine_language("4"))
+        self.assertEqual("Hindi", determine_language("7"))
+        self.assertEqual("Hindi", determine_language("None"))
+        self.assertEqual("Hindi", determine_language(""))
+        self.assertEqual("Hindi", determine_language(" "))
+        self.assertEqual("Hindi", determine_language("\u0923\u09a1"))
+
+    def test_determine_mother_tongue(self):
+        self.assertEqual("English", determine_mother_tongue("English"))
+        self.assertEqual("English", determine_mother_tongue("English--"))
+        self.assertEqual("Hindi", determine_mother_tongue("Hindi"))
+        self.assertEqual("Hindi", determine_mother_tongue(" Hindi"))
+        self.assertEqual("Other", determine_mother_tongue("Other"))
+        self.assertEqual("Other", determine_mother_tongue("Other "))
+        self.assertEqual("Hindi", determine_mother_tongue("1"))
+        self.assertEqual("Hindi", determine_mother_tongue(1))
+        self.assertEqual("English", determine_mother_tongue(200))
+        self.assertEqual("Other", determine_mother_tongue(300))
+        self.assertEqual("English", determine_mother_tongue("2"))
+        self.assertEqual("English", determine_mother_tongue("20"))
+        self.assertEqual("Other", determine_mother_tongue("3"))
+        self.assertEqual("Other", determine_mother_tongue("30"))
+        self.assertEqual("Other", determine_mother_tongue("4"))
+        self.assertEqual("Other", determine_mother_tongue("7"))
+        self.assertEqual("Other", determine_mother_tongue("None"))
+        self.assertEqual(None, determine_mother_tongue(""))
+        self.assertEqual(None, determine_mother_tongue(" "))
+        self.assertEqual("Other", determine_mother_tongue("\u0923\u09a1"))
+
+    def test_language_selector(self):
+        self.assertIsNone(language_selector(language_input="", options=["Hindi", "English", "Other"],
+                            default_option="Other", none_option=None))
+        self.assertIsNone(language_selector(language_input=" ", options=["Hindi", "English", "Gujarati"],
+                            default_option="Other", none_option=None))
+        self.assertEqual("Hindi", language_selector(language_input=" ", options=["Hindi", "English", "Other"],
+                            default_option="Other", none_option="Hindi"))
+        self.assertEqual("Hindi", language_selector(language_input="", options=["Hindi", "English", "Other"],
+                            default_option="Other", none_option="Hindi"))
+        options_one = ["Hindi", "English", "Other"]
+        options_two = ["Hindi", "English", "Gujarati"]
+        options_three = ["Tiger", "Lion", "Cobra"]
+        self.assertEqual(options_one[0], language_selector(language_input=options_one[0], options=options_one,
+                            default_option="Other", none_option="Hindi"))
+        self.assertEqual(options_one[1], language_selector(language_input=options_one[1], options=options_one,
+                            default_option="Other", none_option="Hindi"))
+        self.assertEqual(options_one[2], language_selector(language_input=options_one[2], options=options_one,
+                            default_option="Other", none_option="Hindi"))
+        self.assertEqual(options_two[2], language_selector(language_input=options_two[2], options=options_two,
+                            default_option="Other", none_option="Hindi"))
+        self.assertEqual(options_three[2], language_selector(language_input=options_three[2], options=options_three,
+                            default_option="Other", none_option="Hindi"))
+        self.assertEqual(options_one[2], language_selector(language_input=" " + options_one[2] + " ", options=options_one,
+                            default_option="Other", none_option="Hindi"))
+        self.assertEqual(options_two[0], language_selector(language_input="1", options=options_two,
+                            default_option="Other", none_option="Hindi"))
+        self.assertEqual(options_two[1], language_selector(language_input="2", options=options_two,
+                            default_option="Other", none_option="Hindi"))
+        self.assertEqual(options_two[1], language_selector(language_input="20", options=options_two,
+                            default_option="Other", none_option="Hindi"))
+        self.assertEqual(options_two[2], language_selector(language_input="3", options=options_two,
+                            default_option="Other", none_option="Hindi"))
+        self.assertEqual(options_two[2], language_selector(language_input=3, options=options_two,
+                            default_option="Other", none_option="Hindi"))
+        self.assertEqual(options_two[1], language_selector(language_input=20, options=options_two,
+                            default_option="Other", none_option="Hindi"))
+        self.assertEqual("Stuff", language_selector(language_input="7", options=options_two,
+                            default_option="Stuff", none_option="Hindi"))
+        self.assertEqual("Stuff", language_selector(language_input="dfsadfasdfp", options=options_two,
+                            default_option="Stuff", none_option="Hindi"))
+        self.assertEqual("More stuff", language_selector(language_input="\u0923\u09a1", options=options_two,
+                            default_option="More stuff", none_option="Hindi"))

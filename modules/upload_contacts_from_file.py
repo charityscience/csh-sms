@@ -126,3 +126,27 @@ def estimate_date_of_birth(month_of_pregnancy, date_of_sign_up):
 def filter_pregnancy_month(month_of_pregnancy):
     month_of_pregnancy = re.sub("\D|0", "", str(month_of_pregnancy))
     return int(month_of_pregnancy[0]) if month_of_pregnancy else None
+
+def determine_language(language_entry):
+    return language_selector(language_input=language_entry, options=["Hindi", "English", "Gujarati"],
+        default_option="Hindi", none_option="Hindi")
+
+def determine_mother_tongue(mother_tongue):
+    return language_selector(language_input=mother_tongue, options=["Hindi", "English", "Other"],
+        default_option="Other", none_option=None)
+
+def language_selector(language_input, options, default_option, none_option):
+    language_input = re.sub("\W", "", str(language_input))
+    if not language_input:
+        return none_option
+
+    if language_input in options:
+        return language_input
+    elif language_input[0] == "1":
+        return "Hindi"
+    elif language_input[0] == "2":
+        return "English"
+    elif language_input[0] == "3":
+        return options[2]
+    else:
+        return default_option
