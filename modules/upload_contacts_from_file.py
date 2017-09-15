@@ -3,7 +3,7 @@ import re
 import datetime
 import logging
 from django.utils import timezone
-from modules.utils import add_contact_to_group, phone_number_is_valid
+from modules.utils import add_contact_to_group, phone_number_is_valid, prepare_phone_number
 from modules.date_helper import date_string_ymd_to_date, date_string_mdy_to_date, datetime_string_mdy_to_datetime, \
                                 add_or_subtract_days, add_or_subtract_months, date_string_dmy_to_date
 from management.models import Contact
@@ -26,7 +26,7 @@ def csv_upload(filepath, source):
 def make_contact_dict(row, source):
     new_dict = {}
     new_dict["name"] = row["Name"].encode("utf-8").decode('unicode-escape')
-    new_dict["phone_number"] = row["Phone Number"]
+    new_dict["phone_number"] = prepare_phone_number(row["Phone Number"])
     new_dict["alt_phone_number"] = row["Alternative Phone"]
     new_dict["delay_in_days"] = parse_or_create_delay_num(row["Delay in days"])
     new_dict["language_preference"] = row["Language Preference"]
