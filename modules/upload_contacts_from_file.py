@@ -8,11 +8,11 @@ from modules.date_helper import date_string_ymd_to_date, date_string_mdy_to_date
                                 add_or_subtract_days, add_or_subtract_months, date_string_dmy_to_date
 from management.models import Contact
 
-def csv_upload(filepath):
+def csv_upload(filepath, source):
     with open(filepath) as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            new_dict = make_contact_dict(row)
+            new_dict = make_contact_dict(row, source)
             if phone_number_is_valid(new_dict["phone_number"]):
                 new_contact, created = Contact.objects.update_or_create(name=new_dict["name"],
                     phone_number=new_dict["phone_number"], defaults=new_dict)
@@ -23,7 +23,7 @@ def csv_upload(filepath):
                 logging.error("Entry: {name} - {date_of_birth} has invalid phone number: {phone}".format(
                     name=new_dict["name"], phone=new_dict["phone_number"], date_of_birth=new_dict["date_of_birth"]))
 
-def make_contact_dict(row):
+def make_contact_dict(row, source):
     new_dict = {}
     new_dict["name"] = row["Name"].encode("utf-8").decode('unicode-escape')
     new_dict["phone_number"] = row["Phone Number"]

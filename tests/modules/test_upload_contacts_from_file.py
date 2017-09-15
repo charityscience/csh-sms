@@ -31,23 +31,23 @@ def create_sample_group(name="TestMe"):
 class UploadContactsFileTests(TestCase):
     def test_nonexistent_file_csv(self):
         with self.assertRaises(IOError):
-            csv_upload("none.csv")
+            csv_upload(filepath="none.csv", source="TR")
 
     def test_non_csv_file(self):
         fake_txt_path = os.path.join(tempfile.gettempdir(), "fake.txt")
         with self.assertRaises(IOError):
-            csv_upload(fake_txt_path)
+            csv_upload(filepath=fake_txt_path, source="TR")
 
     @patch("logging.error")
     def test_processes_csv(self, logging_mock):
         csv_path = "tests/data/example.csv" 
-        csv_upload(csv_path)
+        csv_upload(filepath=csv_path, source="TR")
 
 
 class UploadContactsContactFieldsTests(TestCase):
     def upload_file(self):
         csv_path = "tests/data/example.csv" 
-        csv_upload(csv_path)        
+        csv_upload(filepath=csv_path, source="TR")        
 
     @patch("logging.error")
     def test_existing_contacts_are_updated(self, logging_mock):
