@@ -134,6 +134,6 @@ else:
 
 # Cronjobs
 CRONJOBS = [
-    ('*/10 * * * *', 'jobs.text_reminder_job.remind_all'),                   # Run every 10 min
-    ('0 16 * * *', 'jobs.text_processor_job.check_and_process_registrations') # Run daily at 4pm
+    ('*/10 * * * *', 'jobs.text_reminder_job.check_and_process_registrations'),                   # Check for new registrations every 10 min
+    ('0 16 * * *', 'jobs.text_processor_job.remind_all') # Remind people daily at 4pm
 ]
