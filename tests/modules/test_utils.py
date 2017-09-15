@@ -87,7 +87,7 @@ class NumberHandlingTests(TestCase):
         self.assertEqual("910123456789", remove_nondigit_characters("910123456789 +"))
         self.assertEqual("1000", remove_nondigit_characters("1000 adfassfd!"))
         self.assertEqual("1000", remove_nondigit_characters("$1000"))
-        self.assertEqual("1000", remove_nondigit_characters("₹1000"))
+        self.assertEqual("1000", remove_nondigit_characters("\u20B91000")) #Rupee symbol is u20B9
         self.assertEqual("1000", remove_nondigit_characters("+_income1000 adfassfd!"))
         self.assertEqual("1000", remove_nondigit_characters("[1000]"))
         self.assertEqual("1000", remove_nondigit_characters("/1000] /-_-%&*()~?><;:'\"|\\@$#"))
