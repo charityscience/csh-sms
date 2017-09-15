@@ -5,7 +5,7 @@ import logging
 from django.utils import timezone
 from modules.utils import add_contact_to_group, phone_number_is_valid
 from modules.date_helper import date_string_ymd_to_date, date_string_mdy_to_date, datetime_string_mdy_to_datetime, \
-                                add_or_subtract_days
+                                add_or_subtract_days, add_or_subtract_months, date_string_dmy_to_date
 from management.models import Contact
 
 def csv_upload(filepath):
@@ -30,8 +30,8 @@ def make_contact_dict(row):
     new_dict["alt_phone_number"] = row["Alternative Phone"]
     new_dict["delay_in_days"] = parse_or_create_delay_num(row["Delay in days"])
     new_dict["language_preference"] = row["Language Preference"]
-    new_dict["date_of_birth"] = entered_date_string_to_date(row["Date of Birth"])
     new_dict["date_of_sign_up"] = entered_date_string_to_date(row["Date of Sign Up"])
+    new_dict["date_of_birth"] = entered_date_string_to_date(row["Date of Birth"])
     new_dict["functional_date_of_birth"] = parse_or_create_functional_dob(row["Functional DoB"], new_dict["date_of_birth"], new_dict["delay_in_days"])
 
     # Personal Info
@@ -112,3 +112,17 @@ def parse_preg_signup(row_entry):
 
 def assign_preg_signup(contact):
     return True if contact.preg_signup or not contact.has_been_born() else False
+
+def estimate_date_of_birth(month_of_pregnancy, date_of_sign_up):
+    duration_of_pregnancy = 280 # mean number of days of a pregnancy
+    month_of_pregnancy = filter_pregnancy_month(month_of_pregnancy)
+    if month_of_pregnancy is None:
+        return None
+
+    conception_date = add_or_subtract_months(date=date_of_sign_up, num_of_months=-month_of_pregnancy)
+    estimated_dob = add_or_subtract_days(date=conception_date, num_of_days=duration_of_pregnancy)
+    return estimated_dob
+
+def filter_pregnancy_month(month_of_pregnancy):
+    month_of_pregnancy = re.sub("\D|0", "", str(month_of_pregnancy))
+    return int(month_of_pregnancy[0]) if month_of_pregnancy else None

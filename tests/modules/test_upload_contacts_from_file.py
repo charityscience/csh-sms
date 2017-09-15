@@ -13,7 +13,10 @@ from modules.utils import phone_number_is_valid
 from modules.upload_contacts_from_file import csv_upload, make_contact_dict, assign_groups_to_contact, \
                                               previous_vaccination, monthly_income, parse_or_create_delay_num, \
                                               entered_date_string_to_date, parse_or_create_functional_dob, \
-                                              parse_contact_time_references, parse_preg_signup, assign_preg_signup
+                                              parse_contact_time_references, parse_preg_signup, assign_preg_signup, \
+                                              estimate_date_of_birth, filter_pregnancy_month
+from modules.date_helper import add_or_subtract_days, add_or_subtract_months
+from dateutil.relativedelta import relativedelta
 
 def create_sample_contact(name="Aaarsh"):
     contact, created = Contact.objects.get_or_create(name=name, phone_number="911234567890",
@@ -308,3 +311,76 @@ class UploadContactsInputParserTests(TestCase):
         future_contact.date_of_birth = datetime(2017, 7, 28, 0, 0).date()
         future_contact.preg_signup = False
         self.assertEqual(assign_preg_signup(future_contact), True)
+
+    @freeze_time(datetime(2017, 7, 21, 0, 0))
+    def test_estimate_date_of_birth(self):
+        freeze_time_date = datetime.now().date()
+        five_months_ago = add_or_subtract_months(date=freeze_time_date, num_of_months=-5)
+        five_months_plus_preg_time = add_or_subtract_days(date=five_months_ago, num_of_days=280)
+        one_month = freeze_time_date + relativedelta(months=-1) + relativedelta(days=280)
+        two_months = freeze_time_date + relativedelta(months=-2) + relativedelta(days=280)
+        three_months = freeze_time_date + relativedelta(months=-3) + relativedelta(days=280)
+        four_months = freeze_time_date + relativedelta(months=-4) + relativedelta(days=280)
+        five_months = freeze_time_date + relativedelta(months=-5) + relativedelta(days=280)
+        six_months = freeze_time_date + relativedelta(months=-6) + relativedelta(days=280)
+        seven_months = freeze_time_date + relativedelta(months=-7) + relativedelta(days=280)
+        eight_months = freeze_time_date + relativedelta(months=-8) + relativedelta(days=280)
+        nine_months = freeze_time_date + relativedelta(months=-9) + relativedelta(days=280)
+        self.assertEqual(one_month, estimate_date_of_birth(month_of_pregnancy="1", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(two_months, estimate_date_of_birth(month_of_pregnancy="2", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(three_months, estimate_date_of_birth(month_of_pregnancy="3", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(four_months, estimate_date_of_birth(month_of_pregnancy="4", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(five_months, estimate_date_of_birth(month_of_pregnancy="5", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(six_months, estimate_date_of_birth(month_of_pregnancy="6", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(seven_months, estimate_date_of_birth(month_of_pregnancy="7", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(eight_months, estimate_date_of_birth(month_of_pregnancy="8", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(eight_months, estimate_date_of_birth(month_of_pregnancy="8m", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(eight_months, estimate_date_of_birth(month_of_pregnancy="8_", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(nine_months, estimate_date_of_birth(month_of_pregnancy="9", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(nine_months, estimate_date_of_birth(month_of_pregnancy="9 ", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(nine_months, estimate_date_of_birth(month_of_pregnancy=" 9", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(nine_months, estimate_date_of_birth(month_of_pregnancy=" 9 ", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(five_months_plus_preg_time, estimate_date_of_birth(month_of_pregnancy="5", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(five_months_plus_preg_time, estimate_date_of_birth(month_of_pregnancy=5, date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(None, estimate_date_of_birth(month_of_pregnancy="0", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(None, estimate_date_of_birth(month_of_pregnancy="00", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+
+    @freeze_time(datetime(2017, 7, 21, 0, 0))
+    def test_estimate_date_of_birth_handles_month_typos(self):
+        freeze_time_date = datetime.now().date()
+        one_month = freeze_time_date + relativedelta(months=-1) + relativedelta(days=280)
+        two_months = freeze_time_date + relativedelta(months=-2) + relativedelta(days=280)
+        nine_months = freeze_time_date + relativedelta(months=-9) + relativedelta(days=280)
+        self.assertEqual(one_month, estimate_date_of_birth(month_of_pregnancy="10", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(one_month, estimate_date_of_birth(month_of_pregnancy="11", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(two_months, estimate_date_of_birth(month_of_pregnancy="22", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(nine_months, estimate_date_of_birth(month_of_pregnancy="99", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(two_months, estimate_date_of_birth(month_of_pregnancy="-2", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(two_months, estimate_date_of_birth(month_of_pregnancy="-22", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(two_months, estimate_date_of_birth(month_of_pregnancy="0020", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(two_months, estimate_date_of_birth(month_of_pregnancy="200", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(two_months, estimate_date_of_birth(month_of_pregnancy="002", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(two_months, estimate_date_of_birth(month_of_pregnancy="2adgasdfasdf", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+
+    def test_estimate_date_of_birth_rejects_nonnumbers(self):
+        self.assertEqual(None, estimate_date_of_birth(month_of_pregnancy="Five", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(None, estimate_date_of_birth(month_of_pregnancy="Ten", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(None, estimate_date_of_birth(month_of_pregnancy="", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(None, estimate_date_of_birth(month_of_pregnancy=" ", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(None, estimate_date_of_birth(month_of_pregnancy="_!", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+
+    def test_filter_pregnancy_month(self):
+        self.assertEqual(None, filter_pregnancy_month(month_of_pregnancy="Five"))
+        self.assertEqual(None, filter_pregnancy_month(month_of_pregnancy="Ten"))
+        self.assertEqual(None, filter_pregnancy_month(month_of_pregnancy=" "))
+        self.assertEqual(None, filter_pregnancy_month(month_of_pregnancy=""))
+        self.assertEqual(None, filter_pregnancy_month(month_of_pregnancy="_ *"))
+        self.assertEqual(None, filter_pregnancy_month(month_of_pregnancy="Let'em see"))
+        self.assertEqual(1, filter_pregnancy_month(month_of_pregnancy="1"))
+        self.assertEqual(1, filter_pregnancy_month(month_of_pregnancy="11"))
+        self.assertEqual(2, filter_pregnancy_month(month_of_pregnancy="22"))
+        self.assertEqual(2, filter_pregnancy_month(month_of_pregnancy="2 "))
+        self.assertEqual(2, filter_pregnancy_month(month_of_pregnancy="2s"))
+        self.assertEqual(3, filter_pregnancy_month(month_of_pregnancy="300"))
+        self.assertEqual(4, filter_pregnancy_month(month_of_pregnancy="004"))
+        self.assertEqual(4, filter_pregnancy_month(month_of_pregnancy="0040"))
