@@ -18,6 +18,7 @@ from modules.upload_contacts_from_file import csv_upload, make_contact_dict, ass
                                               determine_mother_tongue, language_selector
 from modules.date_helper import add_or_subtract_days, add_or_subtract_months
 from dateutil.relativedelta import relativedelta
+from six import u
 
 def create_sample_contact(name="Aaarsh"):
     contact, created = Contact.objects.get_or_create(name=name, phone_number="911234567890",
@@ -407,7 +408,7 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual("Hindi", determine_language("None"))
         self.assertEqual("Hindi", determine_language(""))
         self.assertEqual("Hindi", determine_language(" "))
-        self.assertEqual("Hindi", determine_language("\u0923\u09a1"))
+        self.assertEqual("Hindi", determine_language(u"\u0923\u09a1"))
 
     def test_determine_mother_tongue(self):
         self.assertEqual("English", determine_mother_tongue("English"))
@@ -429,7 +430,7 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual("Other", determine_mother_tongue("None"))
         self.assertEqual(None, determine_mother_tongue(""))
         self.assertEqual(None, determine_mother_tongue(" "))
-        self.assertEqual("Other", determine_mother_tongue("\u0923\u09a1"))
+        self.assertEqual("Other", determine_mother_tongue(u"\u0923\u09a1"))
 
     def test_language_selector(self):
         self.assertIsNone(language_selector(language_input="", options=["Hindi", "English", "Other"],
@@ -471,5 +472,5 @@ class UploadContactsInputParserTests(TestCase):
                             default_option="Stuff", none_option="Hindi"))
         self.assertEqual("Stuff", language_selector(language_input="dfsadfasdfp", options=options_two,
                             default_option="Stuff", none_option="Hindi"))
-        self.assertEqual("More stuff", language_selector(language_input="\u0923\u09a1", options=options_two,
+        self.assertEqual("More stuff", language_selector(language_input=u"\u0923\u09a1", options=options_two,
                             default_option="More stuff", none_option="Hindi"))

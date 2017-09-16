@@ -5,6 +5,7 @@ from modules.utils import quote, phone_number_is_valid, remove_nondigit_characte
                                 add_country_code_to_phone_number, prepare_phone_number
 from modules.date_helper import date_string_to_date, date_is_valid, \
                                 date_to_date_string
+from six import u
 
 class QuoteTests(TestCase):
     def test_quote(self):
@@ -87,7 +88,7 @@ class NumberHandlingTests(TestCase):
         self.assertEqual("910123456789", remove_nondigit_characters("910123456789 +"))
         self.assertEqual("1000", remove_nondigit_characters("1000 adfassfd!"))
         self.assertEqual("1000", remove_nondigit_characters("$1000"))
-        self.assertEqual("1000", remove_nondigit_characters("\u20B91000")) #Rupee symbol is u20B9
+        self.assertEqual("1000", remove_nondigit_characters(u"\u20B91000")) #Rupee symbol is u20B9
         self.assertEqual("1000", remove_nondigit_characters("+_income1000 adfassfd!"))
         self.assertEqual("1000", remove_nondigit_characters("[1000]"))
         self.assertEqual("1000", remove_nondigit_characters("/1000] /-_-%&*()~?><;:'\"|\\@$#"))
