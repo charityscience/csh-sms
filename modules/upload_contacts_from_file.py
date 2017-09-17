@@ -6,6 +6,7 @@ from django.utils import timezone
 from modules.utils import add_contact_to_group, phone_number_is_valid, prepare_phone_number
 from modules.date_helper import date_string_ymd_to_date, date_string_mdy_to_date, datetime_string_mdy_to_datetime, \
                                 add_or_subtract_days, add_or_subtract_months, date_string_dmy_to_date
+from modules.i18n import hindi_placeholder_name, gujarati_placeholder_name
 from management.models import Contact
 
 def csv_upload(filepath, source):
@@ -150,3 +151,14 @@ def language_selector(language_input, options, default_option, none_option):
         return options[2]
     else:
         return default_option
+
+def replace_blank_name(name, language):
+    if not name or name == len(name) * " ":
+        if language == "English":
+            return "Your child"
+        elif language == "Hindi":
+            return hindi_placeholder_name()
+        elif language == "Gujarati":
+            return gujarati_placeholder_name()
+    else:
+        return name
