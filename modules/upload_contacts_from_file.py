@@ -31,9 +31,10 @@ def make_contact_dict(row, source):
     new_dict["alt_phone_number"] = row["Alternative Phone"]
     new_dict["delay_in_days"] = parse_or_create_delay_num(row["Delay in days"])
     new_dict["language_preference"] = row["Language Preference"]
-    new_dict["date_of_sign_up"] = entered_date_string_to_date(row["Date of Sign Up"])
-    new_dict["date_of_birth"] = entered_date_string_to_date(row["Date of Birth"])
-    new_dict["functional_date_of_birth"] = parse_or_create_functional_dob(row["Functional DoB"], new_dict["date_of_birth"], new_dict["delay_in_days"])
+    new_dict["date_of_sign_up"] = entered_date_string_to_date(row_entry=row["Date of Sign Up"], source=source)
+    new_dict["date_of_birth"] = entered_date_string_to_date(row_entry=row["Date of Birth"], source=source)
+    new_dict["functional_date_of_birth"] = parse_or_create_functional_dob(row_entry=row["Functional DoB"], source=source,
+        date_of_birth=new_dict["date_of_birth"], delay=new_dict["delay_in_days"])
 
     # Personal Info
     new_dict["gender"] = row["Gender"]
@@ -90,14 +91,14 @@ def monthly_income(row_entry):
 def parse_or_create_delay_num(row_entry):
     return int(row_entry) if row_entry and not re.search("\D+", row_entry) else 0
 
-def entered_date_string_to_date(row_entry):
+def entered_date_string_to_date(row_entry, source):
     try:
         return date_string_ymd_to_date(row_entry)
     except ValueError:
         return date_string_mdy_to_date(row_entry)
 
-def parse_or_create_functional_dob(row_entry, date_of_birth, delay):
-    return entered_date_string_to_date(row_entry) if row_entry else add_or_subtract_days(date_of_birth, delay)
+def parse_or_create_functional_dob(row_entry, source, date_of_birth, delay):
+    return entered_date_string_to_date(row_entry=row_entry, source=source) if row_entry else add_or_subtract_days(date_of_birth, delay)
 
 def parse_contact_time_references(row_entry):
     return datetime_string_mdy_to_datetime(row_entry) if row_entry else datetime.datetime.now().replace(tzinfo=timezone.get_default_timezone())
