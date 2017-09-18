@@ -25,13 +25,40 @@ def date_is_valid(date_string):
         return False
 
 def date_string_dmy_to_date(date_string):
-	return  datetime_from_date_string(date_string, "%d/%m/%Y").date()
+	for fmt in ["%d-%m-%Y", "%d/%m/%Y"]:
+		try:
+			return  datetime_from_date_string(date_string, fmt).date()
+		except ValueError:
+			pass
+	raise ValueError("No valid day-month-year date format")
 
 def date_string_ymd_to_date(date_string):
-	return  datetime_from_date_string(date_string, "%Y-%m-%d").date()
+	for fmt in ["%Y-%m-%d", "%Y/%m/%d"]:
+		try:
+			return datetime_from_date_string(date_string, fmt).date()
+		except ValueError:
+			pass
+	raise ValueError("No valid year-month-day date format")
 
 def date_string_mdy_to_date(date_string):
-	return  datetime_from_date_string(date_string, "%m-%d-%Y").date()
+	for fmt in ["%m-%d-%Y", "%m/%d/%Y"]:
+		try:
+			return  datetime_from_date_string(date_string, fmt).date()
+		except ValueError:
+			pass
+	raise ValueError("No valid month-day-year date format")
+
+def try_parsing_partner_date(date_string):
+	try:
+		return date_string_dmy_to_date(date_string)
+	except ValueError:
+		return date_string_ymd_to_date(date_string)
+
+def try_parsing_gen_date(date_string):
+	try:
+	    return date_string_ymd_to_date(date_string)
+	except ValueError:
+		return date_string_mdy_to_date(date_string)
 
 def datetime_string_mdy_to_datetime(date_string):
 	return  datetime_from_date_string(date_string, "%m/%d/%Y %I:%M:%S %p").replace(tzinfo=timezone.get_default_timezone())

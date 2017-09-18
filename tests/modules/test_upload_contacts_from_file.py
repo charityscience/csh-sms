@@ -261,6 +261,11 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual(entered_date_string_to_date(row_entry="2017-01-07", source="TR"), datetime(2017, 1, 7, 0,0 ).date())
         self.assertEqual(entered_date_string_to_date(row_entry="01-15-2017", source="TR"), datetime(2017, 1, 15, 0,0 ).date())
         self.assertEqual(entered_date_string_to_date(row_entry="02-28-2017", source="TR"), datetime(2017, 2, 28, 0,0 ).date())
+        self.assertEqual(entered_date_string_to_date(row_entry="2014-12-20", source="MPS"), datetime(2014, 12, 20, 0,0 ).date())
+        self.assertEqual(entered_date_string_to_date(row_entry="2017-01-20", source="MPS"), datetime(2017, 1, 20, 0,0 ).date())
+        self.assertEqual(entered_date_string_to_date(row_entry="2017-01-07", source="MPS"), datetime(2017, 1, 7, 0,0 ).date())
+        self.assertEqual(entered_date_string_to_date(row_entry="15-01-2017", source="MPS"), datetime(2017, 1, 15, 0,0 ).date())
+        self.assertEqual(entered_date_string_to_date(row_entry="28-02-2017", source="MPS"), datetime(2017, 2, 28, 0,0 ).date())
     
     def test_parse_contact_time_references_real_datetimes(self):
         self.assertEqual(datetime(2017, 6, 12, 16, 0, 3, tzinfo=timezone.get_default_timezone()),

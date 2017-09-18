@@ -4,8 +4,8 @@ import datetime
 import logging
 from django.utils import timezone
 from modules.utils import add_contact_to_group, phone_number_is_valid, prepare_phone_number
-from modules.date_helper import date_string_ymd_to_date, date_string_mdy_to_date, datetime_string_mdy_to_datetime, \
-                                add_or_subtract_days, add_or_subtract_months, date_string_dmy_to_date
+from modules.date_helper import try_parsing_partner_date, try_parsing_gen_date, datetime_string_mdy_to_datetime, \
+                                add_or_subtract_days, add_or_subtract_months
 from modules.i18n import hindi_placeholder_name, gujarati_placeholder_name
 from management.models import Contact
 
@@ -92,10 +92,8 @@ def parse_or_create_delay_num(row_entry):
     return int(row_entry) if row_entry and not re.search("\D+", row_entry) else 0
 
 def entered_date_string_to_date(row_entry, source):
-    try:
-        return date_string_ymd_to_date(row_entry)
-    except ValueError:
-        return date_string_mdy_to_date(row_entry)
+    return try_parsing_gen_date(row_entry) if source == "TR" else try_parsing_partner_date(row_entry)
+
 
 def parse_or_create_functional_dob(row_entry, source, date_of_birth, delay):
     return entered_date_string_to_date(row_entry=row_entry, source=source) if row_entry else add_or_subtract_days(date_of_birth, delay)
