@@ -23,7 +23,6 @@ def virtualenv():
 
 def install():
     sudo("apt-get update")
-    sudo("apt-get -y upgrade")
     sudo("apt-get -y install python-pip python-dev")
     sudo("apt-get -y install build-essential")
     sudo("apt-get -y install postgresql")
@@ -83,9 +82,16 @@ def verify_server():
         run("python manage.py test tests/")
 
 
+def run_remote_unit_tests():
+    with virtualenv():
+        print("Verifying remote unit tests...")
+        run("python manage.py test tests/")
+
+
 def run_remote_live_tests():
+    with virtualenv():
         print("Verifying remote live tests...")
-        run("python manage.py test live_tests/")
+        run("env CSHSMS_ENV=dev python manage.py test live_tests/")
 
 
 def read_server_log():

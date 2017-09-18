@@ -6,7 +6,8 @@ from fabric.context_managers import settings
 
 from cshsms.settings import REMOTE
 from fabfile import deploy, ssh_server, verify_server, read_server_log, \
-                    fetch_server_log, kill_server, run_remote_live_tests
+                    fetch_server_log, kill_server, run_remote_live_tests, \
+                    install, run_remote_unit_tests
 
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cshsms.settings")
@@ -31,10 +32,14 @@ if __name__ == "__main__":
                   user=REMOTE['user']):
         if sys.argv[1] == "deploy":
             deploy()
+        elif sys.argv[1] == "remote_install":
+            install()
         elif sys.argv[1] == "ssh_server":
             ssh_server()
         elif sys.argv[1] == "verify_server":
             verify_server()
+        elif sys.argv[1] == "remote_unit_tests":
+            run_remote_unit_tests()
         elif sys.argv[1] == "remote_live_tests":
             run_remote_live_tests()
         elif sys.argv[1] == "read_server_log":
