@@ -1,6 +1,7 @@
 # csh-sms <a href="https://travis-ci.org/charityscience/csh-sms/builds"><img src="https://img.shields.io/travis/charityscience/csh-sms.svg"></a> <a href="https://codecov.io/github/charityscience/csh-sms"><img src="https://img.shields.io/codecov/c/github/charityscience/csh-sms.svg"></a>
 
-#### Installation
+
+#### Local Installation
 
 1.) Acquire a copy of `settings_secret.py` and put it in `cshsms/settings_secret.py`
 
@@ -36,7 +37,7 @@ python manage.py crontab add
 Logs can be checked at `logs/cshsms.log`.
 
 
-#### Run
+#### Running
 
 Run Postgres then...
 
@@ -44,13 +45,13 @@ Run Postgres then...
 python manage.py runserver
 ```
 
-To run unit tests...
+To run local unit tests...
 
 ```
 python manage.py test tests/
 ```
 
-To run functional / live / E2E tests...
+To run local functional / live / E2E tests...
 
 ```
 python manage.py test live_tests/
@@ -59,7 +60,21 @@ python manage.py test live_tests/
 Warning: These live tests can take 1.7hrs to complete! Set `export CSHSMS_ENV=dev` to see test logging output during the test run.
 
 
-#### Deployment
+
+#### Remote Installation
+
+To set up the remote server from scratch:
+
+1.) Create a box on AWS
+2.) Update the `REMOTE` variable in `cshsms/settings_secret.py`
+3.) Verify you can connect to the box with `python manage.py ssh_server` (then disconnect)
+4.) Provision the box with `python manage.py remote_install`
+5.) Deploy the code to the remote box with `python manage.py deploy`
+6.) Verify the integrity of the server with `python manage.py verify_server`
+7a.) Further verify with `python manage.py remote_live_tests` (warning: takes >1.5hrs).
+
+
+#### Deployment and Remote Management
 
 
 To deploy the existing server, run:
@@ -74,6 +89,18 @@ To verify the remote server is running correctly, run:
 
 ```
 python manage.py verify_server
+```
+
+To run remote unit tests, run:
+
+```
+python manage.py remote_unit_tests
+```
+
+To run remote live tests (warning: takes >1.5hrs), run:
+
+```
+python manage.py remote_live_tests
 ```
 
 To read the last twenty server logs:
