@@ -579,3 +579,16 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual(u"\u0aa4\u0aae\u0abe\u0ab0\u0ac1\u0a82", determine_name(language="Hindi", row=guj_fake_row2))
         self.assertEqual("FakestNumber", determine_name(language="English", row=fake_row3))
         self.assertEqual(u"\u0936\u093f\u0936\u0941", determine_name(language="Hindi", row=ufake_row3))
+
+    def test_determine_name_reads_multiple_columns(self):
+        name_row = {'Name': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        name_of_child_row = {'Name of Child': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        first_name_of_child_row = {'First Name Of Child To Be Vaccinated': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        other_name_column_row = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'First Name Of Child To Be Vaccinated': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        other_name_column_row2 = {'Name of State': 'MADHYA PRADESH', 'Name of Child': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        other_name_column_row3 = {'Name of State': 'MADHYA PRADESH', 'Name of Child': 'FakestNumber', 'Nick Name of Child': 'Good nickname', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        self.assertEqual("FakestNumber", determine_name(language="English", row=name_row))
+        self.assertEqual("FakestNumber", determine_name(language="English", row=name_of_child_row))
+        self.assertEqual("FakestNumber", determine_name(language="English", row=other_name_column_row))
+        self.assertEqual("FakestNumber", determine_name(language="English", row=other_name_column_row2))
+        self.assertEqual("Good nickname", determine_name(language="English", row=other_name_column_row3))

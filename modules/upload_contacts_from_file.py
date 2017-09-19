@@ -163,9 +163,14 @@ def replace_blank_name(name, language):
     else:
         return name
 
+def name_column_headers():
+    return ["Name", "First Name Of Child To Be Vaccinated", "Name of Child"]
+
 def determine_name(row, language):
     nickname = row.get("Nick Name of Child")
     if not nickname or nickname == len(nickname) * " ":
-        return replace_blank_name(u(row["Name"].encode("utf-8").decode('unicode-escape')), language)
+        for name in name_column_headers():
+            if row.get(name):
+                return replace_blank_name(u(row[name].encode("utf-8").decode('unicode-escape')), language)
     else:
         return nickname.encode("utf-8").decode('unicode-escape')
