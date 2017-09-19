@@ -27,49 +27,49 @@ def csv_upload(filepath, source):
 
 def make_contact_dict(row, source):
     new_dict = {}
-    new_dict["language_preference"] = row["Language Preference"]
+    new_dict["language_preference"] = row.get("Language Preference")
     new_dict["name"] = determine_name(row=row, language=new_dict["language_preference"]) 
-    new_dict["phone_number"] = prepare_phone_number(row["Phone Number"])
-    new_dict["alt_phone_number"] = row["Alternative Phone"]
-    new_dict["delay_in_days"] = parse_or_create_delay_num(row["Delay in days"])
-    new_dict["date_of_sign_up"] = entered_date_string_to_date(row_entry=row["Date of Sign Up"], source=source)
-    new_dict["date_of_birth"] = entered_date_string_to_date(row_entry=row["Date of Birth"], source=source)
-    new_dict["functional_date_of_birth"] = parse_or_create_functional_dob(row_entry=row["Functional DoB"], source=source,
+    new_dict["phone_number"] = prepare_phone_number(row.get("Phone Number"))
+    new_dict["alt_phone_number"] = row.get("Alternative Phone")
+    new_dict["delay_in_days"] = parse_or_create_delay_num(row.get("Delay in days"))
+    new_dict["date_of_sign_up"] = entered_date_string_to_date(row_entry=row.get("Date of Sign Up"), source=source)
+    new_dict["date_of_birth"] = entered_date_string_to_date(row_entry=row.get("Date of Birth"), source=source)
+    new_dict["functional_date_of_birth"] = parse_or_create_functional_dob(row_entry=row.get("Functional DoB"), source=source,
         date_of_birth=new_dict["date_of_birth"], delay=new_dict["delay_in_days"])
 
     # Personal Info
-    new_dict["gender"] = row["Gender"]
-    new_dict["mother_tongue"] = row["Mother Tongue"]
-    new_dict["religion"] = row["Religion"]
-    new_dict["state"] = row["State"]
-    new_dict["division"] = row["Division"]
-    new_dict["district"] = row["District"]
-    new_dict["city"] = row["City"]
-    new_dict["monthly_income_rupees"] = monthly_income(row["Monthly Income"])
-    new_dict["children_previously_vaccinated"] = previous_vaccination(row["Previously had children vaccinated"].lower())
-    new_dict["not_vaccinated_why"] = row["If not vaccinated why"]
-    new_dict["mother_first_name"] = row["Mother's First"]
-    new_dict["mother_last_name"] = row["Mother's Last"]
+    new_dict["gender"] = row.get("Gender")
+    new_dict["mother_tongue"] = row.get("Mother Tongue")
+    new_dict["religion"] = row.get("Religion")
+    new_dict["state"] = row.get("State")
+    new_dict["division"] = row.get("Division")
+    new_dict["district"] = row.get("District")
+    new_dict["city"] = row.get("City")
+    new_dict["monthly_income_rupees"] = monthly_income(row.get("Monthly Income"))
+    new_dict["children_previously_vaccinated"] = previous_vaccination(row.get("Previously had children vaccinated").lower())
+    new_dict["not_vaccinated_why"] = row.get("If not vaccinated why")
+    new_dict["mother_first_name"] = row.get("Mother's First")
+    new_dict["mother_last_name"] = row.get("Mother's Last")
 
     # Type of Sign Up
-    new_dict["method_of_sign_up"] = row["Method of Sign Up"]
-    new_dict["org_sign_up"] = row["Org Sign Up"]
-    new_dict["hospital_name"] = row["Hospital Name"]
-    new_dict["doctor_name"] = row["Doctor Name"]
-    new_dict["preg_signup"] = parse_preg_signup(row["Pregnant Signup"])
+    new_dict["method_of_sign_up"] = row.get("Method of Sign Up")
+    new_dict["org_sign_up"] = row.get("Org Sign Up")
+    new_dict["hospital_name"] = row.get("Hospital Name")
+    new_dict["doctor_name"] = row.get("Doctor Name")
+    new_dict["preg_signup"] = parse_preg_signup(row.get("Pregnant Signup"))
 
     # System Identification
-    new_dict["telerivet_contact_id"] = row["Telerivet Contact ID"]
-    new_dict["trial_id"] = row["Trial ID"]
-    new_dict["trial_group"] = row["Trial Group"]
+    new_dict["telerivet_contact_id"] = row.get("Telerivet Contact ID")
+    new_dict["trial_id"] = row.get("Trial ID")
+    new_dict["trial_group"] = row.get("Trial Group")
 
     # Message References
-    new_dict["preferred_time"] = row["Preferred Time"]
-    new_dict["script_selection"] = row["Script Selection"]
-    new_dict["telerivet_sender_phone"] = row["Sender Phone"]
-    new_dict["last_heard_from"] = parse_contact_time_references(row["Last Heard From"])
-    new_dict["last_contacted"] = parse_contact_time_references(row["Last Contacted"])
-    new_dict["time_created"] = parse_contact_time_references(row["Time Created"])
+    new_dict["preferred_time"] = row.get("Preferred Time")
+    new_dict["script_selection"] = row.get("Script Selection")
+    new_dict["telerivet_sender_phone"] = row.get("Sender Phone")
+    new_dict["last_heard_from"] = parse_contact_time_references(row.get("Last Heard From"))
+    new_dict["last_contacted"] = parse_contact_time_references(row.get("Last Contacted"))
+    new_dict["time_created"] = parse_contact_time_references(row.get("Time Created"))
     return new_dict
 
 def assign_groups_to_contact(contact, groups_string):
