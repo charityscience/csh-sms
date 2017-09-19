@@ -8,6 +8,7 @@ from modules.date_helper import try_parsing_partner_date, try_parsing_gen_date, 
                                 add_or_subtract_days, add_or_subtract_months
 from modules.i18n import hindi_placeholder_name, gujarati_placeholder_name
 from management.models import Contact
+from six import u
 
 def csv_upload(filepath, source):
     with open(filepath) as csvfile:
@@ -26,11 +27,11 @@ def csv_upload(filepath, source):
 
 def make_contact_dict(row, source):
     new_dict = {}
-    new_dict["name"] = row["Name"].encode("utf-8").decode('unicode-escape')
+    new_dict["language_preference"] = row["Language Preference"]
+    new_dict["name"] = determine_name(row=row, language=new_dict["language_preference"]) 
     new_dict["phone_number"] = prepare_phone_number(row["Phone Number"])
     new_dict["alt_phone_number"] = row["Alternative Phone"]
     new_dict["delay_in_days"] = parse_or_create_delay_num(row["Delay in days"])
-    new_dict["language_preference"] = row["Language Preference"]
     new_dict["date_of_sign_up"] = entered_date_string_to_date(row_entry=row["Date of Sign Up"], source=source)
     new_dict["date_of_birth"] = entered_date_string_to_date(row_entry=row["Date of Birth"], source=source)
     new_dict["functional_date_of_birth"] = parse_or_create_functional_dob(row_entry=row["Functional DoB"], source=source,
@@ -161,3 +162,10 @@ def replace_blank_name(name, language):
             return gujarati_placeholder_name()
     else:
         return name
+
+def determine_name(row, language):
+    nickname = row.get("Nick Name of Child")
+    if not nickname or nickname == len(nickname) * " ":
+        return replace_blank_name(u(row["Name"].encode("utf-8").decode('unicode-escape')), language)
+    else:
+        return nickname.encode("utf-8").decode('unicode-escape')

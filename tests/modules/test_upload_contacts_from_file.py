@@ -15,7 +15,8 @@ from modules.upload_contacts_from_file import csv_upload, make_contact_dict, ass
                                               entered_date_string_to_date, parse_or_create_functional_dob, \
                                               parse_contact_time_references, parse_preg_signup, assign_preg_signup, \
                                               estimate_date_of_birth, filter_pregnancy_month, determine_language, \
-                                              determine_mother_tongue, language_selector, replace_blank_name
+                                              determine_mother_tongue, language_selector, replace_blank_name, \
+                                              determine_name
 from modules.date_helper import add_or_subtract_days, add_or_subtract_months
 from modules.i18n import hindi_placeholder_name, gujarati_placeholder_name
 from dateutil.relativedelta import relativedelta
@@ -562,3 +563,19 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual(u"\u0aac\u0abe\u0ab3\u0a95", replace_blank_name(name=u"\u0aac\u0abe\u0ab3\u0a95", language="Gujarati"))
         self.assertEqual("Shuham", replace_blank_name(name="Shuham", language="Gujarati"))
         self.assertEqual("Vashvika", replace_blank_name(name="Vashvika", language="Gujarati"))
+
+    def test_determine_name(self):
+        fake_row = {'Name': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        fake_row2 = {'Name': 'FakestNumber', "Nick Name of Child": "Fakest NickName", 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        fake_row3 = {'Name': 'FakestNumber', "Nick Name of Child": "", 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        ufake_row = {'Name': u"\\u0936\\u093f\\u0936\\u0941", 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        ufake_row2 = {'Name': 'FakestNumber', "Nick Name of Child": u"\\u0936\\u093f\\u0936\\u0941", 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        guj_fake_row2 = {'Name': 'FakestNumber', "Nick Name of Child": u"\\u0aa4\\u0aae\\u0abe\\u0ab0\\u0ac1\\u0a82", 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        ufake_row3 = {'Name': u"\\u0936\\u093f\\u0936\\u0941", "Nick Name of Child": "", 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        self.assertEqual("FakestNumber", determine_name(language="English", row=fake_row))
+        self.assertEqual(u"\u0936\u093f\u0936\u0941", determine_name(language="Gujarati", row=ufake_row))
+        self.assertEqual("Fakest NickName", determine_name(language="English", row=fake_row2))
+        self.assertEqual(u"\u0936\u093f\u0936\u0941", determine_name(language="Hindi", row=ufake_row2))
+        self.assertEqual(u"\u0aa4\u0aae\u0abe\u0ab0\u0ac1\u0a82", determine_name(language="Hindi", row=guj_fake_row2))
+        self.assertEqual("FakestNumber", determine_name(language="English", row=fake_row3))
+        self.assertEqual(u"\u0936\u093f\u0936\u0941", determine_name(language="Hindi", row=ufake_row3))
