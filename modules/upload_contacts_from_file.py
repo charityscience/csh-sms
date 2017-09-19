@@ -30,7 +30,7 @@ def make_contact_dict(row, source):
     new_dict["language_preference"] = row.get("Language Preference")
     new_dict["name"] = determine_name(row=row, language=new_dict["language_preference"]) 
     new_dict["phone_number"] = prepare_phone_number(row.get("Phone Number"))
-    new_dict["alt_phone_number"] = row.get("Alternative Phone")
+    new_dict["alt_phone_number"] = prepare_phone_number(row.get("Alternative Phone"))
     new_dict["delay_in_days"] = parse_or_create_delay_num(row.get("Delay in days"))
     new_dict["date_of_sign_up"] = entered_date_string_to_date(row_entry=row.get("Date of Sign Up"), source=source)
     new_dict["date_of_birth"] = entered_date_string_to_date(row_entry=row.get("Date of Birth"), source=source)
