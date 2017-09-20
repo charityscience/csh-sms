@@ -16,7 +16,7 @@ from modules.upload_contacts_from_file import csv_upload, make_contact_dict, ass
                                               parse_contact_time_references, parse_preg_signup, assign_preg_signup, \
                                               estimate_date_of_birth, filter_pregnancy_month, determine_language, \
                                               determine_mother_tongue, language_selector, replace_blank_name, \
-                                              determine_name, check_permutations
+                                              determine_name, matching_permutation, check_all_headers
 from modules.date_helper import add_or_subtract_days, add_or_subtract_months
 from modules.i18n import hindi_placeholder_name, gujarati_placeholder_name
 from dateutil.relativedelta import relativedelta
@@ -594,34 +594,106 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual("Good nickname", determine_name(language="English", row=other_name_column_row3))
 
 
-    def test_check_permutations(self):
+    def test_matching_permutation(self):
+        name_header = "Name"
+        name_of_child_header = "Name of Child"
+        prefer_full_header = "Prefer Language for SMS 1.Hindi, 2.English, 3.Gujarati"
+        prefer_header = "Prefer Language for SMS"
+
+
         name_row = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
-        name_of_child_row = {'Name of State': 'MADHYA PRADESH', 'Name of Child': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
-        name_match = "Name"
-        lowercase = "name"
-        with_period = "Name."
-        with_comma = "Name,"
-        with_space = " Name"
-        with_spaces = " Name "
-        with_the = "the Name"
-        with_cap_the = "The Name"
-        spaced_cap_the = "  The  Name"
-        self.assertTrue(check_permutations(row=name_row, header=name_match))
-        self.assertTrue(check_permutations(row=name_row, header=lowercase))
-        self.assertTrue(check_permutations(row=name_row, header=with_period))
-        self.assertTrue(check_permutations(row=name_row, header=with_comma))
-        self.assertTrue(check_permutations(row=name_row, header=with_space))
-        self.assertTrue(check_permutations(row=name_row, header=with_spaces))
-        self.assertTrue(check_permutations(row=name_row, header=with_the))
-        self.assertTrue(check_permutations(row=name_row, header=with_cap_the))
-        self.assertTrue(check_permutations(row=name_row, header=spaced_cap_the))
+        lowercase = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'name': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        with_period = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name.': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        with_comma = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name,': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        with_space = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name ': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        with_spaces = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', ' Name ': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        with_the_lower = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'the name': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        with_cap_the = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'The Name': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        spaced_cap_the = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', '  The   Name': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        
+        self.assertTrue(matching_permutation(row=name_row, header=name_header))
+        self.assertTrue(matching_permutation(row=lowercase, header=name_header))
+        self.assertTrue(matching_permutation(row=with_period, header=name_header))
+        self.assertTrue(matching_permutation(row=with_comma, header=name_header))
+        self.assertTrue(matching_permutation(row=with_space, header=name_header))
+        self.assertTrue(matching_permutation(row=with_spaces, header=name_header))
+        self.assertTrue(matching_permutation(row=with_the_lower, header=name_header))
+        self.assertTrue(matching_permutation(row=with_cap_the, header=name_header))
+        self.assertIsNone(matching_permutation(row=spaced_cap_the, header=name_header))
 
-        name_of_child = "Name of Child"
-        title_noc = "Name Of Child"
-        extra_the = "Name of the Child"
-        cap_extra_the = "Name of The Child"
-        self.assertTrue(check_permutations(row=name_of_child_row, header=name_of_child))
-        self.assertTrue(check_permutations(row=name_of_child_row, header=title_noc))
-        self.assertTrue(check_permutations(row=name_of_child_row, header=extra_the))
-        self.assertTrue(check_permutations(row=name_of_child_row, header=cap_extra_the))
+        name_of_child = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name of Child': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        title_noc = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'NAME OF CHILD': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        upper_noc = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name Of Child': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        extra_the = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name Of the Child': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        cap_extra_the = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name Of The Child': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        self.assertTrue(matching_permutation(row=name_of_child, header=name_of_child_header))
+        self.assertTrue(matching_permutation(row=title_noc, header=name_of_child_header))
+        self.assertTrue(matching_permutation(row=upper_noc, header=name_of_child_header))
+        self.assertIsNone(matching_permutation(row=extra_the, header=name_of_child_header))
+        self.assertIsNone(matching_permutation(row=cap_extra_the, header=name_of_child_header))
 
+        language_preference = "preferred Language Of Participant"
+        lang_pref = {'preferred Language Of Participant': 'Hindi', 'Name of The Mother': 'mom', 'Name of Child': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        cap_lang_pref = {'Preferred Language Of Participant': 'Hindi', 'Name of The Mother': 'mom', 'Name of Child': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        self.assertTrue(matching_permutation(row=lang_pref, header=language_preference))
+        self.assertTrue(matching_permutation(row=cap_lang_pref, header=language_preference))
+
+        alt_num = "Alternate Mobile No."
+        end_typo_alt_num_row = {'Name Of The Child': 'James', 'Phone Number': '123456', 'Alternate Mobile No': '0987654321'}
+        begin_typo_alt_num_row = {'Name Of The Child': 'James', 'Phone Number': '123456', 'lternate Mobile No.': '0987654321'}
+        self.assertEqual("Alternate Mobile No", matching_permutation(row=end_typo_alt_num_row, header=alt_num))
+        self.assertEqual("lternate Mobile No.", matching_permutation(row=begin_typo_alt_num_row, header=alt_num))
+
+    def test_check_all_headers(self):
+        name = ["Name", "First Name Of Child To Be Vaccinated", "Name of Child"]
+        phone_number = ["Phone Number", "Mobile No of  Pregnant/ Mother/ Father",
+                    "Mobile Number of Respondent Capture At End", "Mobile Number of Respondent"]
+        alt_phone_number = ["Alternative Phone", "Alternate Mobile Number", "Alternate Mobile No."]
+        delay_in_days = ["Delay in days"]
+        first_name_row = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'First Name Of Child To Be Vaccinated': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        name_of_child_row = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name of Child': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        name_row = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        lowercase = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'name': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        with_period = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name.': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        with_comma = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name,': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        with_space = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name ': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        with_spaces = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', ' Name ': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        with_the_lower = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'the name': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        with_cap_the = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'The Name': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        spaced_cap_the = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', '  The   Name': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        
+        name_of_child = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name of Child': 'James', 'Phone Number': '123456', 'Date of Birth': '2016-09-14', 'Delay in days': '1'}
+        title_noc = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name Of Child': 'James', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        upper_noc = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'NAME OF CHILD': 'James', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        lower_noc = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'name of child': 'James', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        extra_the = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name Of the Child': 'James', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        cap_extra_the = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name Of The Child': 'James', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        self.assertEqual("FakestNumber", check_all_headers(row=first_name_row, headers=name))
+        self.assertEqual("FakestNumber", check_all_headers(row=name_of_child_row, headers=name))
+        self.assertEqual("FakestNumber", check_all_headers(row=name_row, headers=name))
+        self.assertEqual("FakestNumber", check_all_headers(row=lowercase, headers=name))
+        self.assertEqual("FakestNumber", check_all_headers(row=with_period, headers=name))
+        self.assertEqual("FakestNumber", check_all_headers(row=with_comma, headers=name))
+        self.assertEqual("FakestNumber", check_all_headers(row=with_space, headers=name))
+        self.assertEqual("FakestNumber", check_all_headers(row=with_spaces, headers=name))
+        self.assertEqual("FakestNumber", check_all_headers(row=with_the_lower, headers=name))
+        self.assertEqual("FakestNumber", check_all_headers(row=with_cap_the, headers=name))
+        self.assertIsNone(check_all_headers(row=spaced_cap_the, headers=name))
+        self.assertEqual("James", check_all_headers(row=name_of_child, headers=name))
+        self.assertEqual("James", check_all_headers(row=title_noc, headers=name))
+        self.assertEqual("James", check_all_headers(row=upper_noc, headers=name))
+        self.assertEqual("James", check_all_headers(row=lower_noc, headers=name))
+        self.assertIsNone(check_all_headers(row=extra_the, headers=name))
+        self.assertIsNone(check_all_headers(row=cap_extra_the, headers=name))
+        self.assertEqual("123456", check_all_headers(row=name_of_child, headers=phone_number))
+        self.assertEqual("1", check_all_headers(row=name_of_child, headers=delay_in_days))
+        
+        end_typo_alt_num_row = {'Name Of The Child': 'James', 'Phone Number': '123456', 'Alternate Mobile No': '0987654321'}
+        begin_typo_alt_num_row = {'Name Of The Child': 'James', 'Phone Number': '123456', 'lternate Mobile No.': '0987654321'}
+        self.assertEqual("0987654321", check_all_headers(row=end_typo_alt_num_row, headers=alt_phone_number))
+        self.assertEqual("0987654321", check_all_headers(row=begin_typo_alt_num_row, headers=alt_phone_number))
+
+        no_name_row = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        no_name_one_item_row = {'Phone Number': '123456'}
+        self.assertIsNone(check_all_headers(row=no_name_row, headers=name))
+        self.assertIsNone(check_all_headers(row=no_name_one_item_row, headers=name))

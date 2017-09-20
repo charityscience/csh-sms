@@ -7,6 +7,7 @@ from modules.utils import add_contact_to_group, phone_number_is_valid, prepare_p
 from modules.date_helper import try_parsing_partner_date, try_parsing_gen_date, datetime_string_mdy_to_datetime, \
                                 add_or_subtract_days, add_or_subtract_months
 from modules.i18n import hindi_placeholder_name, gujarati_placeholder_name
+from modules.csv_columns import column_headers
 from management.models import Contact
 from six import u
 
@@ -78,31 +79,34 @@ def assign_groups_to_contact(contact, groups_string):
     for group_name in groups_string.split(", "):
         add_contact_to_group(contact, group_name)
 
-def check_permutations(row, header):
-    permutations = [header.replace(" ", ""), header.replace("Of", "of"),
-                    header.replace(",", ""), header.replace(",", " "),
-                    header.replace(".", ""), header.replace(".", " "),
-                    re.sub("\s*(T|t)he\s*", "", header), re.sub("(T|t)he\s*", "", header)]
+def matching_permutation(row, header):
+    permutations = [header, header + " ", " " + header + " ",
+                    header + ",", header + ".", "The " + header,
+                    header[0:-1], header[1:]]
+
     for perm in permutations:
         if row.get(perm):
-            return True
+            return perm
         elif row.get(perm.capitalize()):
-            return True
+            return perm.capitalize()
         elif row.get(perm.title()):
-            return True
+            return perm.title()
         elif row.get(perm.upper()):
-            return True
+            return perm.upper()
         elif row.get(perm.lower()):
-            return True
+            return perm.lower()
     
-    return False
+    return None
 
 def check_all_headers(row, headers):
     for header in headers:
         if row.get(header):
             return row.get(header)
-        elif check_permutations(row=row, header=header):
-            return row.get(header)
+        
+    for header in headers:
+        matching_key = matching_permutation(row=row, header=header)
+        if matching_key:
+            return row.get(matching_key)
 
     return None
 
