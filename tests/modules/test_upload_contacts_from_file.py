@@ -16,7 +16,7 @@ from modules.upload_contacts_from_file import csv_upload, make_contact_dict, ass
                                               parse_contact_time_references, parse_preg_signup, assign_preg_signup, \
                                               estimate_date_of_birth, filter_pregnancy_month, determine_language, \
                                               determine_mother_tongue, language_selector, replace_blank_name, \
-                                              determine_name
+                                              determine_name, check_permutations
 from modules.date_helper import add_or_subtract_days, add_or_subtract_months
 from modules.i18n import hindi_placeholder_name, gujarati_placeholder_name
 from dateutil.relativedelta import relativedelta
@@ -592,3 +592,36 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual("FakestNumber", determine_name(language="English", row=other_name_column_row))
         self.assertEqual("FakestNumber", determine_name(language="English", row=other_name_column_row2))
         self.assertEqual("Good nickname", determine_name(language="English", row=other_name_column_row3))
+
+
+    def test_check_permutations(self):
+        name_row = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        name_of_child_row = {'Name of State': 'MADHYA PRADESH', 'Name of Child': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        name_match = "Name"
+        lowercase = "name"
+        with_period = "Name."
+        with_comma = "Name,"
+        with_space = " Name"
+        with_spaces = " Name "
+        with_the = "the Name"
+        with_cap_the = "The Name"
+        spaced_cap_the = "  The  Name"
+        self.assertTrue(check_permutations(row=name_row, header=name_match))
+        self.assertTrue(check_permutations(row=name_row, header=lowercase))
+        self.assertTrue(check_permutations(row=name_row, header=with_period))
+        self.assertTrue(check_permutations(row=name_row, header=with_comma))
+        self.assertTrue(check_permutations(row=name_row, header=with_space))
+        self.assertTrue(check_permutations(row=name_row, header=with_spaces))
+        self.assertTrue(check_permutations(row=name_row, header=with_the))
+        self.assertTrue(check_permutations(row=name_row, header=with_cap_the))
+        self.assertTrue(check_permutations(row=name_row, header=spaced_cap_the))
+
+        name_of_child = "Name of Child"
+        title_noc = "Name Of Child"
+        extra_the = "Name of the Child"
+        cap_extra_the = "Name of The Child"
+        self.assertTrue(check_permutations(row=name_of_child_row, header=name_of_child))
+        self.assertTrue(check_permutations(row=name_of_child_row, header=title_noc))
+        self.assertTrue(check_permutations(row=name_of_child_row, header=extra_the))
+        self.assertTrue(check_permutations(row=name_of_child_row, header=cap_extra_the))
+

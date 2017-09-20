@@ -78,6 +78,34 @@ def assign_groups_to_contact(contact, groups_string):
     for group_name in groups_string.split(", "):
         add_contact_to_group(contact, group_name)
 
+def check_permutations(row, header):
+    permutations = [header.replace(" ", ""), header.replace("Of", "of"),
+                    header.replace(",", ""), header.replace(",", " "),
+                    header.replace(".", ""), header.replace(".", " "),
+                    re.sub("\s*(T|t)he\s*", "", header), re.sub("(T|t)he\s*", "", header)]
+    for perm in permutations:
+        if row.get(perm):
+            return True
+        elif row.get(perm.capitalize()):
+            return True
+        elif row.get(perm.title()):
+            return True
+        elif row.get(perm.upper()):
+            return True
+        elif row.get(perm.lower()):
+            return True
+    
+    return False
+
+def check_all_headers(row, headers):
+    for header in headers:
+        if row.get(header):
+            return row.get(header)
+        elif check_permutations(row=row, header=header):
+            return row.get(header)
+
+    return None
+
 def previous_vaccination(row_entry):
     if "y" in row_entry:
         return True
@@ -163,13 +191,10 @@ def replace_blank_name(name, language):
     else:
         return name
 
-def name_column_headers():
-    return ["Name", "First Name Of Child To Be Vaccinated", "Name of Child"]
-
 def determine_name(row, language):
     nickname = row.get("Nick Name of Child")
     if not nickname or nickname == len(nickname) * " ":
-        for name in name_column_headers():
+        for name in column_headers()["name"]:
             if row.get(name):
                 return replace_blank_name(u(row[name].encode("utf-8").decode('unicode-escape')), language)
     else:
