@@ -203,3 +203,17 @@ def determine_name(row, language):
                 return replace_blank_name(u(row[name].encode("utf-8").decode('unicode-escape')), language)
     else:
         return nickname.encode("utf-8").decode('unicode-escape')
+
+def assign_org_signup(row, source):
+    return source.upper() if source.upper() != "TR" else row.get("Org Sign Up")
+
+def assign_method_of_signup(row, source):
+    if source.lower() in ["maps", "hansa"]:
+        return "Door to Door"
+    elif source.lower() in ["wardha"]:
+        return "Hospital"
+    else:
+        return row.get("Method of Sign Up")
+
+def assign_hospital_name(row, method_of_signup, org_signup):
+    return org_signup.capitalize() if method_of_signup == "Hospital" else row.get("Hospital Name")

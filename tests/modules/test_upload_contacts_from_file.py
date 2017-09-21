@@ -16,7 +16,8 @@ from modules.upload_contacts_from_file import csv_upload, make_contact_dict, ass
                                               parse_contact_time_references, parse_preg_signup, assign_preg_signup, \
                                               estimate_date_of_birth, filter_pregnancy_month, determine_language, \
                                               determine_mother_tongue, language_selector, replace_blank_name, \
-                                              determine_name, matching_permutation, check_all_headers
+                                              determine_name, matching_permutation, check_all_headers, \
+                                              assign_org_signup, assign_method_of_signup, assign_hospital_name 
 from modules.date_helper import add_or_subtract_days, add_or_subtract_months
 from modules.i18n import hindi_placeholder_name, gujarati_placeholder_name
 from dateutil.relativedelta import relativedelta
@@ -743,3 +744,78 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual(u'\\u0936\\u093f\\u0936\\u0941', check_all_headers(row=hin_unicode, headers=name))
         self.assertEqual(u'\\u0aa4\\u0aae\\u0abe\\u0ab0\\u0ac1\\u0a82', check_all_headers(row=guj_unicode, headers=name))
         self.assertEqual(u'  \\u0aa4\\u0aae\\u0abe\\u0ab0\\u0ac1\\u0a82  ', check_all_headers(row=unicode_with_space, headers=name))
+
+    def test_assign_org_signup(self):
+        tr = "TR"
+        tr_lower = "tr"
+        ta = "TA"
+        other = "Other"
+        other_caps = "OTHER"
+        other_lower = "other"
+        mps = "MPS"
+        org_row = {'Org Sign Up': 'Parker', 'Name of The Mother': 'mom', 'Name': 'Kendra'}
+        no_org_row = {'Name of The Mother': 'mom', 'Name': 'Kendra'}
+        org_empty_row = {'Org Sign Up': '','Name of The Mother': 'mom', 'Name': 'Kendra'}
+        self.assertEqual("Parker", assign_org_signup(row=org_row, source=tr))
+        self.assertFalse(assign_org_signup(row=no_org_row, source=tr))
+        self.assertEqual(ta, assign_org_signup(row=org_row, source=ta))
+        self.assertEqual(ta, assign_org_signup(row=no_org_row, source=ta))
+        self.assertEqual("Parker", assign_org_signup(row=org_row, source=tr_lower))
+        self.assertEqual(other.upper(), assign_org_signup(row=org_row, source=other))
+        self.assertEqual(other_caps, assign_org_signup(row=org_row, source=other_caps))
+        self.assertEqual(other_lower.upper(), assign_org_signup(row=org_row, source=other_lower))
+        self.assertEqual(mps, assign_org_signup(row=org_row, source=mps))
+        self.assertEqual(mps, assign_org_signup(row=org_empty_row, source=mps))
+        self.assertFalse(assign_org_signup(row=org_empty_row, source=tr))
+
+    def test_assign_method_of_signup(self):
+        maps = "Maps"
+        maps_cap = "MAPS"
+        maps_lower = "maps"
+        maps_typo = "mps"
+        hansa = "Hansa"
+        wardha = "Wardha"
+        other = "Other"
+        another = "Another"
+        door_method = {'Method of Sign Up': 'Door to Door', 'Name of The Mother': 'mom', 'Name': 'Kendra'}
+        hospital = {'Method of Sign Up': 'Hospital', 'Name of The Mother': 'mom', 'Name': 'Kendra'}
+        text_in = {'Method of Sign Up': 'Text', 'Name of The Mother': 'mom', 'Name': 'Kendra'}
+        method_empty = {'Method of Sign Up': '', 'Name of The Mother': 'mom', 'Name': 'Kendra'}
+        no_method_row = {'Name of The Mother': 'mom', 'Name': 'Kendra'}
+        self.assertEqual("Door to Door", assign_method_of_signup(row=door_method, source=maps))
+        self.assertEqual("Door to Door", assign_method_of_signup(row=method_empty, source=maps))
+        self.assertEqual("Door to Door", assign_method_of_signup(row=method_empty, source=maps_cap))
+        self.assertEqual("Door to Door", assign_method_of_signup(row=method_empty, source=maps_lower))
+        self.assertEqual("Door to Door", assign_method_of_signup(row=method_empty, source=hansa))
+        self.assertEqual("Door to Door", assign_method_of_signup(row=method_empty, source=hansa))
+        self.assertFalse(assign_method_of_signup(row=method_empty, source=maps_typo))
+        self.assertEqual("Door to Door", assign_method_of_signup(row=door_method, source=maps_typo))
+        self.assertEqual("Hospital", assign_method_of_signup(row=method_empty, source=wardha))
+        self.assertEqual("Hospital", assign_method_of_signup(row=door_method, source=wardha))
+        self.assertEqual("Hospital", assign_method_of_signup(row=text_in, source=wardha))
+        self.assertEqual("Hospital", assign_method_of_signup(row=no_method_row, source=wardha))
+        self.assertFalse(assign_method_of_signup(row=no_method_row, source=other))
+        self.assertFalse(assign_method_of_signup(row=no_method_row, source=another))
+        self.assertEqual("Text", assign_method_of_signup(row=text_in, source=other))
+
+    def test_assign_hospital_name(self):
+        hospital_method = "Hospital"
+        door_to_door = "Door to Door"
+        wardha = "Wardha"
+        wardha_lower = "wardha"
+        second_lower = "second"
+        large = {'Hospital Name': 'Large', 'Name of The Mother': 'mom', 'Name': 'Kendra'}
+        different = {'Hospital Name': 'Diff From Large', 'Name of The Mother': 'mom', 'Name': 'Kendra'}
+        no_hospital_row = {'Name of The Mother': 'mom', 'Name': 'Kendra'}
+        hospital_empty = {'Hospital Name': '', 'Name of The Mother': 'mom', 'Name': 'Kendra'}
+
+        self.assertEqual(wardha, assign_hospital_name(row=large, method_of_signup=hospital_method, org_signup=wardha))
+        self.assertEqual(wardha.capitalize(), assign_hospital_name(row=large, method_of_signup=hospital_method, org_signup=wardha))
+        self.assertEqual(second_lower.capitalize(), assign_hospital_name(row=large, method_of_signup=hospital_method, org_signup=second_lower))
+        self.assertEqual(large["Hospital Name"], assign_hospital_name(row=large, method_of_signup=door_to_door, org_signup=wardha))
+        self.assertEqual(large["Hospital Name"], assign_hospital_name(row=large, method_of_signup=door_to_door, org_signup=second_lower))
+        self.assertEqual(different["Hospital Name"], assign_hospital_name(row=different, method_of_signup=door_to_door, org_signup=second_lower))
+        self.assertFalse(assign_hospital_name(row=hospital_empty, method_of_signup=door_to_door, org_signup=wardha))
+        self.assertFalse(assign_hospital_name(row=no_hospital_row, method_of_signup=door_to_door, org_signup=wardha))
+        self.assertFalse(assign_hospital_name(row=no_hospital_row, method_of_signup=door_to_door, org_signup=second_lower))
+
