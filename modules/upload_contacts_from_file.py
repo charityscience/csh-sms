@@ -30,7 +30,7 @@ def make_contact_dict(row, source):
     new_dict = {}
     headers = column_headers()
     new_dict["language_preference"] = determine_language(row=row, headers=headers["language_preference"])
-    new_dict["name"] = determine_name(row=row, language=new_dict["language_preference"]) 
+    new_dict["name"] = determine_name(row=row, headers=headers["name"], language=new_dict["language_preference"]) 
     new_dict["phone_number"] = prepare_phone_number(row.get("Phone Number"))
     new_dict["alt_phone_number"] = prepare_phone_number(row.get("Alternative Phone"))
     new_dict["delay_in_days"] = parse_or_create_delay_num(row.get("Delay in days"))
@@ -128,7 +128,6 @@ def parse_or_create_delay_num(row_entry):
 def entered_date_string_to_date(row_entry, source):
     return try_parsing_gen_date(row_entry) if source == "TR" else try_parsing_partner_date(row_entry)
 
-
 def parse_or_create_functional_dob(row_entry, source, date_of_birth, delay):
     return entered_date_string_to_date(row_entry=row_entry, source=source) if row_entry else add_or_subtract_days(date_of_birth, delay)
 
@@ -198,12 +197,11 @@ def replace_blank_name(name, language):
     else:
         return name
 
-def determine_name(row, language):
+def determine_name(row, headers, language):
     nickname = row.get("Nick Name of Child")
     if not nickname or nickname == len(nickname) * " ":
-        for name in column_headers()["name"]:
-            if row.get(name):
-                return replace_blank_name(u(row[name].encode("utf-8").decode('unicode-escape')), language)
+        name_entry = check_all_headers(row=row, headers=headers)
+        return replace_blank_name(u(name_entry.encode("utf-8").decode('unicode-escape')), language)
     else:
         return nickname.encode("utf-8").decode('unicode-escape')
 

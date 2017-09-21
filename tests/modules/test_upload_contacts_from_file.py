@@ -617,34 +617,46 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual("Shuham", replace_blank_name(name="Shuham", language="Gujarati"))
         self.assertEqual("Vashvika", replace_blank_name(name="Vashvika", language="Gujarati"))
 
-    def test_determine_name(self):
-        fake_row = {'Name': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
-        fake_row2 = {'Name': 'FakestNumber', "Nick Name of Child": "Fakest NickName", 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
-        fake_row3 = {'Name': 'FakestNumber', "Nick Name of Child": "", 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_determine_name(self, headers_mock):
+        name_headers = ["Name", "First Name Of Child To Be Vaccinated", "Name of Child"]
+        fake_row = {'Name': 'FAKE ENTRY', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        fake_row2 = {'Name': 'NONSENSE', "Nick Name of Child": "Fakest NickName", 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        fake_row3 = {'Name': 'Replace blank nickname', "Nick Name of Child": "", 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
         ufake_row = {'Name': u"\\u0936\\u093f\\u0936\\u0941", 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
         ufake_row2 = {'Name': 'FakestNumber', "Nick Name of Child": u"\\u0936\\u093f\\u0936\\u0941", 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
         guj_fake_row2 = {'Name': 'FakestNumber', "Nick Name of Child": u"\\u0aa4\\u0aae\\u0abe\\u0ab0\\u0ac1\\u0a82", 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
         ufake_row3 = {'Name': u"\\u0936\\u093f\\u0936\\u0941", "Nick Name of Child": "", 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
-        self.assertEqual("FakestNumber", determine_name(language="English", row=fake_row))
-        self.assertEqual(u"\u0936\u093f\u0936\u0941", determine_name(language="Gujarati", row=ufake_row))
-        self.assertEqual("Fakest NickName", determine_name(language="English", row=fake_row2))
-        self.assertEqual(u"\u0936\u093f\u0936\u0941", determine_name(language="Hindi", row=ufake_row2))
-        self.assertEqual(u"\u0aa4\u0aae\u0abe\u0ab0\u0ac1\u0a82", determine_name(language="Hindi", row=guj_fake_row2))
-        self.assertEqual("FakestNumber", determine_name(language="English", row=fake_row3))
-        self.assertEqual(u"\u0936\u093f\u0936\u0941", determine_name(language="Hindi", row=ufake_row3))
+        headers_mock.return_value = "FakestNumber"
+        self.assertEqual("FakestNumber", determine_name(row=fake_row, headers=name_headers, language="English"))
+        headers_mock.return_value = u"\\u0936\\u093f\\u0936\\u0941"
+        self.assertEqual(u"\u0936\u093f\u0936\u0941", determine_name(row=ufake_row, headers=name_headers, language="Gujarati"))
+        headers_mock.return_value = "Shouldn't matter"
+        self.assertEqual("Fakest NickName", determine_name(row=fake_row2, headers=name_headers, language="English"))
+        headers_mock.return_value = u"\\u0936\\u093f\\u0936\\u0941"
+        self.assertEqual(u"\u0936\u093f\u0936\u0941", determine_name(row=ufake_row2, headers=name_headers, language="Hindi"))
+        headers_mock.return_value = u"\\u0aa4\\u0aae\\u0abe\\u0ab0\\u0ac1\\u0a82"
+        self.assertEqual(u"\u0aa4\u0aae\u0abe\u0ab0\u0ac1\u0a82", determine_name(row=guj_fake_row2, headers=name_headers, language="Hindi"))
+        headers_mock.return_value = "Replace blank nickname"
+        self.assertEqual("Replace blank nickname", determine_name(row=fake_row3, headers=name_headers, language="English"))
+        headers_mock.return_value = u"\\u0936\\u093f\\u0936\\u0941"
+        self.assertEqual(u"\u0936\u093f\u0936\u0941", determine_name(row=ufake_row3, headers=name_headers, language="English"))
 
     def test_determine_name_reads_multiple_columns(self):
+        name_headers = ["Name", "First Name Of Child To Be Vaccinated", "Name of Child"]
         name_row = {'Name': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
         name_of_child_row = {'Name of Child': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
         first_name_of_child_row = {'First Name Of Child To Be Vaccinated': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
-        other_name_column_row = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'First Name Of Child To Be Vaccinated': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        other_name_column_row = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'First Name Of Child To Be Vaccinated': 'FakestNumber',
+                                    'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
         other_name_column_row2 = {'Name of State': 'MADHYA PRADESH', 'Name of Child': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
-        other_name_column_row3 = {'Name of State': 'MADHYA PRADESH', 'Name of Child': 'FakestNumber', 'Nick Name of Child': 'Good nickname', 'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
-        self.assertEqual("FakestNumber", determine_name(language="English", row=name_row))
-        self.assertEqual("FakestNumber", determine_name(language="English", row=name_of_child_row))
-        self.assertEqual("FakestNumber", determine_name(language="English", row=other_name_column_row))
-        self.assertEqual("FakestNumber", determine_name(language="English", row=other_name_column_row2))
-        self.assertEqual("Good nickname", determine_name(language="English", row=other_name_column_row3))
+        other_name_column_row3 = {'Name of State': 'MADHYA PRADESH', 'Name of Child': 'FakestNumber', 'Nick Name of Child': 'Good nickname',
+                                    'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        self.assertEqual("FakestNumber", determine_name(row=name_row, headers=name_headers, language="English"))
+        self.assertEqual("FakestNumber", determine_name(row=name_of_child_row, headers=name_headers, language="English"))
+        self.assertEqual("FakestNumber", determine_name(row=other_name_column_row, headers=name_headers, language="English"))
+        self.assertEqual("FakestNumber", determine_name(row=other_name_column_row2, headers=name_headers, language="English"))
+        self.assertEqual("Good nickname", determine_name(row=other_name_column_row3, headers=name_headers, language="English"))
 
     def test_matching_permutation(self):
         name_header = "Name"
