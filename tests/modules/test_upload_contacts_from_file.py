@@ -455,50 +455,102 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual(4, filter_pregnancy_month(month_of_pregnancy="004"))
         self.assertEqual(4, filter_pregnancy_month(month_of_pregnancy="0040"))
 
-    def test_determine_language(self):
-        self.assertEqual("English", determine_language("English"))
-        self.assertEqual("English", determine_language("English--"))
-        self.assertEqual("Hindi", determine_language("Hindi"))
-        self.assertEqual("Hindi", determine_language(" Hindi"))
-        self.assertEqual("Gujarati", determine_language("Gujarati"))
-        self.assertEqual("Gujarati", determine_language("Gujarati "))
-        self.assertEqual("Hindi", determine_language("Other"))
-        self.assertEqual("Hindi", determine_language("1"))
-        self.assertEqual("Hindi", determine_language("10"))
-        self.assertEqual("Hindi", determine_language(1))
-        self.assertEqual("English", determine_language(200))
-        self.assertEqual("Gujarati", determine_language(300))
-        self.assertEqual("English", determine_language("2"))
-        self.assertEqual("Gujarati", determine_language("3"))
-        self.assertEqual("Gujarati", determine_language("30"))
-        self.assertEqual("Hindi", determine_language("4"))
-        self.assertEqual("Hindi", determine_language("7"))
-        self.assertEqual("Hindi", determine_language("None"))
-        self.assertEqual("Hindi", determine_language(""))
-        self.assertEqual("Hindi", determine_language(" "))
-        self.assertEqual("Hindi", determine_language(u"\u0923\u09a1"))
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_determine_language(self, headers_mock):
+        lan_pref = ["Language Preference", "preferred Language Of Participant",
+                        "Prefer Language for SMS 1.Hindi, 2.English, 3.Gujarati", "Prefer Language for SMS"]
+        lan_row = {'Language Preference': 'NONSENSE', 'Name': 'FakestNumber',
+                        'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
 
-    def test_determine_mother_tongue(self):
-        self.assertEqual("English", determine_mother_tongue("English"))
-        self.assertEqual("English", determine_mother_tongue("English--"))
-        self.assertEqual("Hindi", determine_mother_tongue("Hindi"))
-        self.assertEqual("Hindi", determine_mother_tongue(" Hindi"))
-        self.assertEqual("Other", determine_mother_tongue("Other"))
-        self.assertEqual("Other", determine_mother_tongue("Other "))
-        self.assertEqual("Hindi", determine_mother_tongue("1"))
-        self.assertEqual("Hindi", determine_mother_tongue(1))
-        self.assertEqual("English", determine_mother_tongue(200))
-        self.assertEqual("Other", determine_mother_tongue(300))
-        self.assertEqual("English", determine_mother_tongue("2"))
-        self.assertEqual("English", determine_mother_tongue("20"))
-        self.assertEqual("Other", determine_mother_tongue("3"))
-        self.assertEqual("Other", determine_mother_tongue("30"))
-        self.assertEqual("Other", determine_mother_tongue("4"))
-        self.assertEqual("Other", determine_mother_tongue("7"))
-        self.assertEqual("Other", determine_mother_tongue("None"))
-        self.assertEqual(None, determine_mother_tongue(""))
-        self.assertEqual(None, determine_mother_tongue(" "))
-        self.assertEqual("Other", determine_mother_tongue(u"\u0923\u09a1"))
+        headers_mock.return_value = "English"
+        self.assertEqual("English", determine_language(row=lan_row, headers=lan_pref))
+        headers_mock.return_value = "English--"
+        self.assertEqual("English", determine_language(row=lan_row, headers=lan_pref))
+        headers_mock.return_value = "Hindi"
+        self.assertEqual("Hindi", determine_language(row=lan_row, headers=lan_pref))
+        headers_mock.return_value = "  Hindi"
+        self.assertEqual("Hindi", determine_language(row=lan_row, headers=lan_pref))
+        headers_mock.return_value = "Gujarati"
+        self.assertEqual("Gujarati", determine_language(row=lan_row, headers=lan_pref))
+        headers_mock.return_value = "Gujarati "
+        self.assertEqual("Gujarati", determine_language(row=lan_row, headers=lan_pref))
+        headers_mock.return_value = "Other"
+        self.assertEqual("Hindi", determine_language(row=lan_row, headers=lan_pref))
+        headers_mock.return_value = "1"
+        self.assertEqual("Hindi", determine_language(row=lan_row, headers=lan_pref))
+        headers_mock.return_value = "10"
+        self.assertEqual("Hindi", determine_language(row=lan_row, headers=lan_pref))
+        headers_mock.return_value = 1
+        self.assertEqual("Hindi", determine_language(row=lan_row, headers=lan_pref))
+        headers_mock.return_value = 200
+        self.assertEqual("English", determine_language(row=lan_row, headers=lan_pref))
+        headers_mock.return_value = 300
+        self.assertEqual("Gujarati", determine_language(row=lan_row, headers=lan_pref))
+        headers_mock.return_value = "2"
+        self.assertEqual("English", determine_language(row=lan_row, headers=lan_pref))
+        headers_mock.return_value = "3"
+        self.assertEqual("Gujarati", determine_language(row=lan_row, headers=lan_pref))
+        headers_mock.return_value = "30"
+        self.assertEqual("Gujarati", determine_language(row=lan_row, headers=lan_pref))
+        headers_mock.return_value = "4"
+        self.assertEqual("Hindi", determine_language(row=lan_row, headers=lan_pref))
+        headers_mock.return_value = "7"
+        self.assertEqual("Hindi", determine_language(row=lan_row, headers=lan_pref))
+        headers_mock.return_value = "None"
+        self.assertEqual("Hindi", determine_language(row=lan_row, headers=lan_pref))
+        headers_mock.return_value = ""
+        self.assertEqual("Hindi", determine_language(row=lan_row, headers=lan_pref))
+        headers_mock.return_value = " "
+        self.assertEqual("Hindi", determine_language(row=lan_row, headers=lan_pref))
+        headers_mock.return_value = u"\\u0923\\u09a1"
+        self.assertEqual("Hindi", determine_language(row=lan_row, headers=lan_pref))
+
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_determine_mother_tongue(self, headers_mock):
+        mother_options = ["Mother Tongue", "Mother Tongue Of Participant",
+                            "Mother/Father Tongue 1.(Hindi, 2.English, 3.Other ", "Mother/Father Tongue"]
+        mother_tongue_row = {'Mother Tongue': 'NONSENSE', 'Name': 'FakestNumber',
+                        'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        headers_mock.return_value = "English"
+        self.assertEqual("English", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        headers_mock.return_value = "English--"
+        self.assertEqual("English", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        headers_mock.return_value = "Hindi"
+        self.assertEqual("Hindi", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        headers_mock.return_value = " Hindi"
+        self.assertEqual("Hindi", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        headers_mock.return_value = "Other"
+        self.assertEqual("Other", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        headers_mock.return_value = "Other "
+        self.assertEqual("Other", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        headers_mock.return_value = "1"
+        self.assertEqual("Hindi", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        headers_mock.return_value = 1
+        self.assertEqual("Hindi", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        headers_mock.return_value = 200
+        self.assertEqual("English", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        headers_mock.return_value = 300
+        self.assertEqual("Other", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        headers_mock.return_value = "2"
+        self.assertEqual("English", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        headers_mock.return_value = "20"
+        self.assertEqual("English", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        headers_mock.return_value = "3"
+        self.assertEqual("Other", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        headers_mock.return_value = "30"
+        self.assertEqual("Other", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        headers_mock.return_value = "4"
+        self.assertEqual("Other", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        headers_mock.return_value = "7"
+        self.assertEqual("Other", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        headers_mock.return_value = "None"
+        self.assertEqual("Other", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        headers_mock.return_value = ""
+        self.assertIsNone(determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        headers_mock.return_value = " "
+        self.assertIsNone(determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        headers_mock.return_value = u"\\u0923\\u09a1"
+        self.assertEqual("Other", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
 
     def test_language_selector(self):
         self.assertIsNone(language_selector(language_input="", options=["Hindi", "English", "Other"],

@@ -28,7 +28,8 @@ def csv_upload(filepath, source):
 
 def make_contact_dict(row, source):
     new_dict = {}
-    new_dict["language_preference"] = row.get("Language Preference")
+    headers = column_headers()
+    new_dict["language_preference"] = determine_language(row=row, headers=headers["language_preference"])
     new_dict["name"] = determine_name(row=row, language=new_dict["language_preference"]) 
     new_dict["phone_number"] = prepare_phone_number(row.get("Phone Number"))
     new_dict["alt_phone_number"] = prepare_phone_number(row.get("Alternative Phone"))
@@ -40,7 +41,7 @@ def make_contact_dict(row, source):
 
     # Personal Info
     new_dict["gender"] = row.get("Gender")
-    new_dict["mother_tongue"] = row.get("Mother Tongue")
+    new_dict["mother_tongue"] = determine_mother_tongue(row=row, headers=headers["mother_tongue"])
     new_dict["religion"] = row.get("Religion")
     new_dict["state"] = row.get("State")
     new_dict["division"] = row.get("Division")
@@ -160,11 +161,13 @@ def filter_pregnancy_month(month_of_pregnancy):
     month_of_pregnancy = re.sub("\D|0", "", str(month_of_pregnancy))
     return int(month_of_pregnancy[0]) if month_of_pregnancy else None
 
-def determine_language(language_entry):
+def determine_language(row, headers):
+    language_entry = check_all_headers(row=row, headers=headers)
     return language_selector(language_input=language_entry, options=["Hindi", "English", "Gujarati"],
         default_option="Hindi", none_option="Hindi")
 
-def determine_mother_tongue(mother_tongue):
+def determine_mother_tongue(row, headers):
+    mother_tongue = check_all_headers(row=row, headers=headers)
     return language_selector(language_input=mother_tongue, options=["Hindi", "English", "Other"],
         default_option="Other", none_option=None)
 
