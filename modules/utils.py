@@ -34,6 +34,8 @@ def add_country_code_to_phone_number(phone_number):
 	return phone_number
 
 def prepare_phone_number(phone_number):
+	if phone_number == None:
+		return ""
 	stripped_phone_number = remove_nondigit_characters(phone_number)
 	if len(stripped_phone_number) < 10:
 		return phone_number
