@@ -17,7 +17,8 @@ from modules.upload_contacts_from_file import csv_upload, make_contact_dict, ass
                                               estimate_date_of_birth, filter_pregnancy_month, determine_language, \
                                               determine_mother_tongue, language_selector, replace_blank_name, \
                                               determine_name, matching_permutation, check_all_headers, \
-                                              assign_org_signup, assign_method_of_signup, assign_hospital_name 
+                                              assign_org_signup, assign_method_of_signup, assign_hospital_name, \
+                                              entry_or_empty_string 
 from modules.date_helper import add_or_subtract_days, add_or_subtract_months
 from modules.i18n import hindi_placeholder_name, gujarati_placeholder_name
 from dateutil.relativedelta import relativedelta
@@ -1066,3 +1067,33 @@ class UploadContactsInputParserTests(TestCase):
         self.assertFalse(assign_hospital_name(row=no_hospital_row, method_of_signup="Door to Door", org_signup="Wardha"))
         self.assertFalse(assign_hospital_name(row=no_hospital_row, method_of_signup="Door to Door", org_signup="second"))
 
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_entry_or_empty_string(self, headers_mock):
+        headers = ["NONSENSE"]
+        row = {'key_one': 'value', 'key_two': 'value_two'}
+
+        headers_mock.return_value = None
+        self.assertEqual("", entry_or_empty_string(row=row, headers=headers))
+        self.assertIsInstance(entry_or_empty_string(row=row, headers=headers), str)
+        headers_mock.return_value = " "
+        self.assertEqual(" ", entry_or_empty_string(row=row, headers=headers))
+        headers_mock.return_value = 0
+        self.assertEqual(0, entry_or_empty_string(row=row, headers=headers))
+        headers_mock.return_value = []
+        self.assertEqual([], entry_or_empty_string(row=row, headers=headers))
+        headers_mock.return_value = {}
+        self.assertEqual({}, entry_or_empty_string(row=row, headers=headers))
+        headers_mock.return_value = set()
+        self.assertEqual(set(), entry_or_empty_string(row=row, headers=headers))
+        headers_mock.return_value = False
+        self.assertEqual(False, entry_or_empty_string(row=row, headers=headers))
+        headers_mock.return_value = True
+        self.assertEqual(True, entry_or_empty_string(row=row, headers=headers))
+        headers_mock.return_value = "String"
+        self.assertEqual("String", entry_or_empty_string(row=row, headers=headers))
+        headers_mock.return_value = datetime(2016, 1, 1).date()
+        self.assertEqual(datetime(2016, 1, 1).date(), entry_or_empty_string(row=row, headers=headers))
+        headers_mock.return_value = datetime(2016, 1, 1)
+        self.assertEqual(datetime(2016, 1, 1), entry_or_empty_string(row=row, headers=headers))
+        headers_mock.return_value = 10
+        self.assertEqual(10, entry_or_empty_string(row=row, headers=headers))

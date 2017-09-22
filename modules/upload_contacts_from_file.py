@@ -111,6 +111,10 @@ def check_all_headers(row, headers):
 
     return None
 
+def entry_or_empty_string(row, headers):
+    row_entry = check_all_headers(row=row, headers=headers)
+    return "" if row_entry is None else row_entry 
+
 def previous_vaccination(row_entry):
     if "y" in row_entry:
         return True
