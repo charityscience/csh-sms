@@ -33,11 +33,11 @@ def make_contact_dict(row, source):
     new_dict["name"] = determine_name(row=row, headers=headers["name"], language=new_dict["language_preference"]) 
     new_dict["phone_number"] = prepare_phone_number(check_all_headers(row=row, headers=headers["phone_number"]))
     new_dict["alt_phone_number"] = prepare_phone_number(check_all_headers(row=row, headers=headers["alt_phone_number"]))
-    new_dict["delay_in_days"] = parse_or_create_delay_num(row.get("Delay in days"))
-    new_dict["date_of_sign_up"] = entered_date_string_to_date(row_entry=row.get("Date of Sign Up"), source=source)
-    new_dict["date_of_birth"] = entered_date_string_to_date(row_entry=row.get("Date of Birth"), source=source)
-    new_dict["functional_date_of_birth"] = parse_or_create_functional_dob(row_entry=row.get("Functional DoB"), source=source,
-        date_of_birth=new_dict["date_of_birth"], delay=new_dict["delay_in_days"])
+    new_dict["delay_in_days"] = parse_or_create_delay_num(row=row, headers=headers["delay_in_days"])
+    new_dict["date_of_sign_up"] = entered_date_string_to_date(row=row, headers=headers["date_of_sign_up"], source=source)
+    new_dict["date_of_birth"] = entered_date_string_to_date(row=row, headers=headers["date_of_birth"], source=source)
+    new_dict["functional_date_of_birth"] = parse_or_create_functional_dob(row=row, headers=headers["functional_date_of_birth"],
+        source=source, date_of_birth=new_dict["date_of_birth"], delay=new_dict["delay_in_days"])
 
     # Personal Info
     new_dict["gender"] = row.get("Gender")
@@ -122,14 +122,21 @@ def previous_vaccination(row_entry):
 def monthly_income(row_entry):
     return int(row_entry) if row_entry and not re.search("\D+", row_entry) else 999999
 
-def parse_or_create_delay_num(row_entry):
-    return int(row_entry) if row_entry and not re.search("\D+", row_entry) else 0
+def parse_or_create_delay_num(row, headers):
+    delay_input = check_all_headers(row=row, headers=headers)
+    if delay_input is None:
+        return 0
+    else:
+        delay_input = delay_input.replace(",", "")
+    return int(delay_input) if delay_input and not re.search("\D+", delay_input) else 0
 
-def entered_date_string_to_date(row_entry, source):
+def entered_date_string_to_date(row, headers, source):
+    row_entry = check_all_headers(row=row, headers=headers)
     return try_parsing_gen_date(row_entry) if source == "TR" else try_parsing_partner_date(row_entry)
 
-def parse_or_create_functional_dob(row_entry, source, date_of_birth, delay):
-    return entered_date_string_to_date(row_entry=row_entry, source=source) if row_entry else add_or_subtract_days(date_of_birth, delay)
+def parse_or_create_functional_dob(row, headers, source, date_of_birth, delay):
+    row_entry = check_all_headers(row=row, headers=headers)
+    return entered_date_string_to_date(row=row, headers=headers, source=source) if row_entry else add_or_subtract_days(date_of_birth, delay)
 
 def parse_contact_time_references(row_entry):
     return datetime_string_mdy_to_datetime(row_entry) if row_entry else datetime.datetime.now().replace(tzinfo=timezone.get_default_timezone())

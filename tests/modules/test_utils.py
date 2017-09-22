@@ -4,7 +4,9 @@ from django.test import TestCase
 from modules.utils import quote, phone_number_is_valid, remove_nondigit_characters, \
                                 add_country_code_to_phone_number, prepare_phone_number
 from modules.date_helper import date_string_to_date, date_is_valid, \
-                                date_to_date_string
+                                date_to_date_string, date_string_dmy_to_date, \
+                                date_string_mdy_to_date, date_string_ymd_to_date, \
+                                try_parsing_partner_date, try_parsing_gen_date
 from six import u
 
 class QuoteTests(TestCase):
@@ -69,6 +71,405 @@ class DateStringToDateTests(TestCase):
         self.assertEqual(date_string_to_date("11/12/2012"), datetime(2012, 12, 11, 0, 0).date())
         self.assertEqual(date_string_to_date("9-2-01"), datetime(2001, 2, 9, 0, 0).date())
 
+    def test_nonworking_dates_for_date_string_dmy_to_date(self):
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date(" ")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("12")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("1212")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("12-12")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("12/12")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("40-15-2015")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("10-15-2015")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("30-15-2015")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("30/15/2015")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("2014-20-15")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("12-00-2015")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("0000-20-15")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("2014-35-00")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("2016-12-40")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("2017-02-02")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("2017-10-10")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("10-20-201")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("2017-02-29")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("30-15-2015")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("12-35-2015")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("0000-20-15")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("2014-20-15")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("29-02-2017")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("25-11-15")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("25/11/15")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("11-25-15")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("11/25/15")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("02-29-2017")
+        with self.assertRaises(ValueError):
+            date_string_dmy_to_date("29/05/2016/")
+
+    def test_date_string_dmy_to_date(self):
+        self.assertEqual(datetime(2015, 11, 25, 0, 0).date(), date_string_dmy_to_date("25-11-2015"))
+        self.assertEqual(datetime(2015, 11, 25, 0, 0).date(), date_string_dmy_to_date("25/11/2015"))
+        self.assertEqual(datetime(2015, 1, 11, 0, 0).date(), date_string_dmy_to_date("11-01-2015"))
+        self.assertEqual(datetime(2015, 1, 11, 0, 0).date(), date_string_dmy_to_date("11/01/2015"))
+        self.assertEqual(datetime(2015, 1, 1, 0, 0).date(), date_string_dmy_to_date("01-01-2015"))
+        self.assertEqual(datetime(2016, 2, 29, 0, 0).date(), date_string_dmy_to_date("29-02-2016"))
+        self.assertEqual(datetime(2017, 2, 28, 0, 0).date(), date_string_dmy_to_date("28-02-2017"))
+        self.assertEqual(datetime(2020, 2, 28, 0, 0).date(), date_string_dmy_to_date("28-02-2020"))
+        self.assertEqual(datetime(2009, 7, 10, 0, 0).date(), date_string_dmy_to_date("10-07-2009"))
+        self.assertEqual(datetime(2009, 12, 12, 0, 0).date(), date_string_dmy_to_date("12-12-2009"))
+        self.assertEqual(datetime(2009, 8, 12, 0, 0).date(), date_string_dmy_to_date("12-08-2009"))
+        self.assertEqual(datetime(2014, 12, 8, 0, 0).date(), date_string_dmy_to_date("08-12-2014"))
+
+    def test_nonworking_dates_for_date_string_mdy_to_date(self):
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date(" ")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("12")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("1212")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("12-12")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("12/12")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("40-15-2015")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("30-15-2015")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("30/15/2015")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("2014-20-15")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("12-00-2015")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("0000-20-15")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("2014-35-00")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("2016-12-40")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("2017-02-02")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("2017-10-10")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("17-10-2016")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("17-05-2016")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("2017-02-29")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("12-35-2015")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("0000-20-15")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("29-02-2017")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("25-11-15")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("25/11/15")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("11-25-15")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("11/25/15")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("02-29-2017")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("02-05-2016-")
+        with self.assertRaises(ValueError):
+            date_string_mdy_to_date("05/29/2016/")
+
+    def test_date_string_mdy_to_date(self):
+        self.assertEqual(datetime(2015, 11, 25, 0, 0).date(), date_string_mdy_to_date("11-25-2015"))
+        self.assertEqual(datetime(2015, 11, 25, 0, 0).date(), date_string_mdy_to_date("11/25/2015"))
+        self.assertEqual(datetime(2015, 1, 11, 0, 0).date(), date_string_mdy_to_date("01-11-2015"))
+        self.assertEqual(datetime(2015, 1, 11, 0, 0).date(), date_string_mdy_to_date("01/11/2015"))
+        self.assertEqual(datetime(2015, 1, 1, 0, 0).date(), date_string_mdy_to_date("01-01-2015"))
+        self.assertEqual(datetime(2016, 2, 29, 0, 0).date(), date_string_mdy_to_date("02-29-2016"))
+        self.assertEqual(datetime(2017, 2, 28, 0, 0).date(), date_string_mdy_to_date("02-28-2017"))
+        self.assertEqual(datetime(2020, 2, 28, 0, 0).date(), date_string_mdy_to_date("02-28-2020"))
+        self.assertEqual(datetime(2009, 7, 10, 0, 0).date(), date_string_mdy_to_date("07-10-2009"))
+        self.assertEqual(datetime(2009, 12, 12, 0, 0).date(), date_string_mdy_to_date("12-12-2009"))
+        self.assertEqual(datetime(2009, 8, 12, 0, 0).date(), date_string_mdy_to_date("08-12-2009"))
+        self.assertEqual(datetime(2014, 12, 8, 0, 0).date(), date_string_mdy_to_date("12-08-2014"))
+
+    def test_nonworking_dates_for_date_string_ymd_to_date(self):
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date(" ")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("12")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("1212")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("12-12")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("12/12")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("40-15-2015")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("30-15-2015")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("30/15/2015")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("2014-20-15")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("12-00-2015")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("0000-20-15")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("2014-35-00")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("2016-12-40")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("02-02-2017")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("10-10-2017")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("2017-02-29")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("12-35-2015")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("0000-20-15")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("29-02-2017")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("25-11-15")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("25/11/15")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("11-25-15")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("11/25/15")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("02-29-2017")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("2017-02-29")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("2016-05-29-")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("2016-05-29--")
+        with self.assertRaises(ValueError):
+            date_string_ymd_to_date("2016/05/29/")
+
+    def test_date_string_ymd_to_date(self):
+        self.assertEqual(datetime(2015, 11, 25, 0, 0).date(), date_string_ymd_to_date("2015-11-25"))
+        self.assertEqual(datetime(2015, 11, 25, 0, 0).date(), date_string_ymd_to_date("2015/11/25"))
+        self.assertEqual(datetime(2015, 1, 11, 0, 0).date(), date_string_ymd_to_date("2015-01-11"))
+        self.assertEqual(datetime(2015, 1, 11, 0, 0).date(), date_string_ymd_to_date("2015/01/11"))
+        self.assertEqual(datetime(2015, 1, 1, 0, 0).date(), date_string_ymd_to_date("2015-01-01"))
+        self.assertEqual(datetime(2016, 2, 29, 0, 0).date(), date_string_ymd_to_date("2016-02-29"))
+        self.assertEqual(datetime(2017, 2, 28, 0, 0).date(), date_string_ymd_to_date("2017-02-28"))
+        self.assertEqual(datetime(2020, 2, 28, 0, 0).date(), date_string_ymd_to_date("2020-02-28"))
+        self.assertEqual(datetime(2009, 7, 10, 0, 0).date(), date_string_ymd_to_date("2009-07-10"))
+        self.assertEqual(datetime(2009, 12, 12, 0, 0).date(), date_string_ymd_to_date("2009-12-12"))
+        self.assertEqual(datetime(2009, 8, 12, 0, 0).date(), date_string_ymd_to_date("2009-08-12"))
+        self.assertEqual(datetime(2014, 12, 8, 0, 0).date(), date_string_ymd_to_date("2014-12-08"))
+
+    def test_nonworking_dates_for_try_parsing_partner_date(self):
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date(" ")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("12")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("1212")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("12-12")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("12/12")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("40-15-2015")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("10-15-2015")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("30-15-2015")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("30/15/2015")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("2014-20-15")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("12-00-2015")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("0000-20-15")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("2014-35-00")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("2016-12-40")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("2017-02-29")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("30-15-2015")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("12-35-2015")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("0000-20-15")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("2014-20-15")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("29-02-2017")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("25-11-15")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("25/11/15")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("11-25-15")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("11/25/15")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("02-29-2017")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("29/05/2016/")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("2016-05-29-")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("2016-05-29--")
+        with self.assertRaises(ValueError):
+            try_parsing_partner_date("2016/05/29/")
+
+    def test_try_parsing_partner_date(self):
+        self.assertEqual(datetime(2015, 11, 25, 0, 0).date(), try_parsing_partner_date("25-11-2015"))
+        self.assertEqual(datetime(2015, 11, 25, 0, 0).date(), try_parsing_partner_date("25/11/2015"))
+        self.assertEqual(datetime(2015, 1, 11, 0, 0).date(), try_parsing_partner_date("11-01-2015"))
+        self.assertEqual(datetime(2015, 1, 11, 0, 0).date(), try_parsing_partner_date("11/01/2015"))
+        self.assertEqual(datetime(2015, 1, 1, 0, 0).date(), try_parsing_partner_date("01-01-2015"))
+        self.assertEqual(datetime(2016, 2, 29, 0, 0).date(), try_parsing_partner_date("29-02-2016"))
+        self.assertEqual(datetime(2017, 2, 28, 0, 0).date(), try_parsing_partner_date("28-02-2017"))
+        self.assertEqual(datetime(2020, 2, 28, 0, 0).date(), try_parsing_partner_date("28-02-2020"))
+        self.assertEqual(datetime(2009, 7, 10, 0, 0).date(), try_parsing_partner_date("10-07-2009"))
+        self.assertEqual(datetime(2009, 12, 12, 0, 0).date(), try_parsing_partner_date("12-12-2009"))
+        self.assertEqual(datetime(2009, 8, 12, 0, 0).date(), try_parsing_partner_date("12-08-2009"))
+        self.assertEqual(datetime(2014, 12, 8, 0, 0).date(), try_parsing_partner_date("08-12-2014"))
+        self.assertEqual(datetime(2015, 11, 25, 0, 0).date(), try_parsing_partner_date("2015-11-25"))
+        self.assertEqual(datetime(2015, 11, 25, 0, 0).date(), try_parsing_partner_date("2015/11/25"))
+        self.assertEqual(datetime(2015, 1, 11, 0, 0).date(), try_parsing_partner_date("2015-01-11"))
+        self.assertEqual(datetime(2015, 1, 11, 0, 0).date(), try_parsing_partner_date("2015/01/11"))
+        self.assertEqual(datetime(2015, 1, 1, 0, 0).date(), try_parsing_partner_date("2015-01-01"))
+        self.assertEqual(datetime(2016, 2, 29, 0, 0).date(), try_parsing_partner_date("2016-02-29"))
+        self.assertEqual(datetime(2017, 2, 28, 0, 0).date(), try_parsing_partner_date("2017-02-28"))
+        self.assertEqual(datetime(2020, 2, 28, 0, 0).date(), try_parsing_partner_date("2020-02-28"))
+        self.assertEqual(datetime(2009, 7, 10, 0, 0).date(), try_parsing_partner_date("2009-07-10"))
+        self.assertEqual(datetime(2009, 12, 12, 0, 0).date(), try_parsing_partner_date("2009-12-12"))
+        self.assertEqual(datetime(2009, 8, 12, 0, 0).date(), try_parsing_partner_date("2009-08-12"))
+        self.assertEqual(datetime(2014, 12, 8, 0, 0).date(), try_parsing_partner_date("2014-12-08"))
+    
+    def test_nonworking_dates_for_try_parsing_gen_date(self):
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date(" ")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("12")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("1212")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("12-12")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("12/12")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("40-15-2015")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("30-15-2015")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("30/15/2015")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("2014-20-15")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("12-00-2015")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("0000-20-15")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("2014-35-00")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("2016-12-40")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("17-10-2016")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("17-05-2016")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("2017-02-29")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("12-35-2015")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("0000-20-15")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("29-02-2017")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("25-11-15")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("25/11/15")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("11-25-15")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("11/25/15")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("02-29-2017")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("02-05-2016-")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("05/29/2016/")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("2016-05-29-")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("2016-05-29--")
+        with self.assertRaises(ValueError):
+            try_parsing_gen_date("2016/05/29/")
+
+    def test_try_parsing_gen_date(self):
+        self.assertEqual(datetime(2015, 11, 25, 0, 0).date(), try_parsing_gen_date("11-25-2015"))
+        self.assertEqual(datetime(2015, 11, 25, 0, 0).date(), try_parsing_gen_date("11/25/2015"))
+        self.assertEqual(datetime(2015, 1, 11, 0, 0).date(), try_parsing_gen_date("01-11-2015"))
+        self.assertEqual(datetime(2015, 1, 11, 0, 0).date(), try_parsing_gen_date("01/11/2015"))
+        self.assertEqual(datetime(2015, 1, 1, 0, 0).date(), try_parsing_gen_date("01-01-2015"))
+        self.assertEqual(datetime(2016, 2, 29, 0, 0).date(), try_parsing_gen_date("02-29-2016"))
+        self.assertEqual(datetime(2017, 2, 28, 0, 0).date(), try_parsing_gen_date("02-28-2017"))
+        self.assertEqual(datetime(2020, 2, 28, 0, 0).date(), try_parsing_gen_date("02-28-2020"))
+        self.assertEqual(datetime(2009, 7, 10, 0, 0).date(), try_parsing_gen_date("07-10-2009"))
+        self.assertEqual(datetime(2009, 12, 12, 0, 0).date(), try_parsing_gen_date("12-12-2009"))
+        self.assertEqual(datetime(2009, 8, 12, 0, 0).date(), try_parsing_gen_date("08-12-2009"))
+        self.assertEqual(datetime(2014, 12, 8, 0, 0).date(), try_parsing_gen_date("12-08-2014"))
+        self.assertEqual(datetime(2015, 11, 25, 0, 0).date(), try_parsing_gen_date("2015-11-25"))
+        self.assertEqual(datetime(2015, 11, 25, 0, 0).date(), try_parsing_gen_date("2015/11/25"))
+        self.assertEqual(datetime(2015, 1, 11, 0, 0).date(), try_parsing_gen_date("2015-01-11"))
+        self.assertEqual(datetime(2015, 1, 11, 0, 0).date(), try_parsing_gen_date("2015/01/11"))
+        self.assertEqual(datetime(2015, 1, 1, 0, 0).date(), try_parsing_gen_date("2015-01-01"))
+        self.assertEqual(datetime(2016, 2, 29, 0, 0).date(), try_parsing_gen_date("2016-02-29"))
+        self.assertEqual(datetime(2017, 2, 28, 0, 0).date(), try_parsing_gen_date("2017-02-28"))
+        self.assertEqual(datetime(2020, 2, 28, 0, 0).date(), try_parsing_gen_date("2020-02-28"))
+        self.assertEqual(datetime(2009, 7, 10, 0, 0).date(), try_parsing_gen_date("2009-07-10"))
+        self.assertEqual(datetime(2009, 12, 12, 0, 0).date(), try_parsing_gen_date("2009-12-12"))
+        self.assertEqual(datetime(2009, 8, 12, 0, 0).date(), try_parsing_gen_date("2009-08-12"))
+        self.assertEqual(datetime(2014, 12, 8, 0, 0).date(), try_parsing_gen_date("2014-12-08"))
 
 class DateToDateStringTests(TestCase):
     def test_dates_get_converted_to_date_strings(self):

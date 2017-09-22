@@ -163,20 +163,47 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual(monthly_income(''), 999999)
         self.assertEqual(monthly_income(None), 999999)
 
-    def test_empty_delay(self):
-        self.assertEqual(parse_or_create_delay_num(''), 0)
-        self.assertEqual(parse_or_create_delay_num(None), 0)
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_delay_normal_inputs(self, headers_mock):
+        headers = ["Delay in days"]
+        row = {"Delay in days:" "WONT BE READ"}
+        headers_mock.return_value = "1000"
+        self.assertEqual(1000, parse_or_create_delay_num(row=row, headers=headers))
+        headers_mock.return_value = "100"
+        self.assertEqual(100, parse_or_create_delay_num(row=row, headers=headers))
+        headers_mock.return_value = "1003"
+        self.assertEqual(1003, parse_or_create_delay_num(row=row, headers=headers))
+        headers_mock.return_value = "4500"
+        self.assertEqual(4500, parse_or_create_delay_num(row=row, headers=headers))
+        headers_mock.return_value = "5"
+        self.assertEqual(5, parse_or_create_delay_num(row=row, headers=headers))
+        headers_mock.return_value = "10"
+        self.assertEqual(10, parse_or_create_delay_num(row=row, headers=headers))
+        headers_mock.return_value = "800"
+        self.assertEqual(800, parse_or_create_delay_num(row=row, headers=headers))
 
-    def test_nondigits_in_delay(self):
-        self.assertEqual(parse_or_create_delay_num("1892ff8"), 0)
-        self.assertEqual(parse_or_create_delay_num("ghg18928"), 0)
-        self.assertEqual(parse_or_create_delay_num("18928ff"), 0)
-        self.assertEqual(parse_or_create_delay_num("18928-"), 0)
-        self.assertEqual(parse_or_create_delay_num("-18928"), 0)
-        self.assertEqual(parse_or_create_delay_num("+18928"), 0)
-        self.assertEqual(parse_or_create_delay_num("18+928"), 0)
-        self.assertEqual(parse_or_create_delay_num("18 928"), 0)
-        self.assertEqual(parse_or_create_delay_num("18,928"), 0)
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_nondigits_in_delay(self, headers_mock):
+        headers = ["Delay in days"]
+        row = {"Delay in days:" "WONT BE READ"}
+        headers_mock.return_value = ""
+        self.assertEqual(0, parse_or_create_delay_num(row=row, headers=headers))
+        headers_mock.return_value = None
+        self.assertEqual(0, parse_or_create_delay_num(row=row, headers=headers))
+        headers_mock.return_value = "1892ff8"
+        self.assertEqual(0, parse_or_create_delay_num(row=row, headers=headers))
+        headers_mock.return_value = "ghg18928"
+        self.assertEqual(0, parse_or_create_delay_num(row=row, headers=headers))
+        headers_mock.return_value = "18928-"
+        self.assertEqual(0, parse_or_create_delay_num(row=row, headers=headers))
+        headers_mock.return_value = "-18928"
+        self.assertEqual(0, parse_or_create_delay_num(row=row, headers=headers))
+        headers_mock.return_value = "8+928"
+        self.assertEqual(0, parse_or_create_delay_num(row=row, headers=headers))
+        headers_mock.return_value = "18 928"
+        self.assertEqual(0, parse_or_create_delay_num(row=row, headers=headers))
+        headers_mock.return_value = "1,928"
+        self.assertEqual(1928, parse_or_create_delay_num(row=row, headers=headers))
 
     def test_empty_previous_vaccination(self):
         self.assertEqual(previous_vaccination(''), None)
@@ -194,140 +221,308 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual(previous_vaccination("no asdfasfasf "), False)
 
 
-    def test_fake_dates_for_parse_or_create_functional_dob(self):
-        with self.assertRaises(ValueError):
-            parse_or_create_functional_dob(row_entry="40-15-2015", source="TR", date_of_birth="40-15-2015", delay=0)
-        with self.assertRaises(ValueError):
-            parse_or_create_functional_dob(row_entry="30-15-2015", source="TR", date_of_birth="30-15-2015", delay=0)
-        with self.assertRaises(ValueError):
-            parse_or_create_functional_dob(row_entry="12-35-2015", source="TR", date_of_birth="12-35-2015", delay=0)
-        with self.assertRaises(ValueError):
-            parse_or_create_functional_dob(row_entry="2014-20-15", source="TR", date_of_birth="2014-20-15", delay=0)
-        with self.assertRaises(ValueError):
-            parse_or_create_functional_dob(row_entry="12-00-2015", source="TR", date_of_birth="12-00-2015", delay=0)
-        with self.assertRaises(ValueError):
-            parse_or_create_functional_dob(row_entry="20000-20-15", source="TR", date_of_birth="0000-20-15", delay=0)
-        with self.assertRaises(ValueError):
-            parse_or_create_functional_dob(row_entry="2014-35-00", source="TR", date_of_birth="2014-35-00", delay=0)
-        with self.assertRaises(ValueError):
-            parse_or_create_functional_dob(row_entry="2016-12-40", source="TR", date_of_birth="2016-12-40", delay=0)
-        with self.assertRaises(ValueError):
-            parse_or_create_functional_dob(row_entry="2017-02-40", source="TR", date_of_birth="2017-02-40", delay=0)
-        with self.assertRaises(ValueError):
-            parse_or_create_functional_dob(row_entry="40-15-2015", source="MPS", date_of_birth="40-15-2015", delay=0)
-        with self.assertRaises(ValueError):
-            parse_or_create_functional_dob(row_entry="30-15-2015", source="MPS", date_of_birth="30-15-2015", delay=0)
-        with self.assertRaises(ValueError):
-            parse_or_create_functional_dob(row_entry="12-35-2015", source="MPS", date_of_birth="12-35-2015", delay=0)
-        with self.assertRaises(ValueError):
-            parse_or_create_functional_dob(row_entry="2014-20-15", source="PRNT", date_of_birth="2014-20-15", delay=0)
-        with self.assertRaises(ValueError):
-            parse_or_create_functional_dob(row_entry="12-00-2015", source="PRNT", date_of_birth="12-00-2015", delay=0)
-        with self.assertRaises(ValueError):
-            parse_or_create_functional_dob(row_entry="20000-20-15", source="PRNT", date_of_birth="0000-20-15", delay=0)
-        with self.assertRaises(ValueError):
-            parse_or_create_functional_dob(row_entry="2014-35-00", source="PRNT", date_of_birth="2014-35-00", delay=0)
-        with self.assertRaises(ValueError):
-            parse_or_create_functional_dob(row_entry="2016-12-40", source="PRNT", date_of_birth="2016-12-40", delay=0)
-        with self.assertRaises(ValueError):
-            parse_or_create_functional_dob(row_entry="2017-02-40", source="PRNT", date_of_birth="2017-02-40", delay=0)
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_string_dob_for_parse_or_create_functional_dob(self, headers_mock):
+        headers = ["Functional DoB"]
+        no_diff_row = {'Name': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14',
+                "Functional DoB": '2016-09-14', "Delay in days": "0"}
 
-
-    def test_nonexistent_dates_for_parse_or_create_functional_dob(self):
+        headers_mock.return_value = ""
         with self.assertRaises(TypeError):
-            parse_or_create_functional_dob(row_entry="", source="TR", date_of_birth="", delay=0)
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth="10-10-2015", delay=0)
+        with self.assertRaises(TypeError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth="01-01-2017", delay=0)
+        with self.assertRaises(TypeError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth="2017-01-01", delay=0)
+        with self.assertRaises(TypeError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth="40-15-2015", delay=0)
 
-        parsed_func_dob = parse_or_create_functional_dob(row_entry="", source="TR", date_of_birth=datetime(2015, 10, 15,0,0).date(), delay=0)
-        parsed_func_dob = parse_or_create_functional_dob(row_entry="", source="PRNT", date_of_birth=datetime(2015, 10, 15,0,0).date(), delay=0)
-        parsed_func_dob2 = parse_or_create_functional_dob(row_entry="", source="TR", date_of_birth=datetime(2015, 10, 15,0,0).date(), delay=5)
-        parsed_func_dob2 = parse_or_create_functional_dob(row_entry="", source="PRNT", date_of_birth=datetime(2015, 10, 15,0,0).date(), delay=5)
+        headers_mock.return_value = "40-15-2015"
+        with self.assertRaises(ValueError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth="40-15-2015", delay=0)
+
+
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_fake_dates_for_parse_or_create_functional_dob(self, headers_mock):
+        headers = ["Functional DoB"]
+        no_diff_row = {'Name': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14',
+                "Functional DoB": '2016-09-14', "Delay in days": "0"}
+
+        headers_mock.return_value = "40-15-2015"
+        with self.assertRaises(ValueError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth=datetime(2015, 15, 40, 0, 0).date(), delay=0)
+        with self.assertRaises(ValueError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth=datetime(2015, 12, 10, 0, 0).date(), delay=0)
+        with self.assertRaises(ValueError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth=datetime(2015, 12, 10, 0, 0).date(), delay=5)
+        headers_mock.return_value = "30-15-2015"
+        with self.assertRaises(ValueError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth=datetime(2015, 15, 30, 0, 0), delay=0)
+        with self.assertRaises(ValueError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth=datetime(2015, 1, 10, 0, 0), delay=0)
+        headers_mock.return_value = "12-35-2015"
+        with self.assertRaises(ValueError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth=datetime(2015, 1, 10, 0, 0), delay=0)
+        headers_mock.return_value = "2014-20-15"
+        with self.assertRaises(ValueError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth=datetime(2015, 1, 10, 0, 0), delay=0)
+        headers_mock.return_value = "12-00-2015"
+        with self.assertRaises(ValueError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth=datetime(2015, 1, 10, 0, 0), delay=0)
+        headers_mock.return_value = "20000-20-15"
+        with self.assertRaises(ValueError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth=datetime(2015, 1, 10, 0, 0), delay=0)
+        headers_mock.return_value = "2014-35-00"
+        with self.assertRaises(ValueError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth=datetime(2015, 1, 10, 0, 0), delay=0)
+        headers_mock.return_value = "2016-12-40"
+        with self.assertRaises(ValueError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth=datetime(2015, 1, 10, 0, 0), delay=0)
+        headers_mock.return_value = "2017-02-40"
+        with self.assertRaises(ValueError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth=datetime(2015, 1, 10, 0, 0), delay=0)
+        headers_mock.return_value = "29-02-2017"
+        with self.assertRaises(ValueError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth=datetime(2015, 1, 10, 0, 0), delay=0)
+        headers_mock.return_value = "40-15-2015"
+        with self.assertRaises(ValueError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="MPS", date_of_birth=datetime(2015, 1, 10, 0, 0), delay=0)
+        headers_mock.return_value = "30-15-2015"
+        with self.assertRaises(ValueError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="MPS", date_of_birth=datetime(2015, 1, 10, 0, 0), delay=0)
+        headers_mock.return_value = "2017-02-29"
+        with self.assertRaises(ValueError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth="2017-02-40", delay=0)
+        with self.assertRaises(ValueError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="PRNT", date_of_birth="2017-02-40", delay=0)
+        with self.assertRaises(ValueError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="PRNT", date_of_birth="2017-02-40", delay=5)
+
+    @freeze_time(datetime(2017, 7, 21, 0, 0).replace(tzinfo=timezone.get_default_timezone()))
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_nonexistent_dates_for_parse_or_create_functional_dob(self, headers_mock):
+        headers = ["Functional DoB"]
+        no_diff_row = {'Name': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14',
+                "Functional DoB": '2016-09-14', "Delay in days": "0"}
+
+        headers_mock.return_value = ""
+        with self.assertRaises(TypeError):
+            parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth="", delay=0)
+
+        parsed_func_dob = parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth=datetime(2015, 10, 15, 0, 0).date(), delay=0)
+        parsed_func_dob_diff_source = parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="PRNT", date_of_birth=datetime(2015, 10, 15, 0, 0).date(), delay=0)
+        parsed_func_dob2 = parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth=datetime(2015, 10, 15, 0, 0).date(), delay=5)
+        month_roll = parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth=datetime(2016, 6, 3, 0, 0).date(), delay=30)
+        year_roll = parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth=datetime(2015, 12, 31, 0, 0).date(), delay=5)
+        large_delay = parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth=datetime(2016, 6, 30, 0, 0).date(), delay=50)
+        past_to_future = parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth=datetime(2017, 7, 11, 0, 0).date(), delay=20)
+        future_to_future = parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR", date_of_birth=datetime(2017, 8, 11, 0, 0).date(), delay=20)
         
         self.assertEqual(parsed_func_dob, datetime(2015, 10, 15).date())
+        self.assertEqual(parsed_func_dob_diff_source, datetime(2015, 10, 15).date())
         self.assertEqual(parsed_func_dob2, datetime(2015, 10, 20).date())
+        self.assertEqual(month_roll, datetime(2016, 7, 3).date())
+        self.assertEqual(year_roll, datetime(2016, 1, 5).date())
+        self.assertEqual(large_delay, datetime(2016, 8, 19).date())
+        self.assertEqual(past_to_future, datetime(2017, 7, 31).date())
+        self.assertEqual(future_to_future, datetime(2017, 8, 31).date())
 
-    def test_real_dates_for_parse_or_create_functional_dob(self):
-        parsed_func_dob1 = parse_or_create_functional_dob(row_entry="10-15-2015", source="TR",
-        	date_of_birth=datetime(2015, 10, 15,0,0).date(), delay=0)
-        parsed_func_dob2 = parse_or_create_functional_dob(row_entry="10-18-2015", source="TR",
-        	date_of_birth=datetime(2015, 10, 15,0,0).date(), delay=3)
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_real_dates_for_parse_or_create_functional_dob(self, headers_mock):
+        headers = ["Functional DoB"]
+        no_diff_row = {'Name': 'FakestNumber', 'Phone Number': '123456', 'Date of Birth': '2016-09-14',
+                "Functional DoB": '2016-09-14', "Delay in days": "0"}
 
-        parsed_func_dob3 = parse_or_create_functional_dob(row_entry="15-10-2015", source="PRNT",
-            date_of_birth=datetime(2015, 10, 15,0,0).date(), delay=0)
-        parsed_func_dob4 = parse_or_create_functional_dob(row_entry="18-10-2015", source="PRNT",
-            date_of_birth=datetime(2015, 10, 15,0,0).date(), delay=3)
-        
+        headers_mock.return_value = "10-15-2015"
+        parsed_func_dob1 = parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR",
+          date_of_birth=datetime(2015, 10, 15,0,0).date(), delay=0)
         self.assertEqual(parsed_func_dob1, datetime(2015, 10, 15).date())
+        headers_mock.return_value = "10-18-2015"
+        parsed_func_dob2 = parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="TR",
+          date_of_birth=datetime(2015, 10, 15,0,0).date(), delay=3)
         self.assertEqual(parsed_func_dob2, datetime(2015, 10, 18).date())
+        headers_mock.return_value = "15-10-2015"
+        parsed_func_dob3 = parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="PRNT",
+            date_of_birth=datetime(2015, 10, 15,0,0).date(), delay=0)
         self.assertEqual(parsed_func_dob3, datetime(2015, 10, 15).date())
+        headers_mock.return_value = "18-10-2015"
+        parsed_func_dob4 = parse_or_create_functional_dob(row=no_diff_row, headers=headers, source="PRNT",
+            date_of_birth=datetime(2015, 10, 15,0,0).date(), delay=3)
         self.assertEqual(parsed_func_dob4, datetime(2015, 10, 18).date())
+        
 
-    def test_nonexistent_dates_for_entered_date_string_to_date(self):
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_nonexistent_dates_for_entered_date_string_to_date(self, headers_mock):
+        date_of_birth_headers = ["Date of Birth", "Date Of Birth Of The Child",
+                        "Date of Birth of Child (dd/mm/yyyy)", "Date of Birth of Child"]
+        date_of_birth_row = {'Name': 'FakestNumber', 'Phone Number': '123456',
+                                'Date of Birth': '2016-09-14'}
+        headers_mock.return_value = ""
         with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="", source="TR")
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="TR")
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="NOT TR")
+        headers_mock.return_value = " "
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="TR")
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="NOT TR")
+        headers_mock.return_value = "    "
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="TR")
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="NOT TR")
 
-    def test_fake_dates_for_entered_date_string_to_date(self):
-        with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="40-15-2015", source="TR")
-        with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="30-15-2015", source="TR")
-        with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="12-35-2015", source="TR")
-        with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="2014-20-15", source="TR")
-        with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="12-00-2015", source="TR")
-        with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="0000-20-15", source="TR")
-        with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="2014-35-00", source="TR")
-        with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="2016-12-40", source="TR")
-        with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="2017-02-29", source="TR")
-        with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="0000-20-15", source="MPS")
-        with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="2014-35-00", source="MPS")
-        with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="2016-12-40", source="PRNT")
-        with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="2017-02-29", source="PRNT")
-        with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="30-15-2015", source="PRNT")
-        with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="12-35-2015", source="PRNT")
-        with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="2014-20-15", source="PRNT")
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_fake_dates_for_entered_date_string_to_date(self, headers_mock):
+        date_of_birth_headers = ["Date of Birth", "Date Of Birth Of The Child",
+                        "Date of Birth of Child (dd/mm/yyyy)", "Date of Birth of Child"]
+        date_of_signup_headers = ["Date of Sign Up", "Date of Survey (dd/mm/yy)", "Date of Survey"]
+        date_of_birth_row = {'Name': 'FakestNumber', 'Phone Number': '123456',
+                                'Date of Birth': '2016-09-14'}
+        date_of_signup_row = {'Name': 'FakestNumber', 'Phone Number': '123456',
+                                'Date of Sign Up': '2016-09-14'}
 
-    def test_real_dates_for_entered_date_that_should_fail(self):
+        headers_mock.return_value = "40-15-2015"
         with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="28-03-2015", source="TR")
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="TR")
         with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="15-05-2015", source="TR")
+            entered_date_string_to_date(row=date_of_signup_row, headers=date_of_signup_headers, source="TR")
+        headers_mock.return_value = "30-15-2015"
         with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="03-28-2015", source="MPS")
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="TR")
         with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="05-15-2015", source="MPS")
+            entered_date_string_to_date(row=date_of_signup_row, headers=date_of_signup_headers, source="TR")
+        headers_mock.return_value = "12-35-2015"
         with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="03-28-2015", source="PRNT")
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="TR")
+        headers_mock.return_value = "2014-20-15"
         with self.assertRaises(ValueError):
-            entered_date_string_to_date(row_entry="05-15-2015", source="PRNT")
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="TR")
+        headers_mock.return_value = "12-00-2015"
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="TR")
+        headers_mock.return_value = "0000-20-15"
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="TR")
+        headers_mock.return_value = "2014-35-00"
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="TR")
+        headers_mock.return_value = "2016-12-40"
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="TR")
+        headers_mock.return_value = "2017-02-29"
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="TR")
+        headers_mock.return_value = "0000-20-15"
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="MPS")
+        headers_mock.return_value = "2014-35-00"
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="MPS")
+        headers_mock.return_value = "2016-12-40"
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="PRNT")
+        headers_mock.return_value = "2017-02-29"
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="PRNT")
+        headers_mock.return_value = "30-15-2015"
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="PRNT")
+        headers_mock.return_value = "12-35-2015"
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="PRNT")
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_signup_row, headers=date_of_signup_headers, source="PRNT")
+        headers_mock.return_value = "2014-20-15"
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="PRNT")
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_signup_row, headers=date_of_signup_headers, source="PRNT")
+        headers_mock.return_value = "2017-02-29"
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="PRNT")
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_signup_row, headers=date_of_signup_headers, source="PRNT")
+        headers_mock.return_value = "02-29-2017"
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="MPS")
+        headers_mock.return_value = "29-02-2017"
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="Tr")
 
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_real_dates_for_entered_date_that_should_fail(self, headers_mock):
+        date_of_birth_headers = ["Date of Birth", "Date Of Birth Of The Child",
+                        "Date of Birth of Child (dd/mm/yyyy)", "Date of Birth of Child"]
+        date_of_signup_headers = ["Date of Sign Up", "Date of Survey (dd/mm/yy)", "Date of Survey"]
+        date_of_birth_row = {'Name': 'FakestNumber', 'Phone Number': '123456',
+                                'Date of Birth': '2016-09-14'}
+        date_of_signup_row = {'Name': 'FakestNumber', 'Phone Number': '123456',
+                                'Date of Sign Up': '2016-09-14'}
 
-    def test_real_dates_for_entered_date_string_to_date(self):
-        self.assertEqual(entered_date_string_to_date(row_entry="2014-12-20", source="TR"), datetime(2014, 12, 20, 0,0 ).date())
-        self.assertEqual(entered_date_string_to_date(row_entry="2017-01-20", source="TR"), datetime(2017, 1, 20, 0,0 ).date())
-        self.assertEqual(entered_date_string_to_date(row_entry="2017-01-07", source="TR"), datetime(2017, 1, 7, 0,0 ).date())
-        self.assertEqual(entered_date_string_to_date(row_entry="01-15-2017", source="TR"), datetime(2017, 1, 15, 0,0 ).date())
-        self.assertEqual(entered_date_string_to_date(row_entry="02-28-2017", source="TR"), datetime(2017, 2, 28, 0,0 ).date())
-        self.assertEqual(entered_date_string_to_date(row_entry="2014-12-20", source="MPS"), datetime(2014, 12, 20, 0,0 ).date())
-        self.assertEqual(entered_date_string_to_date(row_entry="2017-01-20", source="MPS"), datetime(2017, 1, 20, 0,0 ).date())
-        self.assertEqual(entered_date_string_to_date(row_entry="2017-01-07", source="MPS"), datetime(2017, 1, 7, 0,0 ).date())
-        self.assertEqual(entered_date_string_to_date(row_entry="15-01-2017", source="MPS"), datetime(2017, 1, 15, 0,0 ).date())
-        self.assertEqual(entered_date_string_to_date(row_entry="28-02-2017", source="MPS"), datetime(2017, 2, 28, 0,0 ).date())
-        self.assertEqual(entered_date_string_to_date(row_entry="2017-01-07", source="PRNT"), datetime(2017, 1, 7, 0,0 ).date())
-        self.assertEqual(entered_date_string_to_date(row_entry="28-02-2017", source="PRNT"), datetime(2017, 2, 28, 0,0 ).date())
-        self.assertEqual(entered_date_string_to_date(row_entry="15-01-2017", source="PRNT"), datetime(2017, 1, 15, 0,0 ).date())
+        headers_mock.return_value = "20-10-2017"
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="TR")
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_signup_row, headers=date_of_signup_headers, source="TR")
+        headers_mock.return_value = "28-03-2015"
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="TR")
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_signup_row, headers=date_of_signup_headers, source="TR")
+        headers_mock.return_value = "05-15-2015"
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="MPS")
+        headers_mock.return_value = "03-28-2015"
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="PRNT")
+        with self.assertRaises(ValueError):
+            entered_date_string_to_date(row=date_of_signup_row, headers=date_of_signup_headers, source="PRNT")
+
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_real_dates_for_entered_date_string_to_date(self, headers_mock):
+        date_of_birth_headers = ["Date of Birth", "Date Of Birth Of The Child",
+                        "Date of Birth of Child (dd/mm/yyyy)", "Date of Birth of Child"]
+        date_of_signup_headers = ["Date of Sign Up", "Date of Survey (dd/mm/yy)", "Date of Survey"]
+        date_of_birth_row = {'Name': 'FakestNumber', 'Phone Number': '123456',
+                                'Date of Birth': '2016-09-14'}
+        date_of_signup_row = {'Name': 'FakestNumber', 'Phone Number': '123456',
+                                'Date of Sign Up': '2016-09-14'}
+
+        headers_mock.return_value = "2014-12-20"
+        self.assertEqual(entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="TR"), datetime(2014, 12, 20, 0,0 ).date())
+        self.assertEqual(entered_date_string_to_date(row=date_of_signup_row, headers=date_of_signup_headers, source="TR"), datetime(2014, 12, 20, 0,0 ).date())
+        headers_mock.return_value = "2017-01-20"
+        self.assertEqual(entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="TR"), datetime(2017, 1, 20, 0,0 ).date())
+        headers_mock.return_value = "2017-01-07"
+        self.assertEqual(entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="TR"), datetime(2017, 1, 7, 0,0 ).date())
+        headers_mock.return_value = "01-15-2017"
+        self.assertEqual(entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="TR"), datetime(2017, 1, 15, 0,0 ).date())
+        headers_mock.return_value = "02-28-2017"
+        self.assertEqual(entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="TR"), datetime(2017, 2, 28, 0,0 ).date())
+        headers_mock.return_value = "02-29-2016"
+        self.assertEqual(entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="TR"), datetime(2016, 2, 29, 0,0 ).date())
+        headers_mock.return_value = "2014-12-20"
+        self.assertEqual(entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="MPS"), datetime(2014, 12, 20, 0,0 ).date())
+        headers_mock.return_value = "2017-01-20"
+        self.assertEqual(entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="MPS"), datetime(2017, 1, 20, 0,0 ).date())
+        headers_mock.return_value = "2017-01-07"
+        self.assertEqual(entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="MPS"), datetime(2017, 1, 7, 0,0 ).date())
+        headers_mock.return_value = "15-01-2017"
+        self.assertEqual(entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="MPS"), datetime(2017, 1, 15, 0,0 ).date())
+        headers_mock.return_value = "28-02-2017"
+        self.assertEqual(entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="MPS"), datetime(2017, 2, 28, 0,0 ).date())
+        headers_mock.return_value = "29-02-2016"
+        self.assertEqual(entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="MPS"), datetime(2016, 2, 29, 0,0 ).date())
+        headers_mock.return_value = "2017-01-07"
+        self.assertEqual(entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="PRNT"), datetime(2017, 1, 7, 0,0 ).date())
+        headers_mock.return_value = "28-02-2017"
+        self.assertEqual(entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="PRNT"), datetime(2017, 2, 28, 0,0 ).date())
+        headers_mock.return_value = "15-01-2017"
+        self.assertEqual(entered_date_string_to_date(row=date_of_birth_row, headers=date_of_birth_headers, source="PRNT"), datetime(2017, 1, 15, 0,0 ).date())
+        self.assertEqual(entered_date_string_to_date(row=date_of_signup_row, headers=date_of_signup_headers, source="PRNT"), datetime(2017, 1, 15, 0,0 ).date())
+
     
     def test_parse_contact_time_references_real_datetimes(self):
         self.assertEqual(datetime(2017, 6, 12, 16, 0, 3, tzinfo=timezone.get_default_timezone()),
