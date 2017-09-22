@@ -1005,27 +1005,20 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual(u'  \\u0aa4\\u0aae\\u0abe\\u0ab0\\u0ac1\\u0a82  ', check_all_headers(row=unicode_with_space, headers=name))
 
     def test_assign_org_signup(self):
-        tr = "TR"
-        tr_lower = "tr"
-        ta = "TA"
-        other = "Other"
-        other_caps = "OTHER"
-        other_lower = "other"
-        mps = "MPS"
         org_row = {'Org Sign Up': 'Parker', 'Name of The Mother': 'mom', 'Name': 'Kendra'}
         no_org_row = {'Name of The Mother': 'mom', 'Name': 'Kendra'}
         org_empty_row = {'Org Sign Up': '','Name of The Mother': 'mom', 'Name': 'Kendra'}
-        self.assertEqual("Parker", assign_org_signup(row=org_row, source=tr))
-        self.assertFalse(assign_org_signup(row=no_org_row, source=tr))
-        self.assertEqual(ta, assign_org_signup(row=org_row, source=ta))
-        self.assertEqual(ta, assign_org_signup(row=no_org_row, source=ta))
-        self.assertEqual("Parker", assign_org_signup(row=org_row, source=tr_lower))
-        self.assertEqual(other.upper(), assign_org_signup(row=org_row, source=other))
-        self.assertEqual(other_caps, assign_org_signup(row=org_row, source=other_caps))
-        self.assertEqual(other_lower.upper(), assign_org_signup(row=org_row, source=other_lower))
-        self.assertEqual(mps, assign_org_signup(row=org_row, source=mps))
-        self.assertEqual(mps, assign_org_signup(row=org_empty_row, source=mps))
-        self.assertFalse(assign_org_signup(row=org_empty_row, source=tr))
+        self.assertEqual("Parker", assign_org_signup(row=org_row, source="TR"))
+        self.assertFalse(assign_org_signup(row=no_org_row, source="TR"))
+        self.assertEqual("TA", assign_org_signup(row=org_row, source="TA"))
+        self.assertEqual("TA", assign_org_signup(row=no_org_row, source="TA"))
+        self.assertEqual("Parker", assign_org_signup(row=org_row, source="tr"))
+        self.assertEqual("Other".upper(), assign_org_signup(row=org_row, source="Other"))
+        self.assertEqual("OTHER", assign_org_signup(row=org_row, source="OTHER"))
+        self.assertEqual("other".upper(), assign_org_signup(row=org_row, source="other"))
+        self.assertEqual("MPS", assign_org_signup(row=org_row, source="MPS"))
+        self.assertEqual("MPS", assign_org_signup(row=org_empty_row, source="MPS"))
+        self.assertFalse(assign_org_signup(row=org_empty_row, source="TR"))
 
     def test_assign_method_of_signup(self):
         maps = "Maps"
@@ -1058,23 +1051,18 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual("Text", assign_method_of_signup(row=text_in, source=other))
 
     def test_assign_hospital_name(self):
-        hospital_method = "Hospital"
-        door_to_door = "Door to Door"
-        wardha = "Wardha"
-        wardha_lower = "wardha"
-        second_lower = "second"
         large = {'Hospital Name': 'Large', 'Name of The Mother': 'mom', 'Name': 'Kendra'}
         different = {'Hospital Name': 'Diff From Large', 'Name of The Mother': 'mom', 'Name': 'Kendra'}
         no_hospital_row = {'Name of The Mother': 'mom', 'Name': 'Kendra'}
         hospital_empty = {'Hospital Name': '', 'Name of The Mother': 'mom', 'Name': 'Kendra'}
 
-        self.assertEqual(wardha, assign_hospital_name(row=large, method_of_signup=hospital_method, org_signup=wardha))
-        self.assertEqual(wardha.capitalize(), assign_hospital_name(row=large, method_of_signup=hospital_method, org_signup=wardha))
-        self.assertEqual(second_lower.capitalize(), assign_hospital_name(row=large, method_of_signup=hospital_method, org_signup=second_lower))
-        self.assertEqual(large["Hospital Name"], assign_hospital_name(row=large, method_of_signup=door_to_door, org_signup=wardha))
-        self.assertEqual(large["Hospital Name"], assign_hospital_name(row=large, method_of_signup=door_to_door, org_signup=second_lower))
-        self.assertEqual(different["Hospital Name"], assign_hospital_name(row=different, method_of_signup=door_to_door, org_signup=second_lower))
-        self.assertFalse(assign_hospital_name(row=hospital_empty, method_of_signup=door_to_door, org_signup=wardha))
-        self.assertFalse(assign_hospital_name(row=no_hospital_row, method_of_signup=door_to_door, org_signup=wardha))
-        self.assertFalse(assign_hospital_name(row=no_hospital_row, method_of_signup=door_to_door, org_signup=second_lower))
+        self.assertEqual("Wardha", assign_hospital_name(row=large, method_of_signup="Hospital", org_signup="Wardha"))
+        self.assertEqual("Wardha".capitalize(), assign_hospital_name(row=large, method_of_signup="Hospital", org_signup="Wardha"))
+        self.assertEqual("second".capitalize(), assign_hospital_name(row=large, method_of_signup="Hospital", org_signup="second"))
+        self.assertEqual(large["Hospital Name"], assign_hospital_name(row=large, method_of_signup="Door to Door", org_signup="Wardha"))
+        self.assertEqual(large["Hospital Name"], assign_hospital_name(row=large, method_of_signup="Door to Door", org_signup="second"))
+        self.assertEqual(different["Hospital Name"], assign_hospital_name(row=different, method_of_signup="Door to Door", org_signup="second"))
+        self.assertFalse(assign_hospital_name(row=hospital_empty, method_of_signup="Door to Door", org_signup="Wardha"))
+        self.assertFalse(assign_hospital_name(row=no_hospital_row, method_of_signup="Door to Door", org_signup="Wardha"))
+        self.assertFalse(assign_hospital_name(row=no_hospital_row, method_of_signup="Door to Door", org_signup="second"))
 
