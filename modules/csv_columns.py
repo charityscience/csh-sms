@@ -43,7 +43,7 @@ def column_headers():
         # Message References
         "preferred_time": ["Preferred Time"],
         "script_selection": ["Script Selection"],
-        "telerivet_sender_phone": "Sender Phone",
+        "telerivet_sender_phone": ["Sender Phone"],
         "last_heard_from": ["Last Heard From"],
         "last_contacted": ["Last Contacted"],
         "time_created": ["Time Created"]

@@ -42,36 +42,37 @@ def make_contact_dict(row, source):
     # Personal Info
     new_dict["gender"] = entry_or_empty_string(row=row, headers=headers["gender"])
     new_dict["mother_tongue"] = determine_mother_tongue(row=row, headers=headers["mother_tongue"])
-    new_dict["religion"] = entry_or_empty_string(row, headers=["religion"])
-    new_dict["state"] = entry_or_empty_string(row, headers=["state"])
-    new_dict["division"] = entry_or_empty_string(row, headers=["division"])
-    new_dict["district"] = entry_or_empty_string(row, headers=["district"])
-    new_dict["city"] = entry_or_empty_string(row, headers=["city"])
-    new_dict["monthly_income_rupees"] = monthly_income(row.get("Monthly Income"))
-    new_dict["children_previously_vaccinated"] = previous_vaccination(row.get("Previously had children vaccinated").lower())
-    new_dict["not_vaccinated_why"] = entry_or_empty_string(row, headers=["not_vaccinated_why"])
-    new_dict["mother_first_name"] = entry_or_empty_string(row, headers=["mother_first_name"])
-    new_dict["mother_last_name"] = entry_or_empty_string(row, headers=["mother_last_name"])
+    new_dict["religion"] = entry_or_empty_string(row=row, headers=headers["religion"])
+    new_dict["state"] = entry_or_empty_string(row=row, headers=headers["state"])
+    new_dict["division"] = entry_or_empty_string(row=row, headers=headers["division"])
+    new_dict["district"] = entry_or_empty_string(row=row, headers=headers["district"])
+    new_dict["city"] = entry_or_empty_string(row=row, headers=headers["city"])
+    new_dict["monthly_income_rupees"] = monthly_income(row=row, headers=headers["monthly_income_rupees"])
+    new_dict["children_previously_vaccinated"] = previous_vaccination(row=row, headers=headers["children_previously_vaccinated"])
+    new_dict["not_vaccinated_why"] = entry_or_empty_string(row=row, headers=headers["not_vaccinated_why"])
+    new_dict["mother_first_name"] = entry_or_empty_string(row=row, headers=headers["mother_first_name"])
+    new_dict["mother_last_name"] = entry_or_empty_string(row=row, headers=headers["mother_last_name"])
 
     # Type of Sign Up
-    new_dict["method_of_sign_up"] = row.get("Method of Sign Up")
-    new_dict["org_sign_up"] = row.get("Org Sign Up")
-    new_dict["hospital_name"] = row.get("Hospital Name")
-    new_dict["doctor_name"] = entry_or_empty_string(row, headers=["doctor_name"])
+    new_dict["method_of_sign_up"] = assign_method_of_signup(row=row, headers=headers["method_of_sign_up"], source=source)
+    new_dict["org_sign_up"] = assign_org_signup(row=row, headers=headers["org_sign_up"], source=source)
+    new_dict["hospital_name"] = assign_hospital_name(row=row, headers=headers["hospital_name"],
+        method_of_signup=new_dict["method_of_sign_up"], org_signup=new_dict["org_sign_up"])
+    new_dict["doctor_name"] = entry_or_empty_string(row=row, headers=headers["doctor_name"])
     new_dict["preg_signup"] = parse_preg_signup(row.get("Pregnant Signup"))
 
     # System Identification
-    new_dict["telerivet_contact_id"] = entry_or_empty_string(row, headers=["telerivet_contact_id"])
-    new_dict["trial_id"] = entry_or_empty_string(row, headers=["trial_id"])
-    new_dict["trial_group"] = entry_or_empty_string(row, headers=["trial_group"])
+    new_dict["telerivet_contact_id"] = entry_or_empty_string(row=row, headers=["telerivet_contact_id"])
+    new_dict["trial_id"] = entry_or_empty_string(row=row, headers=headers["trial_id"])
+    new_dict["trial_group"] = entry_or_empty_string(row=row, headers=headers["trial_group"])
 
     # Message References
-    new_dict["preferred_time"] = entry_or_empty_string(row, headers=["preferred_time"])
-    new_dict["script_selection"] = entry_or_empty_string(row, headers=["script_selection"])
-    new_dict["telerivet_sender_phone"] = entry_or_empty_string(row, headers=["telerivet_sender_phone"])
-    new_dict["last_heard_from"] = parse_contact_time_references(row.get("Last Heard From"))
-    new_dict["last_contacted"] = parse_contact_time_references(row.get("Last Contacted"))
-    new_dict["time_created"] = parse_contact_time_references(row.get("Time Created"))
+    new_dict["preferred_time"] = entry_or_empty_string(row=row, headers=headers["preferred_time"])
+    new_dict["script_selection"] = entry_or_empty_string(row=row, headers=headers["script_selection"])
+    new_dict["telerivet_sender_phone"] = entry_or_empty_string(row=row, headers=headers["telerivet_sender_phone"])
+    new_dict["last_heard_from"] = parse_contact_time_references(row=row, headers=headers["last_heard_from"])
+    new_dict["last_contacted"] = parse_contact_time_references(row=row, headers=headers["last_contacted"])
+    new_dict["time_created"] = parse_contact_time_references(row=row, headers=headers["time_created"])
     return new_dict
 
 def assign_groups_to_contact(contact, groups_string):
@@ -115,15 +116,24 @@ def entry_or_empty_string(row, headers):
     row_entry = check_all_headers(row=row, headers=headers)
     return "" if row_entry is None else row_entry 
 
-def previous_vaccination(row_entry):
-    if "y" in row_entry:
+def previous_vaccination(row, headers):
+    row_entry = check_all_headers(row=row, headers=headers)
+    if row_entry is None or row_entry == "":
+        return None
+    
+    if "y" == row_entry[0].lower():
         return True
-    elif "n" in row_entry:
+    elif "n" == row_entry[0].lower():
+        return False
+    elif "y" in row_entry.lower():
+        return True
+    elif "n" in row_entry.lower():
         return False
     else:
         return None
 
-def monthly_income(row_entry):
+def monthly_income(row, headers):
+    row_entry = check_all_headers(row=row, headers=headers)
     return int(row_entry) if row_entry and not re.search("\D+", row_entry) else 999999
 
 def parse_or_create_delay_num(row, headers):
@@ -142,7 +152,8 @@ def parse_or_create_functional_dob(row, headers, source, date_of_birth, delay):
     row_entry = check_all_headers(row=row, headers=headers)
     return entered_date_string_to_date(row=row, headers=headers, source=source) if row_entry else add_or_subtract_days(date_of_birth, delay)
 
-def parse_contact_time_references(row_entry):
+def parse_contact_time_references(row, headers):
+    row_entry = check_all_headers(row=row, headers=headers)
     return datetime_string_mdy_to_datetime(row_entry) if row_entry else datetime.datetime.now().replace(tzinfo=timezone.get_default_timezone())
 
 def parse_preg_signup(row_entry):
@@ -216,16 +227,16 @@ def determine_name(row, headers, language):
     else:
         return nickname.encode("utf-8").decode('unicode-escape')
 
-def assign_org_signup(row, source):
-    return source.upper() if source.upper() != "TR" else row.get("Org Sign Up")
+def assign_org_signup(row, headers, source):
+    return source.upper() if source.upper() != "TR" else entry_or_empty_string(row=row, headers=headers)
 
-def assign_method_of_signup(row, source):
+def assign_method_of_signup(row, headers, source):
     if source.lower() in ["maps", "hansa"]:
         return "Door to Door"
     elif source.lower() in ["wardha"]:
         return "Hospital"
     else:
-        return row.get("Method of Sign Up")
+        return entry_or_empty_string(row=row, headers=headers)
 
-def assign_hospital_name(row, method_of_signup, org_signup):
-    return org_signup.capitalize() if method_of_signup == "Hospital" else row.get("Hospital Name")
+def assign_hospital_name(row, headers, method_of_signup, org_signup):
+    return org_signup.capitalize() if method_of_signup == "Hospital" else entry_or_empty_string(row=row, headers=headers)

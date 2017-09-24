@@ -149,25 +149,44 @@ class UploadContactsRelationshipTests(TestCase):
 
 
 class UploadContactsInputParserTests(TestCase):
-    def test_nondigits_in_income(self):
-        self.assertEqual(monthly_income("1892ff8"), 999999)
-        self.assertEqual(monthly_income("ghg18928"), 999999)
-        self.assertEqual(monthly_income("18928ff"), 999999)
-        self.assertEqual(monthly_income("18928-"), 999999)
-        self.assertEqual(monthly_income("-18928"), 999999)
-        self.assertEqual(monthly_income("+18928"), 999999)
-        self.assertEqual(monthly_income("18+928"), 999999)
-        self.assertEqual(monthly_income("18 928"), 999999)
-        self.assertEqual(monthly_income("18,928"), 999999)
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_nondigits_in_income(self, headers_mock):
+        headers = ["Monthly Income"]
+        row = {"Monthly Income": "WONT BE READ"}
+        headers_mock.return_value = "1892ff8"
+        self.assertEqual(monthly_income(row=row, headers=headers), 999999)
+        headers_mock.return_value = "ghg18928"
+        self.assertEqual(monthly_income(row=row, headers=headers), 999999)
+        headers_mock.return_value = "18928ff"
+        self.assertEqual(monthly_income(row=row, headers=headers), 999999)
+        headers_mock.return_value = "18928-"
+        self.assertEqual(monthly_income(row=row, headers=headers), 999999)
+        headers_mock.return_value = "-18928"
+        self.assertEqual(monthly_income(row=row, headers=headers), 999999)
+        headers_mock.return_value = "+18928"
+        self.assertEqual(monthly_income(row=row, headers=headers), 999999)
+        headers_mock.return_value = "+18928"
+        self.assertEqual(monthly_income(row=row, headers=headers), 999999)
+        headers_mock.return_value = "18 928"
+        self.assertEqual(monthly_income(row=row, headers=headers), 999999)
+        headers_mock.return_value = "18,928"
+        self.assertEqual(monthly_income(row=row, headers=headers), 999999)
 
-    def test_empty_income(self):
-        self.assertEqual(monthly_income(''), 999999)
-        self.assertEqual(monthly_income(None), 999999)
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_empty_income(self, headers_mock):
+        headers = ["Monthly Income"]
+        row = {"Monthly Income": "WONT BE READ"}
+        headers_mock.return_value = ""
+        self.assertEqual(monthly_income(row=row, headers=headers), 999999)
+        headers_mock.return_value = " "
+        self.assertEqual(monthly_income(row=row, headers=headers), 999999)
+        headers_mock.return_value = None
+        self.assertEqual(monthly_income(row=row, headers=headers), 999999)
 
     @patch("modules.upload_contacts_from_file.check_all_headers")
     def test_delay_normal_inputs(self, headers_mock):
         headers = ["Delay in days"]
-        row = {"Delay in days:" "WONT BE READ"}
+        row = {"Delay in days": "WONT BE READ"}
         headers_mock.return_value = "1000"
         self.assertEqual(1000, parse_or_create_delay_num(row=row, headers=headers))
         headers_mock.return_value = "100"
@@ -186,7 +205,7 @@ class UploadContactsInputParserTests(TestCase):
     @patch("modules.upload_contacts_from_file.check_all_headers")
     def test_nondigits_in_delay(self, headers_mock):
         headers = ["Delay in days"]
-        row = {"Delay in days:" "WONT BE READ"}
+        row = {"Delay in days": "WONT BE READ"}
         headers_mock.return_value = ""
         self.assertEqual(0, parse_or_create_delay_num(row=row, headers=headers))
         headers_mock.return_value = None
@@ -206,21 +225,49 @@ class UploadContactsInputParserTests(TestCase):
         headers_mock.return_value = "1,928"
         self.assertEqual(1928, parse_or_create_delay_num(row=row, headers=headers))
 
-    def test_empty_previous_vaccination(self):
-        self.assertEqual(previous_vaccination(''), None)
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_empty_previous_vaccination(self, headers_mock):
+        headers = ["Previously had children vaccinated"]
+        row = {"Previously had children vaccinated": "WONT BE READ"}
+        headers_mock.return_value = None
+        headers_mock.return_value = ""
+        self.assertIsNone(previous_vaccination(row=row, headers=headers))
+        headers_mock.return_value = ""
+        self.assertIsNone(previous_vaccination(row=row, headers=headers))
+        headers_mock.return_value = " "
+        self.assertIsNone(previous_vaccination(row=row, headers=headers))
+        headers_mock.return_value = "  "
+        self.assertIsNone(previous_vaccination(row=row, headers=headers))
 
-    def test_previous_vaccination_positive(self):
-        self.assertEqual(previous_vaccination("y"), True)
-        self.assertEqual(previous_vaccination("yes"), True)
-        self.assertEqual(previous_vaccination("yes  "), True)
-        self.assertEqual(previous_vaccination("yes asdfasfasf "), True)
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_previous_vaccination_positive(self, headers_mock):
+        headers = ["Previously had children vaccinated"]
+        row = {"Previously had children vaccinated": "WONT BE READ"}
+        headers_mock.return_value = "y"
+        self.assertEqual(True, previous_vaccination(row=row, headers=headers))
+        headers_mock.return_value = "yes"
+        self.assertEqual(True, previous_vaccination(row=row, headers=headers))
+        headers_mock.return_value = "yes  "
+        self.assertEqual(True, previous_vaccination(row=row, headers=headers))
+        headers_mock.return_value = "yes asdfasfasf "
+        self.assertEqual(True, previous_vaccination(row=row, headers=headers))
+        headers_mock.return_value = "yn"
+        self.assertEqual(True, previous_vaccination(row=row, headers=headers))
 
-    def test_previous_vaccination_negative(self):
-        self.assertEqual(previous_vaccination("n"), False)
-        self.assertEqual(previous_vaccination("no"), False)
-        self.assertEqual(previous_vaccination("no  "), False)
-        self.assertEqual(previous_vaccination("no asdfasfasf "), False)
-
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_previous_vaccination_negative(self, headers_mock):
+        headers = ["Previously had children vaccinated"]
+        row = {"Previously had children vaccinated": "WONT BE READ"}
+        headers_mock.return_value = "n"
+        self.assertEqual(False, previous_vaccination(row=row, headers=headers))
+        headers_mock.return_value = "no"
+        self.assertEqual(False, previous_vaccination(row=row, headers=headers))
+        headers_mock.return_value = "no  "
+        self.assertEqual(False, previous_vaccination(row=row, headers=headers))
+        headers_mock.return_value = "no asdfasfasf "
+        self.assertEqual(False, previous_vaccination(row=row, headers=headers))
+        headers_mock.return_value = "ny"
+        self.assertEqual(False, previous_vaccination(row=row, headers=headers))
 
     @patch("modules.upload_contacts_from_file.check_all_headers")
     def test_string_dob_for_parse_or_create_functional_dob(self, headers_mock):
@@ -525,22 +572,36 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual(entered_date_string_to_date(row=date_of_signup_row, headers=date_of_signup_headers, source="PRNT"), datetime(2017, 1, 15, 0,0 ).date())
 
     
-    def test_parse_contact_time_references_real_datetimes(self):
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_parse_contact_time_references_real_datetimes(self, headers_mock):
+        headers = ["Last Heard From"]
+        row = {"Last Heard From": "WONT BE READ"}
+        headers_mock.return_value = "6/12/2017 4:00:03 PM"
         self.assertEqual(datetime(2017, 6, 12, 16, 0, 3, tzinfo=timezone.get_default_timezone()),
-            parse_contact_time_references("6/12/2017 4:00:03 PM"))
+            parse_contact_time_references(row=row, headers=headers))
+        headers_mock.return_value = "6/16/2017 6:51:28 PM"
         self.assertEqual(datetime(2017, 6, 16, 18, 51, 28, tzinfo=timezone.get_default_timezone()),
-            parse_contact_time_references("6/16/2017 6:51:28 PM"))
+            parse_contact_time_references(row=row, headers=headers))
 
-    def test_parse_contact_time_references_fake_datetimes(self):
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_parse_contact_time_references_fake_datetimes(self, headers_mock):
+        headers = ["Last Heard From"]
+        row = {"Last Heard From": "WONT BE READ"}
+        headers_mock.return_value = "6/12/2017 25:00:03 PM"
         with self.assertRaises(ValueError):
-            parse_contact_time_references("6/12/2017 25:00:03 PM")
+            parse_contact_time_references(row=row, headers=headers)
+        headers_mock.return_value = "6/30/2017 16:51:28 PM"
         with self.assertRaises(ValueError):
-            parse_contact_time_references("6/30/2017 16:51:28 PM")
+            parse_contact_time_references(row=row, headers=headers)
 
+    @patch("modules.upload_contacts_from_file.check_all_headers")
     @freeze_time(datetime(2017, 7, 21, 0, 0).replace(tzinfo=timezone.get_default_timezone()))
-    def test_parse_contact_time_references_empty_times(self):
+    def test_parse_contact_time_references_empty_times(self, headers_mock):
+        headers = ["Last Heard From"]
+        row = {"Last Heard From": "WONT BE READ"}
+        headers_mock.return_value = ""
         self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()),
-            parse_contact_time_references(""))
+            parse_contact_time_references(row=row, headers=headers))
 
     def test_parse_preg_signup(self):
         self.assertTrue(parse_preg_signup("True"))
@@ -1005,67 +1066,83 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual(u'\\u0aa4\\u0aae\\u0abe\\u0ab0\\u0ac1\\u0a82', check_all_headers(row=guj_unicode, headers=name))
         self.assertEqual(u'  \\u0aa4\\u0aae\\u0abe\\u0ab0\\u0ac1\\u0a82  ', check_all_headers(row=unicode_with_space, headers=name))
 
-    def test_assign_org_signup(self):
-        org_row = {'Org Sign Up': 'Parker', 'Name of The Mother': 'mom', 'Name': 'Kendra'}
-        no_org_row = {'Name of The Mother': 'mom', 'Name': 'Kendra'}
-        org_empty_row = {'Org Sign Up': '','Name of The Mother': 'mom', 'Name': 'Kendra'}
-        self.assertEqual("Parker", assign_org_signup(row=org_row, source="TR"))
-        self.assertFalse(assign_org_signup(row=no_org_row, source="TR"))
-        self.assertEqual("TA", assign_org_signup(row=org_row, source="TA"))
-        self.assertEqual("TA", assign_org_signup(row=no_org_row, source="TA"))
-        self.assertEqual("Parker", assign_org_signup(row=org_row, source="tr"))
-        self.assertEqual("Other".upper(), assign_org_signup(row=org_row, source="Other"))
-        self.assertEqual("OTHER", assign_org_signup(row=org_row, source="OTHER"))
-        self.assertEqual("other".upper(), assign_org_signup(row=org_row, source="other"))
-        self.assertEqual("MPS", assign_org_signup(row=org_row, source="MPS"))
-        self.assertEqual("MPS", assign_org_signup(row=org_empty_row, source="MPS"))
-        self.assertFalse(assign_org_signup(row=org_empty_row, source="TR"))
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_assign_org_signup(self, headers_mock):
+        headers = ["Org Sign Up"]
+        row = {"Org Sign Up": "WONT BE READ"}
+        headers_mock.return_value = "Parker"
+        self.assertEqual("Parker", assign_org_signup(row=row, headers=headers, source="TR"))
+        self.assertEqual("TA", assign_org_signup(row=row, headers=headers, source="TA"))
+        self.assertEqual("TA", assign_org_signup(row=row, headers=headers, source="Ta"))
+        headers_mock.return_value = ""
+        self.assertEqual("", assign_org_signup(row=row, headers=headers, source="TR"))
+        self.assertEqual("TA", assign_org_signup(row=row, headers=headers, source="TA"))
+        self.assertEqual("TA", assign_org_signup(row=row, headers=headers, source="Ta"))
+        headers_mock.return_value = "Other"
+        self.assertEqual("Other", assign_org_signup(row=row, headers=headers, source="TR"))
+        self.assertEqual("OTHER", assign_org_signup(row=row, headers=headers, source="Other"))
+        self.assertEqual("MPS", assign_org_signup(row=row, headers=headers, source="Mps"))
 
-    def test_assign_method_of_signup(self):
-        maps = "Maps"
-        maps_cap = "MAPS"
-        maps_lower = "maps"
-        maps_typo = "mps"
-        hansa = "Hansa"
-        wardha = "Wardha"
-        other = "Other"
-        another = "Another"
-        door_method = {'Method of Sign Up': 'Door to Door', 'Name of The Mother': 'mom', 'Name': 'Kendra'}
-        hospital = {'Method of Sign Up': 'Hospital', 'Name of The Mother': 'mom', 'Name': 'Kendra'}
-        text_in = {'Method of Sign Up': 'Text', 'Name of The Mother': 'mom', 'Name': 'Kendra'}
-        method_empty = {'Method of Sign Up': '', 'Name of The Mother': 'mom', 'Name': 'Kendra'}
-        no_method_row = {'Name of The Mother': 'mom', 'Name': 'Kendra'}
-        self.assertEqual("Door to Door", assign_method_of_signup(row=door_method, source=maps))
-        self.assertEqual("Door to Door", assign_method_of_signup(row=method_empty, source=maps))
-        self.assertEqual("Door to Door", assign_method_of_signup(row=method_empty, source=maps_cap))
-        self.assertEqual("Door to Door", assign_method_of_signup(row=method_empty, source=maps_lower))
-        self.assertEqual("Door to Door", assign_method_of_signup(row=method_empty, source=hansa))
-        self.assertEqual("Door to Door", assign_method_of_signup(row=method_empty, source=hansa))
-        self.assertFalse(assign_method_of_signup(row=method_empty, source=maps_typo))
-        self.assertEqual("Door to Door", assign_method_of_signup(row=door_method, source=maps_typo))
-        self.assertEqual("Hospital", assign_method_of_signup(row=method_empty, source=wardha))
-        self.assertEqual("Hospital", assign_method_of_signup(row=door_method, source=wardha))
-        self.assertEqual("Hospital", assign_method_of_signup(row=text_in, source=wardha))
-        self.assertEqual("Hospital", assign_method_of_signup(row=no_method_row, source=wardha))
-        self.assertFalse(assign_method_of_signup(row=no_method_row, source=other))
-        self.assertFalse(assign_method_of_signup(row=no_method_row, source=another))
-        self.assertEqual("Text", assign_method_of_signup(row=text_in, source=other))
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_assign_method_of_signup(self, headers_mock):
+        headers = ["Method of Sign Up"]
+        row = {"Method of Sign Up": "WONT BE READ"}
+        headers_mock.return_value = "Other"
+        self.assertEqual("Door to Door", assign_method_of_signup(row=row, headers=headers, source="Maps"))
+        self.assertEqual("Door to Door", assign_method_of_signup(row=row, headers=headers, source="maps"))
+        self.assertEqual("Door to Door", assign_method_of_signup(row=row, headers=headers, source="MAPS"))
+        self.assertEqual("Door to Door", assign_method_of_signup(row=row, headers=headers, source="HANSA"))
+        self.assertEqual("Door to Door", assign_method_of_signup(row=row, headers=headers, source="Hansa"))
+        self.assertEqual("Door to Door", assign_method_of_signup(row=row, headers=headers, source="hansa"))
+        headers_mock.return_value = ""
+        self.assertEqual("Door to Door", assign_method_of_signup(row=row, headers=headers, source="Maps"))
+        self.assertEqual("Door to Door", assign_method_of_signup(row=row, headers=headers, source="Hansa"))
+        headers_mock.return_value = "Door to Door"
+        self.assertEqual("Door to Door", assign_method_of_signup(row=row, headers=headers, source="mps"))
+        self.assertEqual("Door to Door", assign_method_of_signup(row=row, headers=headers, source="hnsa"))
+        self.assertEqual("Door to Door", assign_method_of_signup(row=row, headers=headers, source="hnsa"))
+        headers_mock.return_value = "Other"
+        self.assertEqual("Hospital", assign_method_of_signup(row=row, headers=headers, source="Wardha"))
+        self.assertEqual("Hospital", assign_method_of_signup(row=row, headers=headers, source="wardha"))
+        self.assertEqual("Hospital", assign_method_of_signup(row=row, headers=headers, source="WARDHA"))
+        headers_mock.return_value = "Hospital"
+        self.assertEqual("Hospital", assign_method_of_signup(row=row, headers=headers, source="TR"))
+        self.assertEqual("Hospital", assign_method_of_signup(row=row, headers=headers, source="LARGE"))
+        headers_mock.return_value = ""
+        self.assertEqual("", assign_method_of_signup(row=row, headers=headers, source="TR"))
+        self.assertEqual("", assign_method_of_signup(row=row, headers=headers, source="hnsa"))
+        headers_mock.return_value = "Online Form"
+        self.assertEqual("Online Form", assign_method_of_signup(row=row, headers=headers, source="TR"))
+        self.assertEqual("Online Form", assign_method_of_signup(row=row, headers=headers, source="hnsa"))
+        self.assertEqual("Online Form", assign_method_of_signup(row=row, headers=headers, source="mps"))
+        self.assertEqual("Online Form", assign_method_of_signup(row=row, headers=headers, source="mps"))
+        self.assertEqual("Online Form", assign_method_of_signup(row=row, headers=headers, source="ANOTHER"))
+        headers_mock.return_value = "Text"
+        self.assertEqual("Text", assign_method_of_signup(row=row, headers=headers, source="TR"))
+        self.assertEqual("Text", assign_method_of_signup(row=row, headers=headers, source="hnsa"))
+        self.assertEqual("Text", assign_method_of_signup(row=row, headers=headers, source="mps"))
+        self.assertEqual("Text", assign_method_of_signup(row=row, headers=headers, source="ANOTHER"))
 
-    def test_assign_hospital_name(self):
-        large = {'Hospital Name': 'Large', 'Name of The Mother': 'mom', 'Name': 'Kendra'}
-        different = {'Hospital Name': 'Diff From Large', 'Name of The Mother': 'mom', 'Name': 'Kendra'}
-        no_hospital_row = {'Name of The Mother': 'mom', 'Name': 'Kendra'}
-        hospital_empty = {'Hospital Name': '', 'Name of The Mother': 'mom', 'Name': 'Kendra'}
-
-        self.assertEqual("Wardha", assign_hospital_name(row=large, method_of_signup="Hospital", org_signup="Wardha"))
-        self.assertEqual("Wardha".capitalize(), assign_hospital_name(row=large, method_of_signup="Hospital", org_signup="Wardha"))
-        self.assertEqual("second".capitalize(), assign_hospital_name(row=large, method_of_signup="Hospital", org_signup="second"))
-        self.assertEqual(large["Hospital Name"], assign_hospital_name(row=large, method_of_signup="Door to Door", org_signup="Wardha"))
-        self.assertEqual(large["Hospital Name"], assign_hospital_name(row=large, method_of_signup="Door to Door", org_signup="second"))
-        self.assertEqual(different["Hospital Name"], assign_hospital_name(row=different, method_of_signup="Door to Door", org_signup="second"))
-        self.assertFalse(assign_hospital_name(row=hospital_empty, method_of_signup="Door to Door", org_signup="Wardha"))
-        self.assertFalse(assign_hospital_name(row=no_hospital_row, method_of_signup="Door to Door", org_signup="Wardha"))
-        self.assertFalse(assign_hospital_name(row=no_hospital_row, method_of_signup="Door to Door", org_signup="second"))
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_assign_hospital_name(self, headers_mock):
+        headers = ["Hospital Name"]
+        row = {"Hospital Name": "WONT BE READ"}
+        headers_mock.return_value = "Other"
+        self.assertEqual("Wardha", assign_hospital_name(row=row, headers=headers, method_of_signup="Hospital", org_signup="Wardha"))
+        self.assertEqual("Wardha".capitalize(), assign_hospital_name(row=row, headers=headers, method_of_signup="Hospital", org_signup="Wardha"))
+        self.assertEqual("second".capitalize(), assign_hospital_name(row=row, headers=headers, method_of_signup="Hospital", org_signup="second"))
+        headers_mock.return_value = "Wardha"
+        self.assertEqual("Wardha", assign_hospital_name(row=row, headers=headers, method_of_signup="Hospital", org_signup="Wardha"))
+        self.assertEqual("Wardha".capitalize(), assign_hospital_name(row=row, headers=headers, method_of_signup="Hospital", org_signup="Wardha"))
+        self.assertEqual("second".capitalize(), assign_hospital_name(row=row, headers=headers, method_of_signup="Hospital", org_signup="second"))
+        headers_mock.return_value = "Other"
+        self.assertEqual("Other", assign_hospital_name(row=row, headers=headers, method_of_signup="Door to Door", org_signup="Wardha"))
+        self.assertEqual("Other", assign_hospital_name(row=row, headers=headers, method_of_signup="Door to Door", org_signup="second"))
+        self.assertEqual("Other", assign_hospital_name(row=row, headers=headers, method_of_signup="Door to Door", org_signup="second"))
+        headers_mock.return_value = ""
+        self.assertEqual("", assign_hospital_name(row=row, headers=headers, method_of_signup="Door to Door", org_signup="Wardha"))
+        self.assertEqual("", assign_hospital_name(row=row, headers=headers, method_of_signup="Door to Door", org_signup="Wardha"))
+        self.assertEqual("", assign_hospital_name(row=row, headers=headers, method_of_signup="Door to Door", org_signup="second"))
 
     @patch("modules.upload_contacts_from_file.check_all_headers")
     def test_entry_or_empty_string(self, headers_mock):
