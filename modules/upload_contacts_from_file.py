@@ -21,7 +21,6 @@ def csv_upload(filepath, source):
                     phone_number=new_dict["phone_number"], defaults=new_dict)
 
                 assign_groups_to_contact(new_contact, row["Groups"])
-                new_contact.preg_signup = assign_preg_signup(new_contact)
             else:
                 logging.error("Entry: {name} - {date_of_birth} has invalid phone number: {phone}".format(
                     name=new_dict["name"], phone=new_dict["phone_number"], date_of_birth=new_dict["date_of_birth"]))
@@ -35,7 +34,10 @@ def make_contact_dict(row, source):
     new_dict["alt_phone_number"] = prepare_phone_number(check_all_headers(row=row, headers=headers["alt_phone_number"]))
     new_dict["delay_in_days"] = parse_or_create_delay_num(row=row, headers=headers["delay_in_days"])
     new_dict["date_of_sign_up"] = entered_date_string_to_date(row=row, headers=headers["date_of_sign_up"], source=source)
-    new_dict["date_of_birth"] = entered_date_string_to_date(row=row, headers=headers["date_of_birth"], source=source)
+    new_dict["preg_signup"] = assign_preg_signup(row=row, headers=headers["preg_signup"])
+    new_dict["date_of_birth"] = determine_date_of_birth(row=row, dob_headers=headers["date_of_birth"],
+        month_headers=headers["month_of_pregnancy"], date_of_signup=new_dict["date_of_sign_up"],
+        preg_signup=new_dict["preg_signup"], source=source)
     new_dict["functional_date_of_birth"] = parse_or_create_functional_dob(row=row, headers=headers["functional_date_of_birth"],
         source=source, date_of_birth=new_dict["date_of_birth"], delay=new_dict["delay_in_days"])
 
@@ -59,7 +61,6 @@ def make_contact_dict(row, source):
     new_dict["hospital_name"] = assign_hospital_name(row=row, headers=headers["hospital_name"],
         method_of_signup=new_dict["method_of_sign_up"], org_signup=new_dict["org_sign_up"])
     new_dict["doctor_name"] = entry_or_empty_string(row=row, headers=headers["doctor_name"])
-    new_dict["preg_signup"] = parse_preg_signup(row.get("Pregnant Signup"))
 
     # System Identification
     new_dict["telerivet_contact_id"] = entry_or_empty_string(row=row, headers=["telerivet_contact_id"])
@@ -156,29 +157,41 @@ def parse_contact_time_references(row, headers):
     row_entry = check_all_headers(row=row, headers=headers)
     return datetime_string_mdy_to_datetime(row_entry) if row_entry else datetime.datetime.now().replace(tzinfo=timezone.get_default_timezone())
 
-def parse_preg_signup(row_entry):
-    row_entry = str(row_entry).lower()
+def assign_preg_signup(row, headers):
+    row_entry = entry_or_empty_string(row=row, headers=headers).lower()
     if not row_entry:
         return False
-    elif row_entry[0] == "f" or row_entry == "0":
-        return False
-    else:
+    elif "pregnant" in row_entry:
         return True
+    elif row_entry[0] == "1" or row_entry[0] == "t":
+        return True
+    else:
+        return False
 
-def assign_preg_signup(contact):
-    return True if contact.preg_signup or not contact.has_been_born() else False
+def determine_date_of_birth(row, dob_headers, month_headers, date_of_signup, preg_signup, source):
+    date_of_birth_entry = entry_or_empty_string(row=row, headers=dob_headers)
+
+    if preg_signup and not date_of_birth_entry:
+        month_of_pregnancy = filter_pregnancy_month(row=row, headers=month_headers)
+        return estimate_date_of_birth(month_of_pregnancy=month_of_pregnancy, date_of_sign_up=date_of_signup)
+
+    return entered_date_string_to_date(row=row, headers=dob_headers, source=source)
 
 def estimate_date_of_birth(month_of_pregnancy, date_of_sign_up):
     duration_of_pregnancy = 280 # mean number of days of a pregnancy
-    month_of_pregnancy = filter_pregnancy_month(month_of_pregnancy)
-    if month_of_pregnancy is None:
+    if month_of_pregnancy is None or type(month_of_pregnancy) != int:
         return None
 
     conception_date = add_or_subtract_months(date=date_of_sign_up, num_of_months=-month_of_pregnancy)
     estimated_dob = add_or_subtract_days(date=conception_date, num_of_days=duration_of_pregnancy)
     return estimated_dob
 
-def filter_pregnancy_month(month_of_pregnancy):
+def filter_pregnancy_month(row, headers):
+    month_of_pregnancy = entry_or_empty_string(row=row, headers=headers)
+    if not month_of_pregnancy:
+        return None
+    elif month_of_pregnancy == "0":
+        return 0
     month_of_pregnancy = re.sub("\D|0", "", str(month_of_pregnancy))
     return int(month_of_pregnancy[0]) if month_of_pregnancy else None
 

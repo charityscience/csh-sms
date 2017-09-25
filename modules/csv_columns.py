@@ -33,7 +33,8 @@ def column_headers():
         "org_sign_up": ["Org Sign Up"],
         "hospital_name": ["Hospital Name"],
         "doctor_name": ["Doctor Name"],
-        "preg_signup": ["Pregnant Signup"],
+        "preg_signup": ["Pregnant Signup", "Pregnant women  Yes=1, No=2", "Segment", "Pregnant women"],
+        "month_of_pregnancy": ["Current Month Of Pregnancy", "Month of Pregnancy"],
 
         # System Identification
         "telerivet_contact_id": ["Telerivet Contact ID"],

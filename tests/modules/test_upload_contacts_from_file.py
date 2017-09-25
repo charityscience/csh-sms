@@ -13,12 +13,12 @@ from modules.utils import phone_number_is_valid
 from modules.upload_contacts_from_file import csv_upload, make_contact_dict, assign_groups_to_contact, \
                                               previous_vaccination, monthly_income, parse_or_create_delay_num, \
                                               entered_date_string_to_date, parse_or_create_functional_dob, \
-                                              parse_contact_time_references, parse_preg_signup, assign_preg_signup, \
+                                              parse_contact_time_references, assign_preg_signup, assign_preg_signup, \
                                               estimate_date_of_birth, filter_pregnancy_month, determine_language, \
                                               determine_mother_tongue, language_selector, replace_blank_name, \
                                               determine_name, matching_permutation, check_all_headers, \
                                               assign_org_signup, assign_method_of_signup, assign_hospital_name, \
-                                              entry_or_empty_string 
+                                              entry_or_empty_string, determine_date_of_birth 
 from modules.date_helper import add_or_subtract_days, add_or_subtract_months
 from modules.i18n import hindi_placeholder_name, gujarati_placeholder_name
 from dateutil.relativedelta import relativedelta
@@ -603,47 +603,54 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()),
             parse_contact_time_references(row=row, headers=headers))
 
-    def test_parse_preg_signup(self):
-        self.assertTrue(parse_preg_signup("True"))
-        self.assertTrue(parse_preg_signup("TRUE"))
-        self.assertTrue(parse_preg_signup("T"))
-        self.assertTrue(parse_preg_signup("t"))
-        self.assertTrue(parse_preg_signup("to"))
-        self.assertFalse(parse_preg_signup("False"))
-        self.assertFalse(parse_preg_signup("FALSE"))
-        self.assertFalse(parse_preg_signup("false"))
-        self.assertFalse(parse_preg_signup("F"))
-        self.assertFalse(parse_preg_signup("f"))
-        self.assertFalse(parse_preg_signup("fo"))
-        self.assertFalse(parse_preg_signup("0"))
-        self.assertTrue(parse_preg_signup("1"))
-        self.assertFalse(parse_preg_signup(0))
-        self.assertTrue(parse_preg_signup(1))
-        self.assertFalse(parse_preg_signup(""))
-
     @freeze_time(datetime(2017, 7, 21, 0, 0).replace(tzinfo=timezone.get_default_timezone()))
-    def test_assign_preg_signup(self):
-        true_contact = create_sample_contact()
-        true_contact.preg_signup = True
-        self.assertEqual(assign_preg_signup(true_contact), True)
-        false_contact = create_sample_contact()
-        false_contact.preg_signup = False
-        self.assertEqual(assign_preg_signup(false_contact), False)
-        none_contact = create_sample_contact()
-        none_contact.preg_signup = None
-        self.assertEqual(assign_preg_signup(none_contact), False)
-        
-        # Contact with birthdate in the future relative to frozen time, but preg_signup assigned by csv as False
-        future_contact = create_sample_contact()
-        future_contact.date_of_birth = datetime(2017, 7, 28, 0, 0).date()
-        future_contact.preg_signup = False
-        self.assertEqual(assign_preg_signup(future_contact), True)
+    @patch("modules.upload_contacts_from_file.entry_or_empty_string")
+    def test_assign_preg_signup(self, headers_mock):
+        headers = ["Pregnant Signup", "Pregnant women  Yes=1, No=2", "Segment", "Pregnant women"]
+        row = {"Segment": "WONT BE READ"}
+        headers_mock.return_value = "True"
+        self.assertTrue(assign_preg_signup(row=row, headers=headers))
+        headers_mock.return_value = "T"
+        self.assertTrue(assign_preg_signup(row=row, headers=headers))
+        headers_mock.return_value = "t"
+        self.assertTrue(assign_preg_signup(row=row, headers=headers))
+        headers_mock.return_value = "to"
+        self.assertTrue(assign_preg_signup(row=row, headers=headers))
+        headers_mock.return_value = "1"
+        self.assertTrue(assign_preg_signup(row=row, headers=headers))
+        headers_mock.return_value = "Pregnant women"
+        self.assertTrue(assign_preg_signup(row=row, headers=headers))
+        headers_mock.return_value = "Pregnant"
+        self.assertTrue(assign_preg_signup(row=row, headers=headers))
+        headers_mock.return_value = "pregnant"
+        self.assertTrue(assign_preg_signup(row=row, headers=headers))
+        headers_mock.return_value = "nonsense pregnant adsoifasfd"
+        self.assertTrue(assign_preg_signup(row=row, headers=headers))
+        headers_mock.return_value = "False"
+        self.assertFalse(assign_preg_signup(row=row, headers=headers))
+        headers_mock.return_value = "F"
+        self.assertFalse(assign_preg_signup(row=row, headers=headers))
+        headers_mock.return_value = "f"
+        self.assertFalse(assign_preg_signup(row=row, headers=headers))
+        headers_mock.return_value = "fo"
+        self.assertFalse(assign_preg_signup(row=row, headers=headers))
+        headers_mock.return_value = ""
+        self.assertFalse(assign_preg_signup(row=row, headers=headers))
+        headers_mock.return_value = " "
+        self.assertFalse(assign_preg_signup(row=row, headers=headers))
+        headers_mock.return_value = "0"
+        self.assertFalse(assign_preg_signup(row=row, headers=headers))
+        headers_mock.return_value = "2"
+        self.assertFalse(assign_preg_signup(row=row, headers=headers))
+        headers_mock.return_value = "Below one years child"
+        self.assertFalse(assign_preg_signup(row=row, headers=headers))
 
     @freeze_time(datetime(2017, 7, 21, 0, 0))
     def test_estimate_date_of_birth(self):
         freeze_time_date = datetime.now().date()
         five_months_ago = add_or_subtract_months(date=freeze_time_date, num_of_months=-5)
         five_months_plus_preg_time = add_or_subtract_days(date=five_months_ago, num_of_days=280)
+        zero_month = freeze_time_date + relativedelta(months=-0) + relativedelta(days=280)
         one_month = freeze_time_date + relativedelta(months=-1) + relativedelta(days=280)
         two_months = freeze_time_date + relativedelta(months=-2) + relativedelta(days=280)
         three_months = freeze_time_date + relativedelta(months=-3) + relativedelta(days=280)
@@ -653,64 +660,218 @@ class UploadContactsInputParserTests(TestCase):
         seven_months = freeze_time_date + relativedelta(months=-7) + relativedelta(days=280)
         eight_months = freeze_time_date + relativedelta(months=-8) + relativedelta(days=280)
         nine_months = freeze_time_date + relativedelta(months=-9) + relativedelta(days=280)
-        self.assertEqual(one_month, estimate_date_of_birth(month_of_pregnancy="1", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(two_months, estimate_date_of_birth(month_of_pregnancy="2", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(three_months, estimate_date_of_birth(month_of_pregnancy="3", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(four_months, estimate_date_of_birth(month_of_pregnancy="4", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(five_months, estimate_date_of_birth(month_of_pregnancy="5", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(six_months, estimate_date_of_birth(month_of_pregnancy="6", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(seven_months, estimate_date_of_birth(month_of_pregnancy="7", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(eight_months, estimate_date_of_birth(month_of_pregnancy="8", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(eight_months, estimate_date_of_birth(month_of_pregnancy="8m", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(eight_months, estimate_date_of_birth(month_of_pregnancy="8_", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(nine_months, estimate_date_of_birth(month_of_pregnancy="9", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(nine_months, estimate_date_of_birth(month_of_pregnancy="9 ", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(nine_months, estimate_date_of_birth(month_of_pregnancy=" 9", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(nine_months, estimate_date_of_birth(month_of_pregnancy=" 9 ", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(five_months_plus_preg_time, estimate_date_of_birth(month_of_pregnancy="5", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(zero_month, estimate_date_of_birth(month_of_pregnancy=0, date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(one_month, estimate_date_of_birth(month_of_pregnancy=1, date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(two_months, estimate_date_of_birth(month_of_pregnancy=2, date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(three_months, estimate_date_of_birth(month_of_pregnancy=3, date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(four_months, estimate_date_of_birth(month_of_pregnancy=4, date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(five_months, estimate_date_of_birth(month_of_pregnancy=5, date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(six_months, estimate_date_of_birth(month_of_pregnancy=6, date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(seven_months, estimate_date_of_birth(month_of_pregnancy=7, date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(eight_months, estimate_date_of_birth(month_of_pregnancy=8, date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
+        self.assertEqual(nine_months, estimate_date_of_birth(month_of_pregnancy=9, date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
         self.assertEqual(five_months_plus_preg_time, estimate_date_of_birth(month_of_pregnancy=5, date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(None, estimate_date_of_birth(month_of_pregnancy="0", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(None, estimate_date_of_birth(month_of_pregnancy="00", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-
-    @freeze_time(datetime(2017, 7, 21, 0, 0))
-    def test_estimate_date_of_birth_handles_month_typos(self):
-        freeze_time_date = datetime.now().date()
-        one_month = freeze_time_date + relativedelta(months=-1) + relativedelta(days=280)
-        two_months = freeze_time_date + relativedelta(months=-2) + relativedelta(days=280)
-        nine_months = freeze_time_date + relativedelta(months=-9) + relativedelta(days=280)
-        self.assertEqual(one_month, estimate_date_of_birth(month_of_pregnancy="10", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(one_month, estimate_date_of_birth(month_of_pregnancy="11", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(two_months, estimate_date_of_birth(month_of_pregnancy="22", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(nine_months, estimate_date_of_birth(month_of_pregnancy="99", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(two_months, estimate_date_of_birth(month_of_pregnancy="-2", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(two_months, estimate_date_of_birth(month_of_pregnancy="-22", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(two_months, estimate_date_of_birth(month_of_pregnancy="0020", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(two_months, estimate_date_of_birth(month_of_pregnancy="200", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(two_months, estimate_date_of_birth(month_of_pregnancy="002", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
-        self.assertEqual(two_months, estimate_date_of_birth(month_of_pregnancy="2adgasdfasdf", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
 
     def test_estimate_date_of_birth_rejects_nonnumbers(self):
+        self.assertEqual(None, estimate_date_of_birth(month_of_pregnancy=None, date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
         self.assertEqual(None, estimate_date_of_birth(month_of_pregnancy="Five", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
         self.assertEqual(None, estimate_date_of_birth(month_of_pregnancy="Ten", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
         self.assertEqual(None, estimate_date_of_birth(month_of_pregnancy="", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
         self.assertEqual(None, estimate_date_of_birth(month_of_pregnancy=" ", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
         self.assertEqual(None, estimate_date_of_birth(month_of_pregnancy="_!", date_of_sign_up=datetime(2017, 7, 21, 0, 0).date()))
 
-    def test_filter_pregnancy_month(self):
-        self.assertEqual(None, filter_pregnancy_month(month_of_pregnancy="Five"))
-        self.assertEqual(None, filter_pregnancy_month(month_of_pregnancy="Ten"))
-        self.assertEqual(None, filter_pregnancy_month(month_of_pregnancy=" "))
-        self.assertEqual(None, filter_pregnancy_month(month_of_pregnancy=""))
-        self.assertEqual(None, filter_pregnancy_month(month_of_pregnancy="_ *"))
-        self.assertEqual(None, filter_pregnancy_month(month_of_pregnancy="Let'em see"))
-        self.assertEqual(1, filter_pregnancy_month(month_of_pregnancy="1"))
-        self.assertEqual(1, filter_pregnancy_month(month_of_pregnancy="11"))
-        self.assertEqual(2, filter_pregnancy_month(month_of_pregnancy="22"))
-        self.assertEqual(2, filter_pregnancy_month(month_of_pregnancy="2 "))
-        self.assertEqual(2, filter_pregnancy_month(month_of_pregnancy="2s"))
-        self.assertEqual(3, filter_pregnancy_month(month_of_pregnancy="300"))
-        self.assertEqual(4, filter_pregnancy_month(month_of_pregnancy="004"))
-        self.assertEqual(4, filter_pregnancy_month(month_of_pregnancy="0040"))
+    @patch("modules.upload_contacts_from_file.entry_or_empty_string")
+    def test_filter_pregnancy_month(self, headers_mock):
+        headers = ["Current Month Of Pregnancy", "Month of Pregnancy"]
+        row = {"Current Month Of Pregnancy": "DOESNT MATTER"}
+        headers_mock.return_value = "Five"
+        self.assertEqual(None, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "Ten"
+        self.assertEqual(None, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = " "
+        self.assertEqual(None, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = ""
+        self.assertEqual(None, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "_ *"
+        self.assertEqual(None, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "Let'em see"
+        self.assertEqual(None, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "0"
+        self.assertEqual(0, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "1"
+        self.assertEqual(1, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "2"
+        self.assertEqual(2, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "5"
+        self.assertEqual(5, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "9"
+        self.assertEqual(9, filter_pregnancy_month(row=row, headers=headers))
+
+    @patch("modules.upload_contacts_from_file.entry_or_empty_string")
+    def test_filter_pregnancy_month_handles_typos(self, headers_mock):
+        headers = ["Current Month Of Pregnancy", "Month of Pregnancy"]
+        row = {"Current Month Of Pregnancy": "DOESNT MATTER"}
+        headers_mock.return_value = "10"
+        self.assertEqual(1, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "11"
+        self.assertEqual(1, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "22"
+        self.assertEqual(2, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "2s"
+        self.assertEqual(2, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "300"
+        self.assertEqual(3, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "004"
+        self.assertEqual(4, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "0040"
+        self.assertEqual(4, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "99"
+        self.assertEqual(9, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "-2"
+        self.assertEqual(2, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "-22"
+        self.assertEqual(2, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "002"
+        self.assertEqual(2, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "2adgasdfasdf"
+        self.assertEqual(2, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "8m"
+        self.assertEqual(8, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "8_"
+        self.assertEqual(8, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "9  "
+        self.assertEqual(9, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "  9"
+        self.assertEqual(9, filter_pregnancy_month(row=row, headers=headers))
+        headers_mock.return_value = "  9   "
+        self.assertEqual(9, filter_pregnancy_month(row=row, headers=headers))
+
+    
+    @freeze_time(datetime(2017, 7, 21, 0, 0))
+    @patch("modules.upload_contacts_from_file.entry_or_empty_string")
+    @patch("modules.upload_contacts_from_file.filter_pregnancy_month")
+    def test_determine_date_of_birth_only_estimates_date_of_birth_when_no_dob_entry_and_preg_signup_is_true(self, mock_pregnancy_month, mock_dob_entry):
+        frozen_date = datetime.now().date()
+        dob_headers = ["Date of Birth", "Date Of Birth Of The Child",
+                            "Date of Birth of Child (dd/mm/yyyy)", "Date of Birth of Child"]
+        month_headers = ["Current Month Of Pregnancy", "Month of Pregnancy"]
+        row = {"Current Month Of Pregnancy": "WONT BE READ", "Date of Birth": "2015-01-01"}
+        mock_dob_entry.return_value = "2015-01-01"
+        mock_pregnancy_month.return_value = 1
+        self.assertEqual(datetime(2015, 1, 1).date(), determine_date_of_birth(row=row, dob_headers=dob_headers, month_headers=month_headers,
+            date_of_signup=frozen_date, preg_signup=False, source="TR"))
+        mock_pregnancy_month.assert_not_called()
+        row = {"Current Month Of Pregnancy": "WONT BE READ", "Date of Birth": "10-20-2015"}
+        self.assertEqual(datetime(2015, 10, 20).date(), determine_date_of_birth(row=row, dob_headers=dob_headers, month_headers=month_headers,
+            date_of_signup=frozen_date, preg_signup=False, source="TR"))
+        mock_pregnancy_month.assert_not_called()
+
+        row = {"Current Month Of Pregnancy": "WONT BE READ", "Date of Birth": ""}
+        mock_dob_entry.return_value = ""
+        with self.assertRaises(AttributeError):
+            determine_date_of_birth(row=row, dob_headers=dob_headers, month_headers=month_headers,
+                date_of_signup=frozen_date, preg_signup=False, source="TR")
+        mock_pregnancy_month.assert_not_called()
+
+        row = {"Current Month Of Pregnancy": "WONT BE READ", "Date of Birth": "2015-01-01"}
+        mock_dob_entry.return_value = "2015-01-01"
+        mock_pregnancy_month.return_value = 1
+        one_month = frozen_date + relativedelta(months=-1) + relativedelta(days=280)
+        self.assertEqual(datetime(2015, 1, 1).date(), determine_date_of_birth(row=row, dob_headers=dob_headers, month_headers=month_headers,
+                date_of_signup=frozen_date, preg_signup=True, source="TR"))
+        mock_pregnancy_month.assert_not_called()
+
+        row = {"Current Month Of Pregnancy": "WONT BE READ", "Date of Birth": "WONT BE READ"}
+        mock_dob_entry.return_value = ""
+        mock_pregnancy_month.return_value = 1
+        one_month = frozen_date + relativedelta(months=-1) + relativedelta(days=280)
+        self.assertEqual(one_month, determine_date_of_birth(row=row, dob_headers=dob_headers, month_headers=month_headers,
+                date_of_signup=frozen_date, preg_signup=True, source="TR"))
+        mock_pregnancy_month.assert_called_once_with(row=row, headers=month_headers)
+
+    @freeze_time(datetime(2017, 7, 21, 0, 0))
+    @patch("modules.upload_contacts_from_file.entered_date_string_to_date")
+    @patch("modules.upload_contacts_from_file.entry_or_empty_string")
+    @patch("modules.upload_contacts_from_file.filter_pregnancy_month")
+    def test_determine_date_of_birth_returns_correct_date_of_birth_when_no_date_of_birth_given(self, mock_pregnancy_month, mock_dob_entry, mock_dob_date):
+        frozen_date = datetime.now().date()
+        dob_headers = ["Date of Birth", "Date Of Birth Of The Child",
+                            "Date of Birth of Child (dd/mm/yyyy)", "Date of Birth of Child"]
+        month_headers = ["Current Month Of Pregnancy", "Month of Pregnancy"]
+        row = {"Current Month Of Pregnancy": "WONT BE READ", "Date of Birth": "WONT BE READ"}
+        mock_dob_entry.return_value = ""
+        mock_pregnancy_month.return_value = 1
+        one_month = frozen_date + relativedelta(months=-1) + relativedelta(days=280)
+        self.assertEqual(one_month, determine_date_of_birth(row=row, dob_headers=dob_headers, month_headers=month_headers,
+                date_of_signup=frozen_date, preg_signup=True, source="TR"))
+        mock_pregnancy_month.assert_called_once_with(row=row, headers=month_headers)
+
+        mock_pregnancy_month.return_value = 2
+        two_months = frozen_date + relativedelta(months=-2) + relativedelta(days=280)
+        self.assertEqual(two_months, determine_date_of_birth(row=row, dob_headers=dob_headers, month_headers=month_headers,
+                date_of_signup=frozen_date, preg_signup=True, source="TR"))
+
+        mock_pregnancy_month.return_value = 0
+        zero_months = frozen_date + relativedelta(months=-0) + relativedelta(days=280)
+        self.assertEqual(zero_months, determine_date_of_birth(row=row, dob_headers=dob_headers, month_headers=month_headers,
+                date_of_signup=frozen_date, preg_signup=True, source="TR"))
+
+        mock_pregnancy_month.return_value = 5
+        five_months = frozen_date + relativedelta(months=-5) + relativedelta(days=280)
+        self.assertEqual(five_months, determine_date_of_birth(row=row, dob_headers=dob_headers, month_headers=month_headers,
+                date_of_signup=frozen_date, preg_signup=True, source="TR"))
+
+        mock_pregnancy_month.return_value = 8
+        eight_months = frozen_date + relativedelta(months=-8) + relativedelta(days=280)
+        self.assertEqual(eight_months, determine_date_of_birth(row=row, dob_headers=dob_headers, month_headers=month_headers,
+                date_of_signup=frozen_date, preg_signup=True, source="TR"))
+        
+        mock_pregnancy_month.return_value = 9
+        nine_months = frozen_date + relativedelta(months=-9) + relativedelta(days=280)
+        self.assertEqual(nine_months, determine_date_of_birth(row=row, dob_headers=dob_headers, month_headers=month_headers,
+                date_of_signup=frozen_date, preg_signup=True, source="TR"))
+
+        mock_dob_date.assert_not_called()
+
+    @freeze_time(datetime(2017, 7, 21, 0, 0))
+    @patch("modules.upload_contacts_from_file.filter_pregnancy_month")
+    def test_determine_date_of_birth_returns_correct_date_of_birth_when_date_of_birth_is_given(self, mock_pregnancy_month):
+        frozen_date = datetime.now().date()
+        dob_headers = ["Date of Birth", "Date Of Birth Of The Child",
+                            "Date of Birth of Child (dd/mm/yyyy)", "Date of Birth of Child"]
+        month_headers = ["Current Month Of Pregnancy", "Month of Pregnancy"]
+        row = {"Current Month Of Pregnancy": "WONT BE READ", "Date of Birth": "2015-01-01"}
+        mock_pregnancy_month.return_value = 0
+        self.assertEqual(datetime(2015, 1, 1).date(), determine_date_of_birth(row=row, dob_headers=dob_headers, month_headers=month_headers,
+            date_of_signup=frozen_date, preg_signup=False, source="TR"))
+
+        row = {"Current Month Of Pregnancy": "WONT BE READ", "Date of Birth": "2017-10-25"}
+        self.assertEqual(datetime(2017, 10, 25).date(), determine_date_of_birth(row=row, dob_headers=dob_headers, month_headers=month_headers,
+            date_of_signup=frozen_date, preg_signup=False, source="TR"))
+        self.assertEqual(datetime(2017, 10, 25).date(), determine_date_of_birth(row=row, dob_headers=dob_headers, month_headers=month_headers,
+            date_of_signup=frozen_date, preg_signup=False, source="MPS"))
+
+        row = {"Current Month Of Pregnancy": "WONT BE READ", "Date of Birth": "10-25-2017"}
+        self.assertEqual(datetime(2017, 10, 25).date(), determine_date_of_birth(row=row, dob_headers=dob_headers, month_headers=month_headers,
+            date_of_signup=frozen_date, preg_signup=False, source="TR"))
+
+        row = {"Current Month Of Pregnancy": "WONT BE READ", "Date of Birth": "25-10-2017"}
+        self.assertEqual(datetime(2017, 10, 25).date(), determine_date_of_birth(row=row, dob_headers=dob_headers, month_headers=month_headers,
+            date_of_signup=frozen_date, preg_signup=False, source="MPS"))
+
+        row = {"Current Month Of Pregnancy": "WONT BE READ", "Date of Birth": "14-08-2016"}
+        self.assertEqual(datetime(2016, 8, 14).date(), determine_date_of_birth(row=row, dob_headers=dob_headers, month_headers=month_headers,
+            date_of_signup=frozen_date, preg_signup=False, source="OTHER"))
+
+        row = {"Current Month Of Pregnancy": "WONT BE READ", "Date of Birth": "30-05-2016"}
+        self.assertEqual(datetime(2016, 5, 30).date(), determine_date_of_birth(row=row, dob_headers=dob_headers, month_headers=month_headers,
+            date_of_signup=frozen_date, preg_signup=False, source="OTHER"))
+
+        row = {"Current Month Of Pregnancy": "WONT BE READ", "Date of Birth": "30-05-2020"}
+        self.assertEqual(datetime(2020, 5, 30).date(), determine_date_of_birth(row=row, dob_headers=dob_headers, month_headers=month_headers,
+            date_of_signup=frozen_date, preg_signup=False, source="OTHER"))
+
+        mock_pregnancy_month.assert_not_called()
 
     @patch("modules.upload_contacts_from_file.check_all_headers")
     def test_determine_language(self, headers_mock):
@@ -1066,7 +1227,7 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual(u'\\u0aa4\\u0aae\\u0abe\\u0ab0\\u0ac1\\u0a82', check_all_headers(row=guj_unicode, headers=name))
         self.assertEqual(u'  \\u0aa4\\u0aae\\u0abe\\u0ab0\\u0ac1\\u0a82  ', check_all_headers(row=unicode_with_space, headers=name))
 
-    @patch("modules.upload_contacts_from_file.check_all_headers")
+    @patch("modules.upload_contacts_from_file.entry_or_empty_string")
     def test_assign_org_signup(self, headers_mock):
         headers = ["Org Sign Up"]
         row = {"Org Sign Up": "WONT BE READ"}
@@ -1083,7 +1244,7 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual("OTHER", assign_org_signup(row=row, headers=headers, source="Other"))
         self.assertEqual("MPS", assign_org_signup(row=row, headers=headers, source="Mps"))
 
-    @patch("modules.upload_contacts_from_file.check_all_headers")
+    @patch("modules.upload_contacts_from_file.entry_or_empty_string")
     def test_assign_method_of_signup(self, headers_mock):
         headers = ["Method of Sign Up"]
         row = {"Method of Sign Up": "WONT BE READ"}
@@ -1123,7 +1284,7 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual("Text", assign_method_of_signup(row=row, headers=headers, source="mps"))
         self.assertEqual("Text", assign_method_of_signup(row=row, headers=headers, source="ANOTHER"))
 
-    @patch("modules.upload_contacts_from_file.check_all_headers")
+    @patch("modules.upload_contacts_from_file.entry_or_empty_string")
     def test_assign_hospital_name(self, headers_mock):
         headers = ["Hospital Name"]
         row = {"Hospital Name": "WONT BE READ"}
