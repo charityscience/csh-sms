@@ -1014,11 +1014,13 @@ class UploadContactsInputParserTests(TestCase):
                             default_option="More stuff", none_option="Hindi"))
 
     def test_replace_blank_name(self):
+        self.assertEqual("Your child", replace_blank_name(name=None, language="English"))
         self.assertEqual("Your child", replace_blank_name(name="", language="English"))
         self.assertEqual("Your child", replace_blank_name(name=" ", language="English"))
         self.assertEqual("Your child", replace_blank_name(name="     ", language="English"))
         self.assertEqual("Harvey", replace_blank_name(name="Harvey", language="English"))
         self.assertEqual(u"\u0906\u092a\u0915\u093e", replace_blank_name(name=u"\u0906\u092a\u0915\u093e", language="English"))
+        self.assertEqual(hindi_placeholder_name(), replace_blank_name(name=None, language="Hindi"))
         self.assertEqual(hindi_placeholder_name(), replace_blank_name(name=" ", language="Hindi"))
         self.assertEqual(hindi_placeholder_name(), replace_blank_name(name=" ", language="Hindi"))
         self.assertEqual(hindi_placeholder_name(), replace_blank_name(name="    ", language="Hindi"))
@@ -1026,6 +1028,7 @@ class UploadContactsInputParserTests(TestCase):
         self.assertEqual(u"\u0936\u093f\u0936\u0941", replace_blank_name(name=u"\u0936\u093f\u0936\u0941", language="Hindi"))
         self.assertEqual("Aarav", replace_blank_name(name="Aarav", language="Hindi"))
         self.assertEqual("Aditya", replace_blank_name(name="Aditya", language="Hindi"))
+        self.assertEqual(gujarati_placeholder_name(), replace_blank_name(name=None, language="Gujarati"))
         self.assertEqual(gujarati_placeholder_name(), replace_blank_name(name="", language="Gujarati"))
         self.assertEqual(gujarati_placeholder_name(), replace_blank_name(name=" ", language="Gujarati"))
         self.assertEqual(gujarati_placeholder_name(), replace_blank_name(name="    ", language="Gujarati"))
