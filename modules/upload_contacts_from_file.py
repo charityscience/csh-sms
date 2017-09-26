@@ -236,7 +236,7 @@ def determine_name(row, headers, language):
     nickname = row.get("Nick Name of Child")
     if not nickname or nickname == len(nickname) * " ":
         name_entry = check_all_headers(row=row, headers=headers)
-        return replace_blank_name(u(name_entry.encode("utf-8").decode('unicode-escape')), language)
+        return replace_blank_name(name_entry.encode("utf-8").decode('unicode-escape'), language)
     else:
         return nickname.encode("utf-8").decode('unicode-escape')
 

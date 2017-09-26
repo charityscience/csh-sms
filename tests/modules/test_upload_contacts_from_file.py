@@ -1010,7 +1010,7 @@ class UploadContactsInputParserTests(TestCase):
                             default_option="Stuff", none_option="Hindi"))
         self.assertEqual("Stuff", language_selector(language_input="dfsadfasdfp", options=options_two,
                             default_option="Stuff", none_option="Hindi"))
-        self.assertEqual("More stuff", language_selector(language_input=u"\u0923\u09a1", options=options_two,
+        self.assertEqual("More stuff", language_selector(language_input=u"\\u0923\\u09a1", options=options_two,
                             default_option="More stuff", none_option="Hindi"))
 
     def test_replace_blank_name(self):
