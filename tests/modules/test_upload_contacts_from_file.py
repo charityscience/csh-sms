@@ -24,9 +24,9 @@ from modules.i18n import hindi_placeholder_name, gujarati_placeholder_name
 from dateutil.relativedelta import relativedelta
 from six import u
 
-def create_sample_contact(name="Aaarsh"):
-    contact, created = Contact.objects.get_or_create(name=name, phone_number="911234567890",
-        date_of_birth=datetime(2011, 5, 10, 0,0).date())
+def create_sample_contact(name, phone_number, date_of_birth):
+    contact, created = Contact.objects.get_or_create(name=name, phone_number=phone_number,
+        date_of_birth=date_of_birth)
     return contact
 
 def create_sample_group(name="TestMe"):
@@ -51,23 +51,74 @@ class UploadContactsFileTests(TestCase):
 
 
 class UploadContactsContactFieldsTests(TestCase):
-    def upload_file(self):
-        csv_path = "tests/data/example.csv" 
-        csv_upload(filepath=csv_path, source="TR")        
+    def upload_file(self, filepath, source):
+        csv_upload(filepath=filepath, source=source)        
 
     @patch("logging.error")
-    def test_existing_contacts_are_updated(self, logging_mock):
-        old_contact = create_sample_contact()
+    def test_existing_contacts_are_updated_telerivet(self, logging_mock):
+        """A contact with name Aaarsh, phone number 911234567890,
+            and date of birth: November 12, 2012 exists in the example-m.csv file
+        """
+        old_contact = create_sample_contact(name="Aaarsh", phone_number="911234567890",
+                                            date_of_birth=datetime(2011, 5, 10, 0,0).date())
 
-        self.upload_file()
+        self.upload_file(filepath="tests/data/example.csv", source="TR")
         updated_contact = Contact.objects.get(name=old_contact.name, phone_number=old_contact.phone_number)
         self.assertNotEqual(old_contact.date_of_birth, updated_contact.date_of_birth)
 
+        self.assertEqual(old_contact.id, updated_contact.id)
+
     @patch("logging.error")
-    def test_new_contacts_are_created(self, logging_mock):
+    def test_existing_contacts_are_updated_maps(self, logging_mock):
+        """A contact with name DEVANSH, nick name ANSHIKA, phone number 8888800184,
+            and date of birth: September 22, 2016 exists in the example-m.csv file
+        """
+        old_contact = create_sample_contact(name="ANSHIKA", phone_number="918888800184",
+                                            date_of_birth=datetime(2011, 5, 10, 0,0).date())
+
+        self.upload_file(filepath="tests/data/example-m.csv", source="MAPS")
+        updated_contact = Contact.objects.get(name=old_contact.name, phone_number=old_contact.phone_number)
+        self.assertNotEqual(old_contact.date_of_birth, updated_contact.date_of_birth)
+        self.assertEqual(old_contact.id, updated_contact.id)
+
+    @patch("logging.error")
+    def test_existing_contacts_are_updated_hansa(self, logging_mock):
+        """A contact with name Aaliyah, phone number 910123456886, and date of birth: August, 25, 2017
+            exists in the example-h.csv file
+        """
+        old_contact = create_sample_contact(name="Aaliyah", phone_number="910123456886",
+                                            date_of_birth=datetime(2011, 5, 10, 0,0).date())
+
+        self.upload_file(filepath="tests/data/example-h.csv", source="HANSA")
+        updated_contact = Contact.objects.get(name=old_contact.name, phone_number=old_contact.phone_number)
+        self.assertNotEqual(old_contact.date_of_birth, updated_contact.date_of_birth)
+        self.assertEqual(old_contact.id, updated_contact.id)
+
+    @patch("logging.error")
+    def test_new_contacts_are_created_telerivet(self, logging_mock):
         old_all_contacts = Contact.objects.all()
         old_contacts_count = Contact.objects.count()
-        self.upload_file()
+        self.upload_file(filepath="tests/data/example.csv", source="TR")
+        new_all_contacts = Contact.objects.all()
+        new_contacts_count = Contact.objects.count()
+        self.assertNotEqual(old_all_contacts, new_all_contacts)
+        self.assertNotEqual(old_contacts_count, new_contacts_count)
+
+    @patch("logging.error")
+    def test_new_contacts_are_created_maps(self, logging_mock):
+        old_all_contacts = Contact.objects.all()
+        old_contacts_count = Contact.objects.count()
+        self.upload_file(filepath="tests/data/example-m.csv", source="MAPS")
+        new_all_contacts = Contact.objects.all()
+        new_contacts_count = Contact.objects.count()
+        self.assertNotEqual(old_all_contacts, new_all_contacts)
+        self.assertNotEqual(old_contacts_count, new_contacts_count)
+
+    @patch("logging.error")
+    def test_new_contacts_are_created_hansa(self, logging_mock):
+        old_all_contacts = Contact.objects.all()
+        old_contacts_count = Contact.objects.count()
+        self.upload_file(filepath="tests/data/example-h.csv", source="HANSA")
         new_all_contacts = Contact.objects.all()
         new_contacts_count = Contact.objects.count()
         self.assertNotEqual(old_all_contacts, new_all_contacts)
@@ -77,7 +128,7 @@ class UploadContactsContactFieldsTests(TestCase):
     def test_only_contacts_with_valid_numbers_created(self, logging_mock):
     	"""tests/data/example.csv file being tested contains
     	   a contact with name: FakestNumber and phone number: 511234567890"""
-    	self.upload_file()
+    	self.upload_file(filepath="tests/data/example.csv", source="TR")
     	self.assertFalse(Contact.objects.filter(name="FakestNumber").exists())
     	logging_mock.assert_called_with("Entry: FakestNumber - 2016-09-14 has invalid phone number: 123456")
 
@@ -86,7 +137,7 @@ class UploadContactsContactFieldsTests(TestCase):
         """tests/data/example.csv file being tested contains
            a contact with name: \u0906\u0930\u0935 and phone number: 912222277777"""
         hindi_name = u'\\u0906\\u0930\\u0935'
-        self.upload_file()
+        self.upload_file(filepath="tests/data/example.csv", source="TR")
         hin_contact = Contact.objects.get(phone_number="912222277777")
         self.assertNotEqual(hindi_name, hin_contact.name)
         self.assertTrue("\\" not in hin_contact.name)
@@ -97,7 +148,7 @@ class UploadContactsContactFieldsTests(TestCase):
         """tests/data/example.csv file being tested contains
            a contact with name: \u0A90\u0AC5\u0A94 and phone number: 915555511111"""
         guj_name = u'\\u0A90\\u0AC5\\u0A94'
-        self.upload_file()
+        self.upload_file(filepath="tests/data/example.csv", source="TR")
         guj_contact = Contact.objects.get(phone_number="915555511111")
         self.assertNotEqual(guj_name, guj_contact.name)
         self.assertTrue("\\" not in guj_contact.name)
@@ -105,12 +156,45 @@ class UploadContactsContactFieldsTests(TestCase):
 
     @patch("logging.error")
     def test_unicode_literal_names_are_encoded(self, logging_mock):
-        self.upload_file()
+        self.upload_file(filepath="tests/data/example.csv", source="TR")
         self.assertFalse(Contact.objects.filter(name__startswith="\\"))
+
+    @patch("logging.error")
+    def test_contact_pregnancy_correctly_assigned_maps(self, logging_mock):
+        """A contact with name DEVANSH, nick name ANSHIKA, phone number 8888800184,
+            and date of birth: September 22, 2016 exists in the example-m.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example-m.csv", source="MAPS")
+        non_preg_contact = Contact.objects.get(name="ANSHIKA", phone_number="918888800184")
+        self.assertFalse(non_preg_contact.preg_signup)
+        """A contact with name: "", phone number: 8888800494, date of birth: "", language: "1" (for Hindi)
+            exists in the example-m.csv file
+            IS a pregnant signup
+        """
+        preg_contact = Contact.objects.get(name=hindi_placeholder_name(), phone_number="918888800494")
+        self.assertTrue(preg_contact.preg_signup)
+
+    @patch("logging.error")
+    def test_contact_pregnancy_correctly_assigned_hansa(self, logging_mock):
+        """A contact with name Aaliyah, phone number 910123456886, and date of birth: August, 25, 2017
+            exists in the example-h.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example-h.csv", source="HANSA")
+        non_preg_contact = Contact.objects.get(name="Aaliyah", phone_number="910123456886")
+        self.assertFalse(non_preg_contact.preg_signup)
+        """A contact with name: "", phone number: 912345678901, date of birth: "", language: Hindi
+            exists in the example-h.csv file
+            IS a pregnant signup
+        """
+        preg_contact = Contact.objects.get(name=hindi_placeholder_name(), phone_number="912345678901")
+        self.assertTrue(preg_contact.preg_signup)
 
 class UploadContactsRelationshipTests(TestCase):
     def test_groups_are_assigned_to_contact(self):
-        contact = create_sample_contact()
+        contact = create_sample_contact(name="Aaarsh", phone_number="911234567890",
+                                        date_of_birth=datetime(2011, 5, 10, 0,0).date())
         group_string = "TestMe"
         multi_group_string = "TestMe, Again"
         group = create_sample_group(name=group_string)
@@ -131,7 +215,8 @@ class UploadContactsRelationshipTests(TestCase):
     def test_existing_groups_are_updated_with_new_contacts(self):
         group_string = "TestMe"
         group = create_sample_group(name=group_string)
-        contact = create_sample_contact()
+        contact = create_sample_contact(name="Aaarsh", phone_number="911234567890",
+                                        date_of_birth=datetime(2011, 5, 10, 0,0).date())
 
         with self.assertRaises(Contact.DoesNotExist):
             group.contacts.get(id=contact.id)
@@ -141,7 +226,8 @@ class UploadContactsRelationshipTests(TestCase):
 
     def test_empty_group_strings(self):
         group_string = ""
-        contact = create_sample_contact()
+        contact = create_sample_contact(name="Aaarsh", phone_number="911234567890",
+                                        date_of_birth=datetime(2011, 5, 10, 0,0).date())
         assign_groups_to_contact(contact, group_string)
 
         with self.assertRaises(Group.DoesNotExist):

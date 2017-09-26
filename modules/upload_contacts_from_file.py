@@ -9,7 +9,6 @@ from modules.date_helper import try_parsing_partner_date, try_parsing_gen_date, 
 from modules.i18n import hindi_placeholder_name, gujarati_placeholder_name
 from modules.csv_columns import column_headers
 from management.models import Contact
-from six import u
 
 def csv_upload(filepath, source):
     with open(filepath) as csvfile:
@@ -20,7 +19,7 @@ def csv_upload(filepath, source):
                 new_contact, created = Contact.objects.update_or_create(name=new_dict["name"],
                     phone_number=new_dict["phone_number"], defaults=new_dict)
 
-                assign_groups_to_contact(new_contact, row["Groups"])
+                assign_groups_to_contact(new_contact, row.get("Groups"))
             else:
                 logging.error("Entry: {name} - {date_of_birth} has invalid phone number: {phone}".format(
                     name=new_dict["name"], phone=new_dict["phone_number"], date_of_birth=new_dict["date_of_birth"]))
@@ -77,7 +76,7 @@ def make_contact_dict(row, source):
     return new_dict
 
 def assign_groups_to_contact(contact, groups_string):
-    if groups_string == "":
+    if not groups_string:
         return None
     for group_name in groups_string.split(", "):
         add_contact_to_group(contact, group_name)
