@@ -557,3 +557,7 @@ class NumberHandlingTests(TestCase):
         self.assertEqual("123456", prepare_phone_number("123456"))
         self.assertEqual("12345678", prepare_phone_number("12345678"))
         self.assertEqual("", prepare_phone_number(""))
+        self.assertEqual("", prepare_phone_number("0"))
+        self.assertEqual("", prepare_phone_number(" "))
+        self.assertEqual("", prepare_phone_number("   "))
+        self.assertEqual("", prepare_phone_number("  0 "))
