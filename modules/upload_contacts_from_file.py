@@ -70,8 +70,8 @@ def make_contact_dict(row, source):
     new_dict["preferred_time"] = entry_or_empty_string(row=row, headers=headers["preferred_time"])
     new_dict["script_selection"] = entry_or_empty_string(row=row, headers=headers["script_selection"])
     new_dict["telerivet_sender_phone"] = entry_or_empty_string(row=row, headers=headers["telerivet_sender_phone"])
-    new_dict["last_heard_from"] = parse_contact_time_references(row=row, headers=headers["last_heard_from"])
-    new_dict["last_contacted"] = parse_contact_time_references(row=row, headers=headers["last_contacted"])
+    new_dict["last_heard_from"] = time_reference_or_none(row=row, headers=headers["last_heard_from"])
+    new_dict["last_contacted"] = time_reference_or_none(row=row, headers=headers["last_contacted"])
     new_dict["time_created"] = parse_contact_time_references(row=row, headers=headers["time_created"])
     return new_dict
 
@@ -156,6 +156,10 @@ def parse_contact_time_references(row, headers):
     row_entry = check_all_headers(row=row, headers=headers)
     return datetime_string_mdy_to_datetime(row_entry) if row_entry else datetime.datetime.now().replace(tzinfo=timezone.get_default_timezone())
 
+def time_reference_or_none(row, headers):
+    row_entry = check_all_headers(row=row, headers=headers)
+    return datetime_string_mdy_to_datetime(row_entry) if row_entry else None
+
 def assign_preg_signup(row, headers):
     row_entry = entry_or_empty_string(row=row, headers=headers).lower()
     if not row_entry:
@@ -202,7 +206,7 @@ def determine_language(row, headers):
 def determine_mother_tongue(row, headers):
     mother_tongue = check_all_headers(row=row, headers=headers)
     return language_selector(language_input=mother_tongue, options=["Hindi", "English", "Other"],
-        default_option="Other", none_option=None)
+        default_option="", none_option="")
 
 def language_selector(language_input, options, default_option, none_option):
     language_input = re.sub("\W", "", str(language_input))

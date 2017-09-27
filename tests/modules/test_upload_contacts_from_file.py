@@ -18,7 +18,7 @@ from modules.upload_contacts_from_file import csv_upload, make_contact_dict, ass
                                               determine_mother_tongue, language_selector, replace_blank_name, \
                                               determine_name, matching_permutation, check_all_headers, \
                                               assign_org_signup, assign_method_of_signup, assign_hospital_name, \
-                                              entry_or_empty_string, determine_date_of_birth 
+                                              entry_or_empty_string, determine_date_of_birth, time_reference_or_none 
 from modules.date_helper import add_or_subtract_days, add_or_subtract_months
 from modules.i18n import hindi_placeholder_name, gujarati_placeholder_name
 from dateutil.relativedelta import relativedelta
@@ -160,7 +160,23 @@ class UploadContactsContactFieldsTests(TestCase):
         self.assertFalse(Contact.objects.filter(name__startswith="\\"))
 
     @patch("logging.error")
-    def test_contact_pregnancy_correctly_assigned_maps(self, logging_mock):
+    def test_contact_pregnant_signup_correctly_assigned_telerivet(self, logging_mock):
+        """A contact with name: "Aadya", phone number 911234567890,
+            and date of birth: September 3, 2017 exists in the example.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example.csv", source="TR")
+        non_preg_contact = Contact.objects.get(name="Aakriti", phone_number="911234567890")
+        self.assertFalse(non_preg_contact.preg_signup)
+        """A contact with name: "Aakriti", phone number: 911234567890, date of birth: ""
+            exists in the example.csv file
+            IS a pregnant signup
+        """
+        preg_contact = Contact.objects.get(name="Aadya", phone_number="911234567890")
+        self.assertTrue(preg_contact.preg_signup)
+
+    @patch("logging.error")
+    def test_contact_pregnant_signup_correctly_assigned_maps(self, logging_mock):
         """A contact with name DEVANSH, nick name ANSHIKA, phone number 8888800184,
             and date of birth: September 22, 2016 exists in the example-m.csv file
             NOT a pregnant signup
@@ -176,7 +192,7 @@ class UploadContactsContactFieldsTests(TestCase):
         self.assertTrue(preg_contact.preg_signup)
 
     @patch("logging.error")
-    def test_contact_pregnancy_correctly_assigned_hansa(self, logging_mock):
+    def test_contact_pregnant_signup_correctly_assigned_hansa(self, logging_mock):
         """A contact with name Aaliyah, phone number 910123456886, and date of birth: August, 25, 2017
             exists in the example-h.csv file
             NOT a pregnant signup
@@ -189,6 +205,189 @@ class UploadContactsContactFieldsTests(TestCase):
             IS a pregnant signup
         """
         preg_contact = Contact.objects.get(name=hindi_placeholder_name(), phone_number="912345678901")
+        self.assertTrue(preg_contact.preg_signup)
+
+    @patch("logging.error")
+    def test_contact_vital_info_correctly_assigned_hansa(self, logging_mock):
+        """A contact with name: Aaliyah, phone number: 910123456886, alt_phone_number: "",
+            date of birth: August, 25, 2017, date of sign up: "03/09/2017", delay in days: DOESNT EXIST,
+            month of pregnancy: "", language: Hindi, exists in the example-h.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example-h.csv", source="HANSA")
+        non_preg_contact = Contact.objects.get(name="Aaliyah", phone_number="910123456886",
+            alt_phone_number="", date_of_birth=datetime(2017, 8, 25).date(), date_of_sign_up=datetime(2017, 9, 3).date(),
+            language_preference="Hindi", delay_in_days=0, functional_date_of_birth=datetime(2017, 8, 25).date())
+        self.assertFalse(non_preg_contact.preg_signup)
+
+        """A contact with name: Sofia, phone number: 910123456855, alt_phone_number: "910000011118",
+            date of birth: "17/07/2017", date of sign up: "30/08/2017", delay in days: DOESNT EXIST,
+            month of pregnancy: "", language: Hindi, exists in the example-h.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example-h.csv", source="HANSA")
+        alt_phone_contact = Contact.objects.get(name="Sofia", phone_number="910123456855",
+            alt_phone_number="910000011118", date_of_birth=datetime(2017, 7, 17).date(), date_of_sign_up=datetime(2017, 8, 30).date(),
+            language_preference="Hindi", delay_in_days=0, functional_date_of_birth=datetime(2017, 7, 17).date())
+        self.assertEqual("910000011118", alt_phone_contact.alt_phone_number)
+
+        """A contact with name: "", phone number: 912345678901, alt_phone_number: "",
+            date of birth: "",  date_of_sign_up: "25/08/2017", delay in days: DOESNT EXIST,
+            month of pregnancy: "4", language: Hindi, exists in the example-h.csv file
+            IS a pregnant signup
+        """
+        four_months = datetime(2017, 8, 25).date() + relativedelta(months=-4) + relativedelta(days=280)
+        preg_contact = Contact.objects.get(name=hindi_placeholder_name(), phone_number="912345678901",
+            alt_phone_number="", date_of_birth=four_months, date_of_sign_up=datetime(2017, 8, 25).date(),
+            language_preference="Hindi", delay_in_days=0, functional_date_of_birth=four_months)
+        self.assertTrue(preg_contact.preg_signup)
+
+    @patch("logging.error")
+    def test_contact_personal_info_correctly_assigned_hansa(self, logging_mock):
+        """A contact with name: Aaliyah, phone number: 910123456886, alt_phone_number: "",
+            gender: "Male", mother_tongue: "", religion: DOESNT EXIST, state: "Madhya Pradesh", division: "Indore",
+            district: "Indore", city: "Indore", monthly_income_rupees: DOESNT EXIST, children_previously_vaccinated: DOESNT EXIST,
+            not_vaccinated_why: DOESNT EXIST, mother_first_name: "mom", mother_last_name: DOESNT EXIST,
+            exists in the example-h.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example-h.csv", source="HANSA")
+        non_preg_contact = Contact.objects.get(name="Aaliyah", phone_number="910123456886",
+            gender="Male", mother_tongue="", religion="", state="Madhya Pradesh", division="Indore",
+            district="Indore", city="Indore", monthly_income_rupees=999999, children_previously_vaccinated=None,
+            not_vaccinated_why="", mother_first_name="mom", mother_last_name="")
+        self.assertFalse(non_preg_contact.preg_signup)
+
+        """A contact with name: Sofia, phone number: 910123456855, alt_phone_number: "910000011118",
+            gender: "Female", mother_tongue: "", religion: DOESNT EXIST, state: "Madhya Pradesh", division: "Indore",
+            district: "Indore", city: "Indore", monthly_income_rupees: DOESNT EXIST, children_previously_vaccinated: DOESNT EXIST,
+            not_vaccinated_why: DOESNT EXIST, mother_first_name: "mom", mother_last_name: DOESNT EXIST,
+            exists in the example-h.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example-h.csv", source="HANSA")
+        alt_phone_contact = Contact.objects.get(name="Sofia", phone_number="910123456855",
+            gender="Female", mother_tongue="", religion="", state="Madhya Pradesh", division="Indore",
+            district="Indore", city="Indore", monthly_income_rupees=999999, children_previously_vaccinated=None,
+            not_vaccinated_why="", mother_first_name="mom", mother_last_name="")
+        self.assertEqual("910000011118", alt_phone_contact.alt_phone_number)
+
+        """A contact with name: "", phone number: 912345678901, alt_phone_number: "",
+            gender: "", mother_tongue: "", religion: DOESNT EXIST, state: "Madhya Pradesh", division: "Indore",
+            district: "Indore", city: "Indore", monthly_income_rupees: DOESNT EXIST, children_previously_vaccinated: DOESNT EXIST,
+            not_vaccinated_why: DOESNT EXIST, mother_first_name: "s", mother_last_name: DOESNT EXIST,
+            exists in the example-h.csv file
+            IS a pregnant signup
+        """
+        four_months = datetime(2017, 8, 25).date() + relativedelta(months=-4) + relativedelta(days=280)
+        preg_contact = Contact.objects.get(name=hindi_placeholder_name(), phone_number="912345678901",
+            gender="", mother_tongue="", religion="", state="Madhya Pradesh", division="Indore",
+            district="Indore", city="Indore", monthly_income_rupees=999999, children_previously_vaccinated=None,
+            not_vaccinated_why="", mother_first_name="", mother_last_name="")
+        self.assertTrue(preg_contact.preg_signup)
+
+    @patch("logging.error")
+    def test_contact_signup_info_correctly_assigned_hansa(self, logging_mock):
+        """A contact with name: Aaliyah, phone number: 910123456886, alt_phone_number: "",
+            hospital_name: DOESNT EXIST, doctor_name: DOESNT EXIST,
+            exists in the example-h.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example-h.csv", source="HANSA")
+        non_preg_contact = Contact.objects.get(name="Aaliyah", phone_number="910123456886",
+            method_of_sign_up="Door to Door", org_sign_up="HANSA", hospital_name="", doctor_name="")
+        self.assertFalse(non_preg_contact.preg_signup)
+
+        """A contact with name: Sofia, phone number: 910123456855, alt_phone_number: "910000011118",
+            hospital_name: DOESNT EXIST, doctor_name: DOESNT EXIST,
+            exists in the example-h.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example-h.csv", source="HANSA")
+        alt_phone_contact = Contact.objects.get(name="Sofia", phone_number="910123456855",
+            method_of_sign_up="Door to Door", org_sign_up="HANSA", hospital_name="", doctor_name="")
+        self.assertEqual("910000011118", alt_phone_contact.alt_phone_number)
+
+        """A contact with name: "", phone number: 912345678901, alt_phone_number: "",
+            hospital_name: DOESNT EXIST, doctor_name: DOESNT EXIST,
+            exists in the example-h.csv file
+            IS a pregnant signup
+        """
+        four_months = datetime(2017, 8, 25).date() + relativedelta(months=-4) + relativedelta(days=280)
+        preg_contact = Contact.objects.get(name=hindi_placeholder_name(), phone_number="912345678901",
+            method_of_sign_up="Door to Door", org_sign_up="HANSA", hospital_name="", doctor_name="")
+        self.assertTrue(preg_contact.preg_signup)
+
+    @patch("logging.error")
+    def test_contact_system_info_correctly_assigned_hansa(self, logging_mock):
+        """A contact with name: Aaliyah, phone number: 910123456886, alt_phone_number: "",
+            telerivet_contact_id: DOESNT EXIST, trial_id: DOESNT EXIST, trial_group: DOESNT EXIST,
+            exists in the example-h.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example-h.csv", source="HANSA")
+        non_preg_contact = Contact.objects.get(name="Aaliyah", phone_number="910123456886",
+            telerivet_contact_id="", trial_id="", trial_group="")
+        self.assertFalse(non_preg_contact.preg_signup)
+
+        """A contact with name: Sofia, phone number: 910123456855, alt_phone_number: "910000011118",
+            telerivet_contact_id: DOESNT EXIST, trial_id: DOESNT EXIST, trial_group: DOESNT EXIST,
+            exists in the example-h.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example-h.csv", source="HANSA")
+        alt_phone_contact = Contact.objects.get(name="Sofia", phone_number="910123456855",
+            telerivet_contact_id="", trial_id="", trial_group="")
+        self.assertEqual("910000011118", alt_phone_contact.alt_phone_number)
+
+        """A contact with name: "", phone number: 912345678901, alt_phone_number: "",
+            telerivet_contact_id: DOESNT EXIST, trial_id: DOESNT EXIST, trial_group: DOESNT EXIST,
+            exists in the example-h.csv file
+            IS a pregnant signup
+        """
+        four_months = datetime(2017, 8, 25).date() + relativedelta(months=-4) + relativedelta(days=280)
+        preg_contact = Contact.objects.get(name=hindi_placeholder_name(), phone_number="912345678901",
+            preferred_time="", script_selection="", telerivet_sender_phone="")
+        self.assertTrue(preg_contact.preg_signup)
+
+    @freeze_time(datetime(2017, 7, 21, 0, 0).replace(tzinfo=timezone.get_default_timezone()))
+    @patch("logging.error")
+    def test_contact_message_references_correctly_assigned_hansa(self, logging_mock):
+        frozen_time = datetime.now()
+        """A contact with name: Aaliyah, phone number: 910123456886, alt_phone_number: "",
+            preferred_time: DOESNT EXIST, script_selection: DOESNT EXIST, telerivet_sender_phone: DOESNT EXIST
+            last_heard_from: DOESNT EXIST, last_contacted: DOESNT EXIST, time_created: DOESNT EXIST,
+            exists in the example-h.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example-h.csv", source="HANSA")
+        non_preg_contact = Contact.objects.get(name="Aaliyah", phone_number="910123456886",
+            preferred_time="", script_selection="", telerivet_sender_phone="", last_heard_from=None,
+            last_contacted=None, time_created=frozen_time)
+        self.assertFalse(non_preg_contact.preg_signup)
+
+        """A contact with name: Sofia, phone number: 910123456855, alt_phone_number: "910000011118",
+            preferred_time: DOESNT EXIST, script_selection: DOESNT EXIST, telerivet_sender_phone: DOESNT EXIST
+            last_heard_from: DOESNT EXIST, last_contacted: DOESNT EXIST, time_created: DOESNT EXIST,
+            exists in the example-h.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example-h.csv", source="HANSA")
+        alt_phone_contact = Contact.objects.get(name="Sofia", phone_number="910123456855",
+            preferred_time="", script_selection="", telerivet_sender_phone="", last_heard_from=None,
+            last_contacted=None, time_created=frozen_time)
+        self.assertEqual("910000011118", alt_phone_contact.alt_phone_number)
+
+        """A contact with name: "", phone number: 912345678901, alt_phone_number: "",
+            preferred_time: DOESNT EXIST, script_selection: DOESNT EXIST, telerivet_sender_phone: DOESNT EXIST
+            last_heard_from: DOESNT EXIST, last_contacted: DOESNT EXIST, time_created: DOESNT EXIST,
+            exists in the example-h.csv file
+            IS a pregnant signup
+        """
+        four_months = datetime(2017, 8, 25).date() + relativedelta(months=-4) + relativedelta(days=280)
+        preg_contact = Contact.objects.get(name=hindi_placeholder_name(), phone_number="912345678901",
+            preferred_time="", script_selection="", telerivet_sender_phone="", last_heard_from=None,
+            last_contacted=None, time_created=frozen_time)
         self.assertTrue(preg_contact.preg_signup)
 
 class UploadContactsRelationshipTests(TestCase):
@@ -659,9 +858,39 @@ class UploadContactsInputParserTests(TestCase):
 
     
     @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_time_reference_or_none_real_datetimes(self, headers_mock):
+        headers = ["Last Contacted"]
+        row = {"Last Contacted": "WONT BE READ"}
+        headers_mock.return_value = "6/12/2017 4:00:03 PM"
+        self.assertEqual(datetime(2017, 6, 12, 16, 0, 3, tzinfo=timezone.get_default_timezone()),
+            time_reference_or_none(row=row, headers=headers))
+        headers_mock.return_value = "6/16/2017 6:51:28 PM"
+        self.assertEqual(datetime(2017, 6, 16, 18, 51, 28, tzinfo=timezone.get_default_timezone()),
+            time_reference_or_none(row=row, headers=headers))
+
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    def test_time_reference_or_none_fake_datetimes(self, headers_mock):
+        headers = ["Last Contacted"]
+        row = {"Last Contacted": "WONT BE READ"}
+        headers_mock.return_value = "6/12/2017 25:00:03 PM"
+        with self.assertRaises(ValueError):
+            time_reference_or_none(row=row, headers=headers)
+        headers_mock.return_value = "6/30/2017 16:51:28 PM"
+        with self.assertRaises(ValueError):
+            time_reference_or_none(row=row, headers=headers)
+
+    @patch("modules.upload_contacts_from_file.check_all_headers")
+    @freeze_time(datetime(2017, 7, 21, 0, 0).replace(tzinfo=timezone.get_default_timezone()))
+    def test_time_reference_or_none_empty_times(self, headers_mock):
+        headers = ["Last Contacted"]
+        row = {"Last Contacted": "WONT BE READ"}
+        headers_mock.return_value = ""
+        self.assertIsNone(time_reference_or_none(row=row, headers=headers))
+
+    @patch("modules.upload_contacts_from_file.check_all_headers")
     def test_parse_contact_time_references_real_datetimes(self, headers_mock):
-        headers = ["Last Heard From"]
-        row = {"Last Heard From": "WONT BE READ"}
+        headers = ["Time Created"]
+        row = {"Time Created": "WONT BE READ"}
         headers_mock.return_value = "6/12/2017 4:00:03 PM"
         self.assertEqual(datetime(2017, 6, 12, 16, 0, 3, tzinfo=timezone.get_default_timezone()),
             parse_contact_time_references(row=row, headers=headers))
@@ -671,8 +900,8 @@ class UploadContactsInputParserTests(TestCase):
 
     @patch("modules.upload_contacts_from_file.check_all_headers")
     def test_parse_contact_time_references_fake_datetimes(self, headers_mock):
-        headers = ["Last Heard From"]
-        row = {"Last Heard From": "WONT BE READ"}
+        headers = ["Time Created"]
+        row = {"Time Created": "WONT BE READ"}
         headers_mock.return_value = "6/12/2017 25:00:03 PM"
         with self.assertRaises(ValueError):
             parse_contact_time_references(row=row, headers=headers)
@@ -683,8 +912,8 @@ class UploadContactsInputParserTests(TestCase):
     @patch("modules.upload_contacts_from_file.check_all_headers")
     @freeze_time(datetime(2017, 7, 21, 0, 0).replace(tzinfo=timezone.get_default_timezone()))
     def test_parse_contact_time_references_empty_times(self, headers_mock):
-        headers = ["Last Heard From"]
-        row = {"Last Heard From": "WONT BE READ"}
+        headers = ["Time Created"]
+        row = {"Time Created": "WONT BE READ"}
         headers_mock.return_value = ""
         self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()),
             parse_contact_time_references(row=row, headers=headers))
@@ -1044,17 +1273,17 @@ class UploadContactsInputParserTests(TestCase):
         headers_mock.return_value = "30"
         self.assertEqual("Other", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
         headers_mock.return_value = "4"
-        self.assertEqual("Other", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        self.assertEqual("", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
         headers_mock.return_value = "7"
-        self.assertEqual("Other", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        self.assertEqual("", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
         headers_mock.return_value = "None"
-        self.assertEqual("Other", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        self.assertEqual("", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
         headers_mock.return_value = ""
-        self.assertIsNone(determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        self.assertEqual("", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
         headers_mock.return_value = " "
-        self.assertIsNone(determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        self.assertEqual("", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
         headers_mock.return_value = u"\\u0923\\u09a1"
-        self.assertEqual("Other", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
+        self.assertEqual("", determine_mother_tongue(row=mother_tongue_row, headers=mother_options))
 
     def test_language_selector(self):
         self.assertIsNone(language_selector(language_input="", options=["Hindi", "English", "Other"],
