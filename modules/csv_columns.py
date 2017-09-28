@@ -3,9 +3,9 @@ def column_headers():
         
         "language_preference": ["Language Preference", "preferred Language Of Participant",
                                 "Prefer Language for SMS 1.Hindi, 2.English, 3.Gujarati", "Prefer Language for SMS"],
-        "name": ["Name", "First Name Of Child To Be Vaccinated", "Name of Child"],
+        "name": ["Name", "First Name Of Child To Be Vaccinated", "Name of Child", "Childs Name", "Child's Name"],
         "phone_number": ["Phone Number", "Mobile No of  Pregnant/ Mother/ Father",
-                    "Mobile Number of Respondent Capture At End", "Mobile Number of Respondent"],
+                    "Mobile Number of Respondent Capture At End", "Mobile Number of Respondent", "Primary Mobile"],
         "alt_phone_number": ["Alternative Phone", "Alternate Mobile Number", "Alternate Mobile No.", "Alternate Mobile No"],
         "delay_in_days": ["Delay in days"],
         "date_of_sign_up": ["Date of Sign Up", "Date of Survey (dd/mm/yy)", "Date of Survey"],
@@ -23,9 +23,10 @@ def column_headers():
         "district": ["District", "Name of District"],
         "city": ["City", "Center", "Name of District"],
         "monthly_income_rupees": ["Monthly Income"],
-        "children_previously_vaccinated": ["Previously had children vaccinated"],
+        "children_previously_vaccinated": ["Previously had children vaccinated", "Missed any Vaccination"],
         "not_vaccinated_why": ["If not vaccinated why"],
-        "mother_first_name": ["Mother's First", "Name Of The Mother", "Name of Parents/Female Member of HH/Pregnant or Mother of child"],
+        "mother_first_name": ["Mother's First", "Name Of The Mother",
+            "Name of Parents/Female Member of HH/Pregnant or Mother of child", "Mothers Name", "Mother's Name"],
         "mother_last_name": ["Mother's Last"],
 
         # Type of Sign Up
