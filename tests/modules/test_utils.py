@@ -1,12 +1,14 @@
 from datetime import datetime
 from django.test import TestCase
+from django.utils import timezone
 
 from modules.utils import quote, phone_number_is_valid, remove_nondigit_characters, \
                                 add_country_code_to_phone_number, prepare_phone_number
 from modules.date_helper import date_string_to_date, date_is_valid, \
                                 date_to_date_string, date_string_dmy_to_date, \
                                 date_string_mdy_to_date, date_string_ymd_to_date, \
-                                try_parsing_partner_date, try_parsing_gen_date
+                                try_parsing_partner_date, try_parsing_gen_date, \
+                                datetime_string_mdy_to_datetime
 from six import u
 
 class QuoteTests(TestCase):
@@ -470,6 +472,46 @@ class DateStringToDateTests(TestCase):
         self.assertEqual(datetime(2009, 12, 12, 0, 0).date(), try_parsing_gen_date("2009-12-12"))
         self.assertEqual(datetime(2009, 8, 12, 0, 0).date(), try_parsing_gen_date("2009-08-12"))
         self.assertEqual(datetime(2014, 12, 8, 0, 0).date(), try_parsing_gen_date("2014-12-08"))
+
+class DatetimeStringToDatetimeTests(TestCase):
+    def test_datetime_string_mdy_to_datetime(self):
+        self.assertEqual(datetime(2017, 6, 20, 18, 50, 20).replace(tzinfo=timezone.get_default_timezone()), datetime_string_mdy_to_datetime("6/20/2017 6:50:20 PM"))
+        self.assertEqual(datetime(2017, 6, 20, 6, 50, 20).replace(tzinfo=timezone.get_default_timezone()), datetime_string_mdy_to_datetime("6/20/2017 6:50:20 AM"))
+        self.assertEqual(datetime(2015, 12, 19, 0, 10, 20).replace(tzinfo=timezone.get_default_timezone()), datetime_string_mdy_to_datetime("12/19/2015 12:10:20 AM"))
+        self.assertEqual(datetime(2015, 12, 19, 12, 10, 20).replace(tzinfo=timezone.get_default_timezone()), datetime_string_mdy_to_datetime("12/19/2015 12:10:20 PM"))
+        self.assertEqual(datetime(2015, 12, 19, 11, 10, 20).replace(tzinfo=timezone.get_default_timezone()), datetime_string_mdy_to_datetime("12/19/2015 11:10:20 AM"))
+        self.assertEqual(datetime(2015, 12, 19, 23, 10, 20).replace(tzinfo=timezone.get_default_timezone()), datetime_string_mdy_to_datetime("12/19/2015 11:10:20 PM"))
+        self.assertEqual(datetime(2020, 12, 19, 23, 10, 20).replace(tzinfo=timezone.get_default_timezone()), datetime_string_mdy_to_datetime("12/19/2020 11:10:20 PM"))
+        self.assertEqual(datetime(2016, 1, 10, 16, 5, 7).replace(tzinfo=timezone.get_default_timezone()), datetime_string_mdy_to_datetime("01/10/2016 4:05:07 PM"))
+        self.assertEqual(datetime(2016, 1, 10, 16, 5, 7).replace(tzinfo=timezone.get_default_timezone()), datetime_string_mdy_to_datetime("01/10/2016 4:05:07 PM"))
+        self.assertEqual(datetime(2016, 2, 29, 16, 5, 7).replace(tzinfo=timezone.get_default_timezone()), datetime_string_mdy_to_datetime("02/29/2016 4:05:07 PM"))
+        self.assertEqual(datetime(2020, 2, 29, 16, 5, 7).replace(tzinfo=timezone.get_default_timezone()), datetime_string_mdy_to_datetime("02/29/2020 4:05:07 PM"))
+    
+    def test_fake_datetimes_for_datetime_string_mdy_to_datetime(self):
+        with self.assertRaises(ValueError):
+            self.assertEqual(datetime_string_mdy_to_datetime("16/20/2017 6:50:20 AM"))
+        with self.assertRaises(ValueError):
+            self.assertEqual(datetime_string_mdy_to_datetime("6/35/2017 6:50:20 AM"))
+        with self.assertRaises(ValueError):
+            self.assertEqual(datetime_string_mdy_to_datetime("16/20/20217 6:50:20 AM"))
+        with self.assertRaises(ValueError):
+            self.assertEqual(datetime_string_mdy_to_datetime("12/20/2017 16:50:20 AM"))
+        with self.assertRaises(ValueError):
+            self.assertEqual(datetime_string_mdy_to_datetime("6/20/2017 6:70:20 AM"))
+        with self.assertRaises(ValueError):
+            self.assertEqual(datetime_string_mdy_to_datetime("6/20/2017 6:50:80 AM"))
+        with self.assertRaises(ValueError):
+            self.assertEqual(datetime_string_mdy_to_datetime("6/20/2017 6:50:510 AM"))
+        with self.assertRaises(ValueError):
+            self.assertEqual(datetime_string_mdy_to_datetime("6/20/2017 6:150:10 AM"))
+        with self.assertRaises(ValueError):
+            self.assertEqual(datetime_string_mdy_to_datetime("6/20/2017 6:50:10 A"))
+        with self.assertRaises(ValueError):
+            self.assertEqual(datetime_string_mdy_to_datetime("6/20/2017 6:50:10"))
+        with self.assertRaises(ValueError):
+            self.assertEqual(datetime_string_mdy_to_datetime("6/20/2017 6:50:10 PMt"))
+        with self.assertRaises(ValueError):
+            self.assertEqual(datetime_string_mdy_to_datetime("2/29/2017 6:50:10 PM"))
 
 class DateToDateStringTests(TestCase):
     def test_dates_get_converted_to_date_strings(self):

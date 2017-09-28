@@ -277,6 +277,87 @@ class UploadContactsContactFieldsTests(TestCase):
         self.assertTrue(preg_contact.preg_signup)
 
     @patch("logging.error")
+    def test_contact_personal_info_correctly_assigned_telerivet(self, logging_mock):
+        """A contact with name: Aaarsh, phone number: 910123456886, alt_phone_number: "",
+            gender: "", mother_tongue: "", religion: "", state: "", division: "",
+            district: "", city: "", monthly_income_rupees: "", children_previously_vaccinated: "",
+            not_vaccinated_why: "", mother_first_name: "", mother_last_name: "",
+            exists in the example.csv file
+        """
+        self.upload_file(filepath="tests/data/example.csv", source="TR")
+        non_preg_contact = Contact.objects.get(name="Aaarsh", phone_number="911234567890",
+            gender="", mother_tongue="", religion="", state="", division="",
+            district="", city="", monthly_income_rupees=999999, children_previously_vaccinated=None,
+            not_vaccinated_why="", mother_first_name="", mother_last_name="")
+        self.assertFalse(non_preg_contact.preg_signup)
+
+        """A contact with name: Aakriti, phone number: 911234567893, alt_phone_number: "",
+            gender: "", mother_tongue: "", religion: "", state: "", division: "",
+            district: "", city: "", monthly_income_rupees: "", children_previously_vaccinated: "",
+            not_vaccinated_why: "", mother_first_name: "", mother_last_name: "",
+            exists in the example.csv file
+        """
+        alt_phone_contact = Contact.objects.get(name="Aakriti", phone_number="911234567893",
+            gender="", mother_tongue="", religion="", state="", division="",
+            district="", city="", monthly_income_rupees=999999, children_previously_vaccinated=None,
+            not_vaccinated_why="", mother_first_name="", mother_last_name="")
+        self.assertEqual("", alt_phone_contact.alt_phone_number)
+
+        """A contact with name: "Aadya", phone number: 911234567892, alt_phone_number: ""
+            gender: "", mother_tongue: "", religion: "", state: "", division: "",
+            district: "", city: "", monthly_income_rupees: "", children_previously_vaccinated: "",
+            not_vaccinated_why: "", mother_first_name: "", mother_last_name: "",
+            exists in the example.csv file
+        """
+        preg_contact = Contact.objects.get(name="Aadya", phone_number="911234567892",
+            gender="", mother_tongue="", religion="", state="", division="",
+            district="", city="", monthly_income_rupees=999999, children_previously_vaccinated=None,
+            not_vaccinated_why="", mother_first_name="", mother_last_name="")
+        self.assertTrue(preg_contact.preg_signup)
+
+    @patch("logging.error")
+    def test_contact_personal_info_correctly_assigned_maps(self, logging_mock):
+        """A contact with name: RAJNEEL, nickname: "RABI", phone number: 8888800099, alt_phone_number: "7777700124",
+            gender: DOESNT EXIST, mother_tongue: "1" (for Hindi), religion: DOESNT EXIST, state: "MADHYA PRADESH", division: DOESNT EXIST,
+            district: "SIHOR", city: DOESNT EXIST, monthly_income_rupees: DOESNT EXIST, children_previously_vaccinated: DOESNT EXIST,
+            not_vaccinated_why: DOESNT EXIST, mother_first_name: "SAHIN W/O RAHUL BHATTI", mother_last_name: DOESNT EXIST,
+            exists in the example-m.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example-m.csv", source="MAPS")
+        non_preg_contact = Contact.objects.get(name="RABI", phone_number="918888800099",
+            gender="", mother_tongue="Hindi", religion="", state="MADHYA PRADESH", division="",
+            district="SIHOR", city="SIHOR", monthly_income_rupees=999999, children_previously_vaccinated=None,
+            not_vaccinated_why="", mother_first_name="SAHIN W/O RAHUL BHATTI", mother_last_name="")
+        self.assertFalse(non_preg_contact.preg_signup)
+
+        """A contact with name: RAJ, nickname: "PRAYASH", phone number: 8888800199, alt_phone_number: "0",
+            gender: DOESNT EXIST, mother_tongue: "1" (for Hindi), religion: DOESNT EXIST, state: "MADHYA PRADESH", division: DOESNT EXIST,
+            district: "SIHOR", city: DOESNT EXIST, monthly_income_rupees: DOESNT EXIST, children_previously_vaccinated: DOESNT EXIST,
+            not_vaccinated_why: DOESNT EXIST, mother_first_name: "ANITA W/O AKHILSH PARMAR", mother_last_name: DOESNT EXIST,
+            exists in the example-m.csv file
+            NOT a pregnant signup
+        """
+        alt_phone_contact = Contact.objects.get(name="PRAYASH", phone_number="918888800199",
+            gender="", mother_tongue="Hindi", religion="", state="MADHYA PRADESH", division="",
+            district="SIHOR", city="SIHOR", monthly_income_rupees=999999, children_previously_vaccinated=None,
+            not_vaccinated_why="", mother_first_name="ANITA W/O AKHILSH PARMAR", mother_last_name="")
+        self.assertEqual("", alt_phone_contact.alt_phone_number)
+
+        """A contact with name: "", phone number: 8888800288, alt_phone_number: "7777700246",
+            gender: DOESNT EXIST, mother_tongue: "1" (for Hindi), religion: DOESNT EXIST, state: "MADHYA PRADESH", division: DOESNT EXIST,
+            district: "SIHOR", city: DOESNT EXIST, monthly_income_rupees: DOESNT EXIST, children_previously_vaccinated: DOESNT EXIST,
+            not_vaccinated_why: DOESNT EXIST, mother_first_name: "AARTI W/O BALRAM", mother_last_name: DOESNT EXIST,
+            exists in the example-m.csv file
+            IS a pregnant signup
+        """
+        preg_contact = Contact.objects.get(name=hindi_placeholder_name(), phone_number="918888800288",
+            gender="", mother_tongue="Hindi", religion="", state="MADHYA PRADESH", division="",
+            district="SIHOR", city="SIHOR", monthly_income_rupees=999999, children_previously_vaccinated=None,
+            not_vaccinated_why="", mother_first_name="AARTI W/O BALRAM", mother_last_name="")
+        self.assertTrue(preg_contact.preg_signup)
+
+    @patch("logging.error")
     def test_contact_personal_info_correctly_assigned_hansa(self, logging_mock):
         """A contact with name: Aaliyah, phone number: 910123456886, alt_phone_number: "",
             gender: "Male", mother_tongue: "", religion: DOESNT EXIST, state: "Madhya Pradesh", division: "Indore",
@@ -308,15 +389,73 @@ class UploadContactsContactFieldsTests(TestCase):
         """A contact with name: "", phone number: 912345678901, alt_phone_number: "",
             gender: "", mother_tongue: "", religion: DOESNT EXIST, state: "Madhya Pradesh", division: "Indore",
             district: "Indore", city: "Indore", monthly_income_rupees: DOESNT EXIST, children_previously_vaccinated: DOESNT EXIST,
-            not_vaccinated_why: DOESNT EXIST, mother_first_name: "s", mother_last_name: DOESNT EXIST,
+            not_vaccinated_why: DOESNT EXIST, mother_first_name: "", mother_last_name: DOESNT EXIST,
             exists in the example-h.csv file
             IS a pregnant signup
         """
-        four_months = datetime(2017, 8, 25).date() + relativedelta(months=-4) + relativedelta(days=280)
         preg_contact = Contact.objects.get(name=hindi_placeholder_name(), phone_number="912345678901",
             gender="", mother_tongue="", religion="", state="Madhya Pradesh", division="Indore",
             district="Indore", city="Indore", monthly_income_rupees=999999, children_previously_vaccinated=None,
             not_vaccinated_why="", mother_first_name="", mother_last_name="")
+        self.assertTrue(preg_contact.preg_signup)
+
+    @patch("logging.error")
+    def test_contact_signup_info_correctly_assigned_telerivet(self, logging_mock):
+        """A contact with name: Aaarsh, phone number: 911234567890, alt_phone_number: "",
+            method_of_sign_up: "Online Form", org_sign_up: "", hospital_name: "", doctor_name: "",
+            exists in the example.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example.csv", source="TR")
+        non_preg_contact = Contact.objects.get(name="Aaarsh", phone_number="911234567890",
+            method_of_sign_up="Online Form", org_sign_up="", hospital_name="", doctor_name="")
+        self.assertFalse(non_preg_contact.preg_signup)
+
+        """A contact with name: Aakriti, phone number: 911234567893, alt_phone_number: "",
+            method_of_sign_up: "Text", org_sign_up: "", hospital_name: "", doctor_name: "",
+            exists in the example.csv file
+        """
+        alt_phone_contact = Contact.objects.get(name="Aakriti", phone_number="911234567893",
+            method_of_sign_up="Text", org_sign_up="", hospital_name="", doctor_name="")
+        self.assertEqual("", alt_phone_contact.alt_phone_number)
+
+        """A contact with name: "Aadya", phone number: 911234567892, alt_phone_number: "",
+            method_of_sign_up: "Door to Door", org_sign_up: "MAPS", hospital_name: "", doctor_name: "",
+            exists in the example.csv file
+            IS a pregnant signup
+        """
+        preg_contact = Contact.objects.get(name="Aadya", phone_number="911234567892",
+            method_of_sign_up="Door to Door", org_sign_up="MAPS", hospital_name="", doctor_name="")
+        self.assertTrue(preg_contact.preg_signup)
+
+    @patch("logging.error")
+    def test_contact_signup_info_correctly_assigned_maps(self, logging_mock):
+        """A contact with name: RAJNEEL, nickname: "RABI", phone number: 8888800099, alt_phone_number: "7777700124",
+            hospital_name: DOESNT EXIST, doctor_name: DOESNT EXIST,
+            exists in the example-m.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example-m.csv", source="MAPS")
+        non_preg_contact = Contact.objects.get(name="RABI", phone_number="918888800099",
+            method_of_sign_up="Door to Door", org_sign_up="MAPS", hospital_name="", doctor_name="")
+        self.assertFalse(non_preg_contact.preg_signup)
+
+        """A contact with name: RAJ, nickname: "PRAYASH", phone number: 8888800199, alt_phone_number: "0",
+            hospital_name: DOESNT EXIST, doctor_name: DOESNT EXIST,
+            exists in the example-m.csv file
+            NOT a pregnant signup
+        """
+        alt_phone_contact = Contact.objects.get(name="PRAYASH", phone_number="918888800199",
+            method_of_sign_up="Door to Door", org_sign_up="MAPS", hospital_name="", doctor_name="")
+        self.assertEqual("", alt_phone_contact.alt_phone_number)
+
+        """A contact with name: "", phone number: 8888800288, alt_phone_number: "7777700246",
+            hospital_name: DOESNT EXIST, doctor_name: DOESNT EXIST,
+            exists in the example-m.csv file
+            IS a pregnant signup
+        """
+        preg_contact = Contact.objects.get(name=hindi_placeholder_name(), phone_number="918888800288",
+            method_of_sign_up="Door to Door", org_sign_up="MAPS", hospital_name="", doctor_name="")
         self.assertTrue(preg_contact.preg_signup)
 
     @patch("logging.error")
@@ -351,6 +490,66 @@ class UploadContactsContactFieldsTests(TestCase):
         self.assertTrue(preg_contact.preg_signup)
 
     @patch("logging.error")
+    def test_contact_system_info_correctly_assigned_telerivet(self, logging_mock):
+        """A contact with name: Aaarsh, phone number: 911234567890, alt_phone_number: "",
+            telerivet_contact_id: DOESNT EXIST, trial_id: DOESNT EXIST, trial_group: DOESNT EXIST,
+            exists in the example-h.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example.csv", source="TR")
+        non_preg_contact = Contact.objects.get(name="Aaarsh", phone_number="911234567890",
+            telerivet_contact_id="CT8af294d7e82e3dd6", trial_id="AB-124G", trial_group="C")
+        self.assertFalse(non_preg_contact.preg_signup)
+
+        """A contact with name: Aakriti, phone number: 911234567893, alt_phone_number: "",
+            telerivet_contact_id: DOESNT EXIST, trial_id: DOESNT EXIST, trial_group: DOESNT EXIST,
+            exists in the example-h.csv file
+            NOT a pregnant signup
+        """
+        alt_phone_contact = Contact.objects.get(name="Aakriti", phone_number="911234567893",
+            telerivet_contact_id="CTe938277480646460", trial_id="", trial_group="")
+        self.assertEqual("", alt_phone_contact.alt_phone_number)
+
+        """A contact with name: "Aadya", phone number: 911234567892, alt_phone_number: "",
+            telerivet_contact_id: DOESNT EXIST, trial_id: DOESNT EXIST, trial_group: DOESNT EXIST,
+            exists in the example-h.csv file
+            IS a pregnant signup
+        """
+        preg_contact = Contact.objects.get(name="Aadya", phone_number="911234567892",
+            telerivet_contact_id="CTe578af77e32bedef", trial_id="", trial_group="")
+        self.assertTrue(preg_contact.preg_signup)
+
+    @patch("logging.error")
+    def test_contact_system_info_correctly_assigned_maps(self, logging_mock):
+        """A contact with name: RAJNEEL, nickname: "RABI", phone number: 8888800099, alt_phone_number: "7777700124",
+            telerivet_contact_id: DOESNT EXIST, trial_id: DOESNT EXIST, trial_group: DOESNT EXIST,
+            exists in the example-m.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example-m.csv", source="MAPS")
+        non_preg_contact = Contact.objects.get(name="RABI", phone_number="918888800099",
+            telerivet_contact_id="", trial_id="", trial_group="")
+        self.assertFalse(non_preg_contact.preg_signup)
+
+        """A contact with name: RAJ, nickname: "PRAYASH", phone number: 8888800199, alt_phone_number: "0",
+            telerivet_contact_id: DOESNT EXIST, trial_id: DOESNT EXIST, trial_group: DOESNT EXIST,
+            exists in the example-m.csv file
+            NOT a pregnant signup
+        """
+        alt_phone_contact = Contact.objects.get(name="PRAYASH", phone_number="918888800199",
+            telerivet_contact_id="", trial_id="", trial_group="")
+        self.assertEqual("", alt_phone_contact.alt_phone_number)
+
+        """A contact with name: "", phone number: 8888800288, alt_phone_number: "7777700246",
+            telerivet_contact_id: DOESNT EXIST, trial_id: DOESNT EXIST, trial_group: DOESNT EXIST,
+            exists in the example-m.csv file
+            IS a pregnant signup
+        """
+        preg_contact = Contact.objects.get(name=hindi_placeholder_name(), phone_number="918888800288",
+            preferred_time="", script_selection="", telerivet_sender_phone="")
+        self.assertTrue(preg_contact.preg_signup)
+
+    @patch("logging.error")
     def test_contact_system_info_correctly_assigned_hansa(self, logging_mock):
         """A contact with name: Aaliyah, phone number: 910123456886, alt_phone_number: "",
             telerivet_contact_id: DOESNT EXIST, trial_id: DOESNT EXIST, trial_group: DOESNT EXIST,
@@ -378,7 +577,81 @@ class UploadContactsContactFieldsTests(TestCase):
         """
         four_months = datetime(2017, 8, 25).date() + relativedelta(months=-4) + relativedelta(days=280)
         preg_contact = Contact.objects.get(name=hindi_placeholder_name(), phone_number="912345678901",
-            preferred_time="", script_selection="", telerivet_sender_phone="")
+            telerivet_contact_id="", trial_id="", trial_group="")
+        self.assertTrue(preg_contact.preg_signup)
+
+    @patch("logging.error")
+    def test_contact_message_references_correctly_assigned_telerivet(self, logging_mock):
+        """A contact with name: Aaarsh, phone number: 911234567890, alt_phone_number: "",
+            preferred_time: DOESNT EXIST, script_selection: DOESNT EXIST, telerivet_sender_phone: DOESNT EXIST
+            last_heard_from: DOESNT EXIST, last_contacted: DOESNT EXIST, time_created: DOESNT EXIST,
+            exists in the example-h.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example.csv", source="HANSA")
+        non_preg_contact = Contact.objects.get(name="Aaarsh", phone_number="911234567890",
+            preferred_time="Text Default Time", script_selection="HND", telerivet_sender_phone="", last_heard_from=None,
+            last_contacted=datetime(2017, 6, 29, 4, 0, 4).replace(tzinfo=timezone.get_default_timezone()), time_created=datetime(2017, 7, 1).date())
+        self.assertFalse(non_preg_contact.preg_signup)
+
+        """A contact with name: Aakriti, phone number: 911234567893, alt_phone_number: "",
+            preferred_time: DOESNT EXIST, script_selection: DOESNT EXIST, telerivet_sender_phone: DOESNT EXIST
+            last_heard_from: DOESNT EXIST, last_contacted: DOESNT EXIST, time_created: DOESNT EXIST,
+            exists in the example-h.csv file
+            NOT a pregnant signup
+        """
+        alt_phone_contact = Contact.objects.get(name="Aakriti", phone_number="911234567893",
+            preferred_time="", script_selection="", telerivet_sender_phone="", last_heard_from=None,
+            last_contacted=None, time_created=datetime(2017, 6, 29).date())
+        self.assertEqual("", alt_phone_contact.alt_phone_number)
+
+        """A contact with name: "Aadya", phone number: 911234567892, alt_phone_number: "",
+            preferred_time: DOESNT EXIST, script_selection: DOESNT EXIST, telerivet_sender_phone: DOESNT EXIST
+            last_heard_from: DOESNT EXIST, last_contacted: DOESNT EXIST, time_created: DOESNT EXIST,
+            exists in the example-h.csv file
+            IS a pregnant signup
+        """
+        preg_contact = Contact.objects.get(name="Aadya", phone_number="911234567892",
+            preferred_time="", script_selection="", telerivet_sender_phone="", last_heard_from=datetime(2017, 6, 16, 18, 51, 28).replace(tzinfo=timezone.get_default_timezone()),
+            last_contacted=datetime(2017, 6, 16, 18, 51, 29).replace(tzinfo=timezone.get_default_timezone()), time_created=datetime(2017, 6, 16).date())
+        self.assertTrue(preg_contact.preg_signup)
+
+    @freeze_time(datetime(2017, 7, 21, 0, 0).replace(tzinfo=timezone.get_default_timezone()))
+    @patch("logging.error")
+    def test_contact_message_references_correctly_assigned_maps(self, logging_mock):
+        frozen_time = datetime.now()
+        """A contact with name: RAJNEEL, nickname: "RABI", phone number: 8888800099, alt_phone_number: "7777700124",
+            preferred_time: DOESNT EXIST, script_selection: DOESNT EXIST, telerivet_sender_phone: DOESNT EXIST
+            last_heard_from: DOESNT EXIST, last_contacted: DOESNT EXIST, time_created: DOESNT EXIST,
+            exists in the example-m.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example-m.csv", source="MAPS")
+        non_preg_contact = Contact.objects.get(name="RABI", phone_number="918888800099",
+            preferred_time="", script_selection="", telerivet_sender_phone="", last_heard_from=None,
+            last_contacted=None, time_created=frozen_time)
+        self.assertFalse(non_preg_contact.preg_signup)
+
+        """A contact with name: RAJ, nickname: "PRAYASH", phone number: 8888800199, alt_phone_number: "0",
+            preferred_time: DOESNT EXIST, script_selection: DOESNT EXIST, telerivet_sender_phone: DOESNT EXIST
+            last_heard_from: DOESNT EXIST, last_contacted: DOESNT EXIST, time_created: DOESNT EXIST,
+            exists in the example-m.csv file
+            NOT a pregnant signup
+        """
+        alt_phone_contact = Contact.objects.get(name="PRAYASH", phone_number="918888800199",
+            preferred_time="", script_selection="", telerivet_sender_phone="", last_heard_from=None,
+            last_contacted=None, time_created=frozen_time)
+        self.assertEqual("", alt_phone_contact.alt_phone_number)
+
+        """A contact with name: "", phone number: 8888800288, alt_phone_number: "7777700246",
+            preferred_time: DOESNT EXIST, script_selection: DOESNT EXIST, telerivet_sender_phone: DOESNT EXIST
+            last_heard_from: DOESNT EXIST, last_contacted: DOESNT EXIST, time_created: DOESNT EXIST,
+            exists in the example-m.csv file
+            IS a pregnant signup
+        """
+        preg_contact = Contact.objects.get(name=hindi_placeholder_name(), phone_number="918888800288",
+            preferred_time="", script_selection="", telerivet_sender_phone="", last_heard_from=None,
+            last_contacted=None, time_created=frozen_time)
         self.assertTrue(preg_contact.preg_signup)
 
     @freeze_time(datetime(2017, 7, 21, 0, 0).replace(tzinfo=timezone.get_default_timezone()))

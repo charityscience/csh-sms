@@ -62,7 +62,7 @@ def make_contact_dict(row, source):
     new_dict["doctor_name"] = entry_or_empty_string(row=row, headers=headers["doctor_name"])
 
     # System Identification
-    new_dict["telerivet_contact_id"] = entry_or_empty_string(row=row, headers=["telerivet_contact_id"])
+    new_dict["telerivet_contact_id"] = entry_or_empty_string(row=row, headers=headers["telerivet_contact_id"])
     new_dict["trial_id"] = entry_or_empty_string(row=row, headers=headers["trial_id"])
     new_dict["trial_group"] = entry_or_empty_string(row=row, headers=headers["trial_group"])
 

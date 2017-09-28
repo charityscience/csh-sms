@@ -21,7 +21,7 @@ def column_headers():
         "state": ["State", "Name of State"],
         "division": ["Division", "Name of Division"],
         "district": ["District", "Name of District"],
-        "city": ["City", "Name of District", "Center"],
+        "city": ["City", "Center", "Name of District"],
         "monthly_income_rupees": ["Monthly Income"],
         "children_previously_vaccinated": ["Previously had children vaccinated"],
         "not_vaccinated_why": ["If not vaccinated why"],
@@ -37,7 +37,7 @@ def column_headers():
         "month_of_pregnancy": ["Current Month Of Pregnancy", "Month of Pregnancy"],
 
         # System Identification
-        "telerivet_contact_id": ["Telerivet Contact ID"],
+        "telerivet_contact_id": ["Telerivet Contact ID", "Contact ID"],
         "trial_id": ["Trial ID"],
         "trial_group": ["Trial Group"],
 
