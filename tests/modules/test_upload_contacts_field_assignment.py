@@ -451,7 +451,7 @@ class UploadContactsContactFieldsTests(TestCase):
             gender: DOESNT EXIST, mother_tongue: DOESNT EXIST, religion: DOESNT EXIST, state: DOESNT EXIST, division: DOESNT EXIST,
             district: DOESNT EXIST, city: DOESNT EXIST, monthly_income_rupees: DOESNT EXIST, children_previously_vaccinated: DOESNT EXIST,
             not_vaccinated_why: DOESNT EXIST, mother_first_name: "PRANGAKTA", mother_last_name: DOESNT EXIST,
-            exists in the example-h.csv file
+            exists in the example-w.csv file
         """
         self.upload_file(filepath="tests/data/example-w.csv", source="WARDHA")
         blank_name_contact = Contact.objects.get(name=hindi_placeholder_name(), phone_number="915555565434",
@@ -464,7 +464,7 @@ class UploadContactsContactFieldsTests(TestCase):
                 gender: DOESNT EXIST, mother_tongue: DOESNT EXIST, religion: DOESNT EXIST, state: DOESNT EXIST, division: DOESNT EXIST,
                 district: DOESNT EXIST, city: DOESNT EXIST, monthly_income_rupees: DOESNT EXIST, children_previously_vaccinated: DOESNT EXIST,
                 not_vaccinated_why: DOESNT EXIST, mother_first_name: "SUKANYA", mother_last_name: DOESNT EXIST,
-                exists in the example-h.csv file
+                exists in the example-w.csv file
                 NOT a pregnant signup
             """
         existing_name_contact = Contact.objects.get(name="POONAM", phone_number="915555565528",
@@ -564,6 +564,27 @@ class UploadContactsContactFieldsTests(TestCase):
         self.assertTrue(preg_contact.preg_signup)
 
     @patch("logging.error")
+    def test_contact_signup_info_correctly_assigned_wardha(self, logging_mock):
+        """A contact with name: "", phone number 915555565434, alt_phone_number: DOESNT EXIST,
+            hospital_name: DOESNT EXIST, doctor_name: DOESNT EXIST,
+            exists in the example-w.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example-w.csv", source="WARDHA")
+        blank_name_contact = Contact.objects.get(name=hindi_placeholder_name(), phone_number="915555565434",
+            method_of_sign_up="Hospital", org_sign_up="WARDHA", hospital_name="Wardha", doctor_name="")
+        self.assertFalse(blank_name_contact.preg_signup)
+
+        """A contact with name: "POONAM", phone number 915555565528, alt_phone_number: DOESNT EXIST,
+            hospital_name: DOESNT EXIST, doctor_name: DOESNT EXIST,
+            exists in the example-w.csv file
+            NOT a pregnant signup
+        """
+        existing_name_contact = Contact.objects.get(name="POONAM", phone_number="915555565528",
+            method_of_sign_up="Hospital", org_sign_up="WARDHA", hospital_name="Wardha", doctor_name="")
+        self.assertEqual("", existing_name_contact.alt_phone_number)
+
+    @patch("logging.error")
     def test_contact_system_info_correctly_assigned_telerivet(self, logging_mock):
         """A contact with name: Aaarsh, phone number: 911234567890, alt_phone_number: "",
             telerivet_contact_id: DOESNT EXIST, trial_id: DOESNT EXIST, trial_group: DOESNT EXIST,
@@ -653,6 +674,27 @@ class UploadContactsContactFieldsTests(TestCase):
         preg_contact = Contact.objects.get(name=hindi_placeholder_name(), phone_number="912345678901",
             telerivet_contact_id="", trial_id="", trial_group="")
         self.assertTrue(preg_contact.preg_signup)
+
+    @patch("logging.error")
+    def test_contact_system_info_correctly_assigned_wardha(self, logging_mock):
+        """A contact with name: "", phone number 915555565434, alt_phone_number: DOESNT EXIST,
+            telerivet_contact_id: DOESNT EXIST, trial_id: DOESNT EXIST, trial_group: DOESNT EXIST,
+            exists in the example-w.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example-w.csv", source="WARDHA")
+        blank_name_contact = Contact.objects.get(name=hindi_placeholder_name(), phone_number="915555565434",
+            telerivet_contact_id="", trial_id="", trial_group="")
+        self.assertFalse(blank_name_contact.preg_signup)
+
+        """A contact with name: "POONAM", phone number 915555565528, alt_phone_number: DOESNT EXIST,
+            telerivet_contact_id: DOESNT EXIST, trial_id: DOESNT EXIST, trial_group: DOESNT EXIST,
+            exists in the example-w.csv file
+            NOT a pregnant signup
+        """
+        existing_name_contact = Contact.objects.get(name="POONAM", phone_number="915555565528",
+            telerivet_contact_id="", trial_id="", trial_group="")
+        self.assertEqual("", existing_name_contact.alt_phone_number)
 
     @patch("logging.error")
     def test_contact_message_references_correctly_assigned_telerivet(self, logging_mock):
@@ -766,3 +808,30 @@ class UploadContactsContactFieldsTests(TestCase):
             preferred_time="", script_selection="", telerivet_sender_phone="", last_heard_from=None,
             last_contacted=None, time_created=frozen_time)
         self.assertTrue(preg_contact.preg_signup)
+
+    @freeze_time(datetime(2017, 7, 21, 0, 0).replace(tzinfo=timezone.get_default_timezone()))
+    @patch("logging.error")
+    def test_contact_message_references_correctly_assigned_wardha(self, logging_mock):
+        frozen_time = datetime.now()
+        """A contact with name: "", phone number 915555565434, alt_phone_number: DOESNT EXIST,
+            preferred_time: DOESNT EXIST, script_selection: DOESNT EXIST, telerivet_sender_phone: DOESNT EXIST
+            last_heard_from: DOESNT EXIST, last_contacted: DOESNT EXIST, time_created: DOESNT EXIST,
+            exists in the example-w.csv file
+            NOT a pregnant signup
+        """
+        self.upload_file(filepath="tests/data/example-w.csv", source="WARDHA")
+        blank_name_contact = Contact.objects.get(name=hindi_placeholder_name(), phone_number="915555565434",
+            preferred_time="", script_selection="", telerivet_sender_phone="", last_heard_from=None,
+            last_contacted=None, time_created=frozen_time)
+        self.assertFalse(blank_name_contact.preg_signup)
+
+        """A contact with name: "POONAM", phone number 915555565528, alt_phone_number: DOESNT EXIST,
+            preferred_time: DOESNT EXIST, script_selection: DOESNT EXIST, telerivet_sender_phone: DOESNT EXIST
+            last_heard_from: DOESNT EXIST, last_contacted: DOESNT EXIST, time_created: DOESNT EXIST,
+            exists in the example-w.csv file
+            NOT a pregnant signup
+        """
+        existing_name_contact = Contact.objects.get(name="POONAM", phone_number="915555565528",
+            preferred_time="", script_selection="", telerivet_sender_phone="", last_heard_from=None,
+            last_contacted=None, time_created=frozen_time)
+        self.assertEqual("", existing_name_contact.alt_phone_number)
