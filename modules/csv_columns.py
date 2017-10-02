@@ -23,7 +23,7 @@ def column_headers():
         "district": ["District", "Name of District"],
         "city": ["City", "Center", "Name of District"],
         "monthly_income_rupees": ["Monthly Income"],
-        "children_previously_vaccinated": ["Previously had children vaccinated", "Missed any Vaccination"],
+        "children_previously_vaccinated": ["Previously had children vaccinated", "Previously Vaccinated"],
         "not_vaccinated_why": ["If not vaccinated why"],
         "mother_first_name": ["Mother's First", "Name Of The Mother",
             "Name of Parents/Female Member of HH/Pregnant or Mother of child", "Mothers Name", "Mother's Name"],

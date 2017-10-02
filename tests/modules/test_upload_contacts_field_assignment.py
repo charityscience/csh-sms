@@ -446,6 +446,34 @@ class UploadContactsContactFieldsTests(TestCase):
         self.assertTrue(preg_contact.preg_signup)
 
     @patch("logging.error")
+    def test_contact_personal_info_correctly_assigned_wardha(self, logging_mock):
+        """A contact with name: "", phone number 915555565434, alt_phone_number: DOESNT EXIST,
+            gender: DOESNT EXIST, mother_tongue: DOESNT EXIST, religion: DOESNT EXIST, state: DOESNT EXIST, division: DOESNT EXIST,
+            district: DOESNT EXIST, city: DOESNT EXIST, monthly_income_rupees: DOESNT EXIST, children_previously_vaccinated: DOESNT EXIST,
+            not_vaccinated_why: DOESNT EXIST, mother_first_name: "PRANGAKTA", mother_last_name: DOESNT EXIST,
+            exists in the example-h.csv file
+        """
+        self.upload_file(filepath="tests/data/example-w.csv", source="WARDHA")
+        blank_name_contact = Contact.objects.get(name=hindi_placeholder_name(), phone_number="915555565434",
+            gender="", mother_tongue="", religion="", state="", division="",
+            district="", city="", monthly_income_rupees=999999, children_previously_vaccinated=True,
+            not_vaccinated_why="", mother_first_name="PRANGAKTA", mother_last_name="")
+        self.assertFalse(blank_name_contact.preg_signup)
+
+        """A contact with name: "POONAM", phone number 915555565528, alt_phone_number: DOESNT EXIST,
+                gender: DOESNT EXIST, mother_tongue: DOESNT EXIST, religion: DOESNT EXIST, state: DOESNT EXIST, division: DOESNT EXIST,
+                district: DOESNT EXIST, city: DOESNT EXIST, monthly_income_rupees: DOESNT EXIST, children_previously_vaccinated: DOESNT EXIST,
+                not_vaccinated_why: DOESNT EXIST, mother_first_name: "SUKANYA", mother_last_name: DOESNT EXIST,
+                exists in the example-h.csv file
+                NOT a pregnant signup
+            """
+        existing_name_contact = Contact.objects.get(name="POONAM", phone_number="915555565528",
+            gender="", mother_tongue="", religion="", state="", division="",
+            district="", city="", monthly_income_rupees=999999, children_previously_vaccinated=True,
+            not_vaccinated_why="", mother_first_name="SUKANYA", mother_last_name="")
+        self.assertEqual("", existing_name_contact.alt_phone_number)
+
+    @patch("logging.error")
     def test_contact_signup_info_correctly_assigned_telerivet(self, logging_mock):
         """A contact with name: Aaarsh, phone number: 911234567890, alt_phone_number: "",
             method_of_sign_up: "Online Form", org_sign_up: "", hospital_name: "", doctor_name: "",
