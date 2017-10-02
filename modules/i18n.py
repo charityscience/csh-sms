@@ -26,10 +26,15 @@ def msg_placeholder_child(language):
     if language == "English":
         return "Your child"
     elif language == "Hindi":
-        return u'\u0906\u092a\u0915\u093e \u0936\u093f\u0936\u0941'
+        return hindi_placeholder_name()
     elif language == "Gujarati":
-        return u'\u0aa4\u0aae\u0abe\u0ab0\u0ac1\u0a82 \u0aac\u0abe\u0ab3\u0a95'
+        return gujarati_placeholder_name()
 
+def hindi_placeholder_name():
+    return u'\u0906\u092a\u0915\u093e \u0936\u093f\u0936\u0941'
+
+def gujarati_placeholder_name():
+    return u'\u0aa4\u0aae\u0abe\u0ab0\u0ac1\u0a82 \u0aac\u0abe\u0ab3\u0a95'
 
 def msg_failure(language):
     if language == "English":

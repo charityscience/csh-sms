@@ -24,11 +24,41 @@ def date_is_valid(date_string):
     except ValueError:
         return False
 
+def date_string_dmy_to_date(date_string):
+	for fmt in ["%d-%m-%Y", "%d/%m/%Y"]:
+		try:
+			return  datetime_from_date_string(date_string, fmt).date()
+		except ValueError:
+			pass
+	raise ValueError("No valid day-month-year date format")
+
 def date_string_ymd_to_date(date_string):
-	return  datetime_from_date_string(date_string, "%Y-%m-%d").date()
+	for fmt in ["%Y-%m-%d", "%Y/%m/%d"]:
+		try:
+			return datetime_from_date_string(date_string, fmt).date()
+		except ValueError:
+			pass
+	raise ValueError("No valid year-month-day date format")
 
 def date_string_mdy_to_date(date_string):
-	return  datetime_from_date_string(date_string, "%m-%d-%Y").date()
+	for fmt in ["%m-%d-%Y", "%m/%d/%Y"]:
+		try:
+			return  datetime_from_date_string(date_string, fmt).date()
+		except ValueError:
+			pass
+	raise ValueError("No valid month-day-year date format")
+
+def try_parsing_partner_date(date_string):
+	try:
+		return date_string_dmy_to_date(date_string)
+	except ValueError:
+		return date_string_ymd_to_date(date_string)
+
+def try_parsing_gen_date(date_string):
+	try:
+	    return date_string_ymd_to_date(date_string)
+	except ValueError:
+		return date_string_mdy_to_date(date_string)
 
 def datetime_string_mdy_to_datetime(date_string):
 	return  datetime_from_date_string(date_string, "%m/%d/%Y %I:%M:%S %p").replace(tzinfo=timezone.get_default_timezone())
@@ -36,17 +66,17 @@ def datetime_string_mdy_to_datetime(date_string):
 def datetime_from_date_string(date_string, date_format):
 	return datetime.strptime(date_string.strip(), date_format)
 
-def add_or_subtract_days(date_of_birth, num_of_days):
-	return date_of_birth + relativedelta(days=num_of_days)
+def add_or_subtract_days(date, num_of_days):
+	return date + relativedelta(days=num_of_days)
 
-def add_or_subtract_weeks(date_of_birth, num_of_weeks):
-	return date_of_birth + relativedelta(weeks=num_of_weeks)
+def add_or_subtract_weeks(date, num_of_weeks):
+	return date + relativedelta(weeks=num_of_weeks)
 
-def add_or_subtract_months(date_of_birth, num_of_months):
-	return date_of_birth + relativedelta(months=num_of_months)
+def add_or_subtract_months(date, num_of_months):
+	return date + relativedelta(months=num_of_months)
 
-def add_or_subtract_years(date_of_birth, num_of_years):
-	return date_of_birth + relativedelta(years=num_of_years)
+def add_or_subtract_years(date, num_of_years):
+	return date + relativedelta(years=num_of_years)
 
 def get_modified_dates(date_of_birth):
 	six_weeks = add_or_subtract_weeks(date_of_birth, 6)
