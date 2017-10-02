@@ -2,7 +2,7 @@ def column_headers():
     column_dict = {
         
         "language_preference": ["Language Preference", "preferred Language Of Participant",
-                                "Prefer Language for SMS 1.Hindi, 2.English, 3.Gujarati", "Prefer Language for SMS"],
+                                "Prefer Language for SMS 1.Hindi, 2.English, 3.Gujarati", "Prefer Language for SMS", "Language"],
         "name": ["Name", "First Name Of Child To Be Vaccinated", "Name of Child", "Childs Name", "Child's Name"],
         "phone_number": ["Phone Number", "Mobile No of  Pregnant/ Mother/ Father",
                     "Mobile Number of Respondent Capture At End", "Mobile Number of Respondent", "Primary Mobile"],
