@@ -8,7 +8,7 @@ def column_headers():
                     "Mobile Number of Respondent Capture At End", "Mobile Number of Respondent", "Primary Mobile"],
         "alt_phone_number": ["Alternative Phone", "Alternate Mobile Number", "Alternate Mobile No.", "Alternate Mobile No"],
         "delay_in_days": ["Delay in days"],
-        "date_of_sign_up": ["Date of Sign Up", "Date of Survey (dd/mm/yy)", "Date of Survey"],
+        "date_of_sign_up": ["Date of Sign Up", "Date of Survey (dd/mm/yy)", "Date of Survey", "Date of Signup"],
         "date_of_birth": ["Date of Birth", "Date Of Birth Of The Child",
                             "Date of Birth of Child (dd/mm/yyyy)", "Date of Birth of Child"],
         "functional_date_of_birth": ["Functional DoB"],
