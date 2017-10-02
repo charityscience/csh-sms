@@ -148,6 +148,12 @@ class DateStringToDateTests(TestCase):
         self.assertEqual(datetime(2009, 12, 12, 0, 0).date(), date_string_dmy_to_date("12-12-2009"))
         self.assertEqual(datetime(2009, 8, 12, 0, 0).date(), date_string_dmy_to_date("12-08-2009"))
         self.assertEqual(datetime(2014, 12, 8, 0, 0).date(), date_string_dmy_to_date("08-12-2014"))
+        self.assertEqual(datetime(2014, 2, 8, 0, 0).date(), date_string_dmy_to_date("8-02-2014"))
+        self.assertEqual(datetime(2014, 2, 8, 0, 0).date(), date_string_dmy_to_date("8/02/2014"))
+        self.assertEqual(datetime(2014, 2, 8, 0, 0).date(), date_string_dmy_to_date("08-2-2014"))
+        self.assertEqual(datetime(2014, 2, 8, 0, 0).date(), date_string_dmy_to_date("08/2/2014"))
+        self.assertEqual(datetime(2014, 2, 8, 0, 0).date(), date_string_dmy_to_date("8-2-2014"))
+        self.assertEqual(datetime(2014, 2, 8, 0, 0).date(), date_string_dmy_to_date("8/2/2014"))
 
     def test_nonworking_dates_for_date_string_mdy_to_date(self):
         with self.assertRaises(ValueError):
@@ -222,6 +228,12 @@ class DateStringToDateTests(TestCase):
         self.assertEqual(datetime(2009, 12, 12, 0, 0).date(), date_string_mdy_to_date("12-12-2009"))
         self.assertEqual(datetime(2009, 8, 12, 0, 0).date(), date_string_mdy_to_date("08-12-2009"))
         self.assertEqual(datetime(2014, 12, 8, 0, 0).date(), date_string_mdy_to_date("12-08-2014"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), date_string_mdy_to_date("8-02-2014"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), date_string_mdy_to_date("8/02/2014"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), date_string_mdy_to_date("08-2-2014"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), date_string_mdy_to_date("08/2/2014"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), date_string_mdy_to_date("8-2-2014"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), date_string_mdy_to_date("8/2/2014"))
 
     def test_nonworking_dates_for_date_string_ymd_to_date(self):
         with self.assertRaises(ValueError):
@@ -296,6 +308,13 @@ class DateStringToDateTests(TestCase):
         self.assertEqual(datetime(2009, 12, 12, 0, 0).date(), date_string_ymd_to_date("2009-12-12"))
         self.assertEqual(datetime(2009, 8, 12, 0, 0).date(), date_string_ymd_to_date("2009-08-12"))
         self.assertEqual(datetime(2014, 12, 8, 0, 0).date(), date_string_ymd_to_date("2014-12-08"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), date_string_ymd_to_date("2014-8-02"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), date_string_ymd_to_date("2014/8/02"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), date_string_ymd_to_date("2014-08-2"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), date_string_ymd_to_date("2014/08/2"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), date_string_ymd_to_date("2014-8-2"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), date_string_ymd_to_date("2014/8/2"))
+
 
     def test_nonworking_dates_for_try_parsing_partner_date(self):
         with self.assertRaises(ValueError):
@@ -384,6 +403,18 @@ class DateStringToDateTests(TestCase):
         self.assertEqual(datetime(2009, 12, 12, 0, 0).date(), try_parsing_partner_date("2009-12-12"))
         self.assertEqual(datetime(2009, 8, 12, 0, 0).date(), try_parsing_partner_date("2009-08-12"))
         self.assertEqual(datetime(2014, 12, 8, 0, 0).date(), try_parsing_partner_date("2014-12-08"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), try_parsing_partner_date("2014-8-02"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), try_parsing_partner_date("2014/8/02"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), try_parsing_partner_date("2014-08-2"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), try_parsing_partner_date("2014/08/2"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), try_parsing_partner_date("2014-8-2"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), try_parsing_partner_date("2014/8/2"))
+        self.assertEqual(datetime(2014, 2, 8, 0, 0).date(), try_parsing_partner_date("8-02-2014"))
+        self.assertEqual(datetime(2014, 2, 8, 0, 0).date(), try_parsing_partner_date("8/02/2014"))
+        self.assertEqual(datetime(2014, 2, 8, 0, 0).date(), try_parsing_partner_date("08-2-2014"))
+        self.assertEqual(datetime(2014, 2, 8, 0, 0).date(), try_parsing_partner_date("08/2/2014"))
+        self.assertEqual(datetime(2014, 2, 8, 0, 0).date(), try_parsing_partner_date("8-2-2014"))
+        self.assertEqual(datetime(2014, 2, 8, 0, 0).date(), try_parsing_partner_date("8/2/2014"))
     
     def test_nonworking_dates_for_try_parsing_gen_date(self):
         with self.assertRaises(ValueError):
@@ -472,6 +503,18 @@ class DateStringToDateTests(TestCase):
         self.assertEqual(datetime(2009, 12, 12, 0, 0).date(), try_parsing_gen_date("2009-12-12"))
         self.assertEqual(datetime(2009, 8, 12, 0, 0).date(), try_parsing_gen_date("2009-08-12"))
         self.assertEqual(datetime(2014, 12, 8, 0, 0).date(), try_parsing_gen_date("2014-12-08"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), try_parsing_gen_date("8-02-2014"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), try_parsing_gen_date("8/02/2014"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), try_parsing_gen_date("08-2-2014"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), try_parsing_gen_date("08/2/2014"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), try_parsing_gen_date("8-2-2014"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), try_parsing_gen_date("8/2/2014"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), try_parsing_gen_date("2014-8-02"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), try_parsing_gen_date("2014/8/02"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), try_parsing_gen_date("2014-08-2"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), try_parsing_gen_date("2014/08/2"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), try_parsing_gen_date("2014-8-2"))
+        self.assertEqual(datetime(2014, 8, 2, 0, 0).date(), try_parsing_gen_date("2014/8/2"))
 
 class DatetimeStringToDatetimeTests(TestCase):
     def test_datetime_string_mdy_to_datetime(self):
