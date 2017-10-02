@@ -1084,13 +1084,16 @@ class UploadContactsInputParserTests(TestCase):
 
         name_of_child = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name of Child': 'FakestNumber',
                             'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
-        title_noc = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'NAME OF CHILD': 'FakestNumber',
+        upper_noc = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'NAME OF CHILD': 'FakestNumber',
                             'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
-        upper_noc = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name Of Child': 'FakestNumber',
+        title_noc = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name Of Child': 'FakestNumber',
+                            'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
+        strange_cap_noc = {'Name of Respondent': 'first last', 'Name of The Mother': 'mom', 'Name Of cHILD': 'FakestNumber',
                             'Phone Number': '123456', 'Date of Birth': '2016-09-14'}
         self.assertTrue(matching_permutation(row=name_of_child, header=name_of_child_header))
         self.assertTrue(matching_permutation(row=title_noc, header=name_of_child_header))
         self.assertTrue(matching_permutation(row=upper_noc, header=name_of_child_header))
+        self.assertIsNone(matching_permutation(row=strange_cap_noc, header=name_of_child_header))
 
         language_preference = "preferred Language Of Participant"
         lang_pref = {'preferred Language Of Participant': 'Hindi', 'Name of The Mother': 'mom', 'Name of Child': 'FakestNumber',

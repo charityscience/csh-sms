@@ -61,6 +61,20 @@ class UploadContactsContactFieldsTests(TestCase):
         self.assertNotEqual(old_contact.date_of_birth, updated_contact.date_of_birth)
         self.assertEqual(old_contact.id, updated_contact.id)
 
+
+    @patch("logging.error")
+    def test_existing_contacts_are_updated_wardha(self, logging_mock):
+        """A contact with name: "", phone number 915555565434, and date of birth: 10/5/2017
+            exists in the example-w.csv file
+        """
+        old_contact = create_sample_contact(name=hindi_placeholder_name(), phone_number="915555565434",
+                                            date_of_birth=datetime(2016, 11, 1, 0,0).date())
+
+        self.upload_file(filepath="tests/data/example-w.csv", source="WARDHA")
+        updated_contact = Contact.objects.get(name=old_contact.name, phone_number=old_contact.phone_number)
+        self.assertNotEqual(old_contact.date_of_birth, updated_contact.date_of_birth)
+        self.assertEqual(old_contact.id, updated_contact.id)
+
     @patch("logging.error")
     def test_new_contacts_are_created_telerivet(self, logging_mock):
         old_all_contacts = Contact.objects.all()
@@ -86,6 +100,16 @@ class UploadContactsContactFieldsTests(TestCase):
         old_all_contacts = Contact.objects.all()
         old_contacts_count = Contact.objects.count()
         self.upload_file(filepath="tests/data/example-h.csv", source="HANSA")
+        new_all_contacts = Contact.objects.all()
+        new_contacts_count = Contact.objects.count()
+        self.assertNotEqual(old_all_contacts, new_all_contacts)
+        self.assertNotEqual(old_contacts_count, new_contacts_count)
+
+    @patch("logging.error")
+    def test_new_contacts_are_created_wardha(self, logging_mock):
+        old_all_contacts = Contact.objects.all()
+        old_contacts_count = Contact.objects.count()
+        self.upload_file(filepath="tests/data/example-w.csv", source="WARDHA")
         new_all_contacts = Contact.objects.all()
         new_contacts_count = Contact.objects.count()
         self.assertNotEqual(old_all_contacts, new_all_contacts)
@@ -275,6 +299,28 @@ class UploadContactsContactFieldsTests(TestCase):
             alt_phone_number="", date_of_birth=four_months, date_of_sign_up=datetime(2017, 8, 25).date(),
             language_preference="Hindi", delay_in_days=0, functional_date_of_birth=four_months)
         self.assertTrue(preg_contact.preg_signup)
+
+    @patch("logging.error")
+    def test_contact_vital_info_correctly_assigned_wardha(self, logging_mock):
+        """A contact with name: "", phone number 915555565434, alt_phone_number: DOESNT EXIST,
+            date of birth: 10/5/2017, date of sign up: "26/09/2017", delay in days: DOESNT EXIST,
+            month of pregnancy: DOESNT EXIST, language: Hindi, exists in the example-w.csv file
+            NOT a preg signup
+        """
+        self.upload_file(filepath="tests/data/example-w.csv", source="WARDHA")
+        blank_name_contact = Contact.objects.get(name=hindi_placeholder_name(), phone_number="915555565434",
+            alt_phone_number="", date_of_birth=datetime(2017, 5, 10).date(), date_of_sign_up=datetime(2017, 9, 26).date(),
+            language_preference="Hindi", delay_in_days=0, functional_date_of_birth=datetime(2017, 5, 10).date())
+        self.assertFalse(blank_name_contact.preg_signup)
+
+        """A contact with name: "POONAM", phone number 915555565528, alt_phone_number: DOESNT EXIST,
+            date of birth: 13/9/2017, date of sign up: "28/09/2017", delay in days: DOESNT EXIST,
+            month of pregnancy: DOESNT EXIST, language: Hindi, exists in the example-w.csv file
+        """
+        existing_name_contact = Contact.objects.get(name="POONAM", phone_number="915555565528",
+            alt_phone_number="", date_of_birth=datetime(2017, 9, 13).date(), date_of_sign_up=datetime(2017, 9, 28).date(),
+            language_preference="Hindi", delay_in_days=0, functional_date_of_birth=datetime(2017, 9, 13).date())
+        self.assertEqual("", existing_name_contact.alt_phone_number)
 
     @patch("logging.error")
     def test_contact_personal_info_correctly_assigned_telerivet(self, logging_mock):
