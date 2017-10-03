@@ -35,8 +35,8 @@ class Contact(models.Model):
     religion = models.CharField(max_length=50, blank=True)
     children_previously_vaccinated = models.NullBooleanField()
     not_vaccinated_why = models.CharField(max_length=500, blank=True)
-    mother_first_name = models.CharField(max_length=30, blank=True)
-    mother_last_name = models.CharField(max_length=30, blank=True)
+    mother_first_name = models.CharField(max_length=50, blank=True)
+    mother_last_name = models.CharField(max_length=50, blank=True)
     
     # Type of Sign Up
     method_of_sign_up = models.CharField(max_length=50, blank=True)
@@ -54,8 +54,8 @@ class Contact(models.Model):
 
     # System Identification
     telerivet_contact_id = models.CharField(max_length=50, blank=True)
-    trial_id = models.CharField(max_length=20, blank=True)
-    trial_group = models.CharField(max_length=20, blank=True)    
+    trial_id = models.CharField(max_length=40, blank=True)
+    trial_group = models.CharField(max_length=40, blank=True)    
 
 
     language_preference = models.CharField(max_length=20,
