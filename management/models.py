@@ -130,6 +130,8 @@ class Message(models.Model):
 
     # Message direction is Incoming or Outgoing
     direction = models.CharField(max_length=10)
+    
+    time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.body
