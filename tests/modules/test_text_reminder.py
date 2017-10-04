@@ -483,6 +483,15 @@ class TextReminderTests(TestCase):
         mocked_send_text.assert_called_once_with(message=tr.get_reminder_msg(),
                                                  phone_number="1-111-1111")
 
+    @freeze_time(FAKE_NOW)
+    @patch("modules.text_reminder.Texter.send")
+    def test_message_object_not_when_no_remind(self, mocked_send_text):
+       tr = text_reminder_object("10/7/2017") # 7 days ago
+       self.assertFalse(tr.should_remind_today())
+       self.assertFalse(Message.objects.filter(contact=tr.contact, direction="Outgoing", body=tr.get_reminder_msg()))
+       tr.remind()
+       self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing", body=tr.get_reminder_msg()).count())
+       self.assertFalse(mocked_send_text.called)
 
     def test_preg_signup_check(self):
         signup_and_update = text_reminder_object("4/6/2017", language="Hindi", preg_signup=True, preg_update=True)
