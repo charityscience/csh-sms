@@ -6,6 +6,7 @@ from django.test import TestCase
 from datetime import datetime
 
 from tests.fixtures import contact_object, text_reminder_object
+from management.models import Message
 from modules.text_processor import TextProcessor
 from modules.i18n import six_week_reminder_seven_days, six_week_reminder_one_day, \
                          ten_week_reminder_seven_days, ten_week_reminder_one_day, \
@@ -470,6 +471,18 @@ class TextReminderTests(TestCase):
         tp.process("END")
         self.assertTrue("Contact is cancelled." in tr.why_not_remind_reasons())
         self.assertFalse(tr.should_remind_today())
+
+    @freeze_time(FAKE_NOW)
+    @patch("modules.text_reminder.Texter.send")
+    def test_message_object_created_upon_remind(self, mocked_send_text):
+        tr = text_reminder_object("12/6/2017") # 7 days before the 6 week appointment
+        self.assertTrue(tr.should_remind_today())
+        self.assertFalse(Message.objects.filter(contact=tr.contact, direction="Outgoing", body=tr.get_reminder_msg()))
+        tr.remind()
+        self.assertEqual(1, Message.objects.filter(contact=tr.contact, direction="Outgoing", body=tr.get_reminder_msg()).count())
+        mocked_send_text.assert_called_once_with(message=tr.get_reminder_msg(),
+                                                 phone_number="1-111-1111")
+
 
     def test_preg_signup_check(self):
         signup_and_update = text_reminder_object("4/6/2017", language="Hindi", preg_signup=True, preg_update=True)
