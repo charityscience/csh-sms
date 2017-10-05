@@ -493,6 +493,95 @@ class TextReminderTests(TestCase):
        self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing", body=tr.get_reminder_msg()).count())
        self.assertFalse(mocked_send_text.called)
 
+    @patch("modules.text_reminder.Texter.send")
+    def test_multiple_message_objects_created_for_multiple_reminders(self, mocked_send_text):
+        freezer = freeze_time(datetime(2017, 7, 17, 0, 0))
+        freezer.start()
+        tr = text_reminder_object("12/6/2017") # 7 days before the 6 week appointment on July 24th
+        self.assertTrue(tr.should_remind_today())
+        self.assertFalse(Message.objects.filter(contact=tr.contact, direction="Outgoing", body=tr.get_reminder_msg()))
+        tr.remind()
+        self.assertEqual(1, Message.objects.filter(contact=tr.contact, direction="Outgoing", body=tr.get_reminder_msg()).count())
+        mocked_send_text.assert_called_once_with(message=tr.get_reminder_msg(),
+                                                 phone_number="1-111-1111")
+
+        freezer.stop()
+        freezer = freeze_time(datetime(2017, 7, 23, 0, 0)) # 1 days before the 6 week appointment on July 24th
+        freezer.start()
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(Message.objects.filter(contact=tr.contact, direction="Outgoing"))
+        tr.remind()
+        self.assertEqual(2, Message.objects.filter(contact=tr.contact, direction="Outgoing").count())
+        self.assertEqual(2, mocked_send_text.call_count)
+        freezer.stop()
+
+        freezer = freeze_time(datetime(2017, 8, 14, 0, 0)) # 7 days before the 10 week appointment on August 21th
+        freezer.start()
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(Message.objects.filter(contact=tr.contact, direction="Outgoing"))
+        tr.remind()
+        self.assertEqual(3, Message.objects.filter(contact=tr.contact, direction="Outgoing").count())
+        self.assertEqual(3, mocked_send_text.call_count)
+        freezer.stop()
+
+        freezer = freeze_time(datetime(2017, 8, 20, 0, 0)) # 1 days before the 10 week appointment on August 21th
+        freezer.start()
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(Message.objects.filter(contact=tr.contact, direction="Outgoing"))
+        tr.remind()
+        self.assertEqual(4, Message.objects.filter(contact=tr.contact, direction="Outgoing").count())
+        self.assertEqual(4, mocked_send_text.call_count)
+        freezer.stop()
+
+    @patch("modules.text_reminder.Texter.send")
+    def test_message_objects_created_only_when_reminders_sent(self, mocked_send_text):
+        freezer = freeze_time(datetime(2017, 7, 17, 0, 0))
+        freezer.start()
+        tr = text_reminder_object("12/6/2017") # 7 days before the 6 week appointment on July 24th
+        self.assertTrue(tr.should_remind_today())
+        self.assertFalse(Message.objects.filter(contact=tr.contact, direction="Outgoing", body=tr.get_reminder_msg()))
+        tr.remind()
+        self.assertEqual(1, Message.objects.filter(contact=tr.contact, direction="Outgoing", body=tr.get_reminder_msg()).count())
+        mocked_send_text.assert_called_once_with(message=tr.get_reminder_msg(),
+                                                 phone_number="1-111-1111")
+
+        freezer.stop()
+        freezer = freeze_time(datetime(2017, 7, 20, 0, 0)) # 4 days before the 6 week appointment on July 24th
+        freezer.start()
+        self.assertFalse(tr.should_remind_today())
+        self.assertTrue(Message.objects.filter(contact=tr.contact, direction="Outgoing"))
+        tr.remind()
+        self.assertEqual(1, Message.objects.filter(contact=tr.contact, direction="Outgoing").count())
+        self.assertEqual(1, mocked_send_text.call_count)
+        freezer.stop()
+
+        freezer = freeze_time(datetime(2017, 7, 23, 0, 0)) # 1 days before the 6 week appointment on July 24th
+        freezer.start()
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(Message.objects.filter(contact=tr.contact, direction="Outgoing"))
+        tr.remind()
+        self.assertEqual(2, Message.objects.filter(contact=tr.contact, direction="Outgoing").count())
+        self.assertEqual(2, mocked_send_text.call_count)
+        freezer.stop()
+
+        freezer = freeze_time(datetime(2017, 7, 27, 0, 0)) # 3 days after the 6 week appointment on July 24th
+        freezer.start()
+        self.assertFalse(tr.should_remind_today())
+        self.assertTrue(Message.objects.filter(contact=tr.contact, direction="Outgoing"))
+        tr.remind()
+        self.assertEqual(2, Message.objects.filter(contact=tr.contact, direction="Outgoing").count())
+        self.assertEqual(2, mocked_send_text.call_count)
+        freezer.stop()
+
+        freezer = freeze_time(datetime(2017, 8, 14, 0, 0)) # 7 days before the 10 week appointment on August 21th
+        freezer.start()
+        self.assertTrue(tr.should_remind_today())
+        self.assertTrue(Message.objects.filter(contact=tr.contact, direction="Outgoing"))
+        tr.remind()
+        self.assertEqual(3, Message.objects.filter(contact=tr.contact, direction="Outgoing").count())
+        self.assertEqual(3, mocked_send_text.call_count)
+        freezer.stop()
+
     def test_preg_signup_check(self):
         signup_and_update = text_reminder_object("4/6/2017", language="Hindi", preg_signup=True, preg_update=True)
         signup_no_update = text_reminder_object("4/6/2017", language="Hindi", preg_signup=True, preg_update=False)
