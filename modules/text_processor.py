@@ -2,8 +2,9 @@ import logging
 import string
 
 from django.utils import timezone
+from django.core.exceptions import MultipleObjectsReturned
 
-from management.models import Contact, Group
+from management.models import Contact, Group, Message
 from modules.texter import Texter
 from modules.utils import quote, add_contact_to_group
 from modules.date_helper import date_is_valid, date_string_to_date
@@ -155,6 +156,22 @@ class TextProcessor(object):
 
         response_text_message = action(child_name=child_name,
                                        date_of_birth=date, preg_update=preg_update)
+        self.create_message_object(child_name=child_name, phone_number=self.phone_number,
+                                    language=self.language, body=response_text_message,
+                                    direction="Outgoing")
         Texter().send(message=response_text_message,
-                      phone_number=self.phone_number)
+                        phone_number=self.phone_number)
         return response_text_message
+
+    def create_message_object(self, child_name, phone_number, language, body, direction):
+        if not child_name or len(child_name) > 50:
+            if not language:
+                language = "English"   
+            child_name = msg_placeholder_child(language)
+        try:
+            contact, _ = Contact.objects.get_or_create(phone_number=phone_number)
+        except MultipleObjectsReturned:
+            contact = Contact.objects.get(name=child_name, phone_number=phone_number)
+
+        Message.objects.create(contact=contact, direction=direction, body=body)
+        return True

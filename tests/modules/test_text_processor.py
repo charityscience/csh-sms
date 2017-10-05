@@ -2,7 +2,7 @@ from mock import patch
 from datetime import datetime
 from django.test import TestCase
 
-from management.models import Contact
+from management.models import Contact, Message
 from modules.utils import quote
 from modules.text_processor import TextProcessor
 from modules.i18n import hindi_remind, hindi_information, msg_placeholder_child, \
@@ -184,8 +184,7 @@ class TextProcessorProcessTests(TestCase):
         response = t.process("JOIN " + long_name + " 25-11-2012")
         self.assertEqual(response, msg_failure("English"))
         self.assertFalse(Contact.objects.filter(name=long_name.title(), phone_number="1-111-1111").exists())
-        self.assertFalse(t.get_contacts().exists())
-
+        self.assertTrue(Contact.objects.filter(phone_number="1-111-1111").exists())
 
     @patch("logging.info")
     @patch("modules.text_processor.Texter.send")
@@ -223,7 +222,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertFalse(Contact.objects.filter(phone_number="1-111-1112").exists())
         t = TextProcessor(phone_number="1-111-1112")
         response = t.process("END")
-        self.assertFalse(Contact.objects.filter(phone_number="1-111-1112").exists())
+        self.assertTrue(Contact.objects.filter(phone_number="1-111-1112").exists())
         self.assertEqual(response, msg_unsubscribe("English"))
         logging_error_mock.assert_called_with("`1-111-1112` asked to be unsubscribed but does not exist.")
 
@@ -546,3 +545,16 @@ class TextProcessorProcessTests(TestCase):
         self.assertEqual(response, msg_failure("English"))
         logging_mock.assert_called_with("Keyword `` in message ` ` was not understood by the system.")
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+
+    def test_outgoing_message_objects_created_for_existing_contacts(self):
+        contact = Contact.objects.create(name="Sai",
+                               phone_number="1-112-1111",
+                               delay_in_days=0,
+                               language_preference="English",
+                               method_of_sign_up="Text")
+        t = TextProcessor(phone_number="1-112-1111")
+        self.assertFalse(Message.objects.filter(contact=contact, direction="Outgoing", body="Some words about Sai"))
+        t.create_message_object(child_name="Sai", phone_number=t.phone_number, language="English",
+                                body="Some words about Sai", direction="Outgoing")
+        self.assertEqual(1, Message.objects.filter(contact=contact, direction="Outgoing", body="Some words about Sai").count())
+
