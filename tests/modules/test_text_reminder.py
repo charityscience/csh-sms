@@ -485,7 +485,7 @@ class TextReminderTests(TestCase):
 
     @freeze_time(FAKE_NOW)
     @patch("modules.text_reminder.Texter.send")
-    def test_message_object_not_when_no_remind(self, mocked_send_text):
+    def test_message_object_not_created_when_no_remind(self, mocked_send_text):
        tr = text_reminder_object("10/7/2017") # 7 days ago
        self.assertFalse(tr.should_remind_today())
        self.assertFalse(Message.objects.filter(contact=tr.contact, direction="Outgoing", body=tr.get_reminder_msg()))
