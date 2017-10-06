@@ -558,12 +558,28 @@ class TextProcessorProcessTests(TestCase):
                                 body="Some words about Existy", direction="Outgoing")
         self.assertEqual(1, Message.objects.filter(contact=contact, direction="Outgoing", body="Some words about Existy").count())
 
+        hin_contact = Contact.objects.create(name=msg_placeholder_child("Hindi"),
+                               phone_number="1-112-1111",
+                               delay_in_days=0,
+                               language_preference="Hindi",
+                               method_of_sign_up="Text")
+        t = TextProcessor(phone_number="1-112-1111")
+        self.assertFalse(Message.objects.filter(contact=hin_contact, direction="Outgoing", body="Some words about Existy"))
+        t.create_message_object(child_name=msg_placeholder_child("Hindi"), phone_number=t.phone_number, language="English",
+                                body=msg_subscribe("Hindi"), direction="Outgoing")
+        self.assertEqual(1, Message.objects.filter(contact=hin_contact, direction="Outgoing", body=msg_subscribe("Hindi")).count())
+
     def test_outgoing_message_objects_created_when_texting_new_contacts(self):
         t = TextProcessor(phone_number="1-112-1111")
         t.create_message_object(child_name="New name", phone_number=t.phone_number, language="English",
                                 body="Some words about New name", direction="Outgoing")
         self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
                                                     direction="Outgoing", body="Some words about New name").count())
+        t = TextProcessor(phone_number="1-112-1111")
+        t.create_message_object(child_name=msg_placeholder_child("Hindi"), phone_number=t.phone_number, language="Hindi",
+                                body=msg_already_sub("Hindi"), direction="Outgoing")
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
+                                                    direction="Outgoing", body=msg_already_sub("Hindi")).count())
 
     def test_outgoing_message_objects_created_when_texting_new_contacts(self):
         t = TextProcessor(phone_number="1-112-1111")
