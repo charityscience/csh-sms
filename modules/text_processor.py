@@ -171,7 +171,7 @@ class TextProcessor(object):
         try:
             contact, _ = Contact.objects.get_or_create(phone_number=phone_number)
         except MultipleObjectsReturned:
-            contact = Contact.objects.get(name=child_name, phone_number=phone_number)
+            contact = Contact.objects.filter(name=child_name, phone_number=phone_number).first()
 
         Message.objects.create(contact=contact, direction=direction, body=body)
         return True
