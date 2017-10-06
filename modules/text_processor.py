@@ -157,6 +157,8 @@ class TextProcessor(object):
         response_text_message = action(child_name=child_name,
                                        date_of_birth=date, preg_update=preg_update)
         self.create_message_object(child_name=child_name, phone_number=self.phone_number,
+                                    language=self.language, body=message, direction="Incoming")
+        self.create_message_object(child_name=child_name, phone_number=self.phone_number,
                                     language=self.language, body=response_text_message,
                                     direction="Outgoing")
         Texter().send(message=response_text_message,
