@@ -569,6 +569,42 @@ class TextProcessorProcessTests(TestCase):
                                 body=msg_subscribe("Hindi"), direction="Outgoing")
         self.assertEqual(1, Message.objects.filter(contact=hin_contact, direction="Outgoing", body=msg_subscribe("Hindi")).count())
 
+    def test_incoming_message_objects_created_for_existing_contacts(self):
+        contact = Contact.objects.create(name="Existy",
+                               phone_number="1-112-1111",
+                               delay_in_days=0,
+                               language_preference="English",
+                               method_of_sign_up="Text")
+        t = TextProcessor(phone_number="1-112-1111")
+        self.assertFalse(Message.objects.filter(contact=contact, direction="Incoming", body="JOIN Existy 17-05-16"))
+        t.create_message_object(child_name="Existy", phone_number=t.phone_number, language="English",
+                                body="JOIN Existy 17-05-16", direction="Incoming")
+        self.assertEqual(1, Message.objects.filter(contact=contact, direction="Incoming", body="JOIN Existy 17-05-16").count())
+
+        hin_contact = Contact.objects.create(name=msg_placeholder_child("Hindi"),
+                               phone_number="1-112-1111",
+                               delay_in_days=0,
+                               language_preference="Hindi",
+                               method_of_sign_up="Text")
+        t = TextProcessor(phone_number="1-112-1111")
+        self.assertFalse(Message.objects.filter(contact=hin_contact, direction="Incoming", body="Some words about Existy"))
+        t.create_message_object(child_name=msg_placeholder_child("Hindi"), phone_number=t.phone_number, language="English",
+                                body=hindi_remind() + u' \u0905\u0917\u0932\u0947 ' + "10/03/16", direction="Incoming")
+        self.assertEqual(1, Message.objects.filter(contact=hin_contact, direction="Incoming",
+                                                    body=hindi_remind() + u' \u0905\u0917\u0932\u0947 ' + "10/03/16").count())
+
+    def test_incoming_message_objects_created_for_new_contacts(self):
+        t = TextProcessor(phone_number="1-112-1111")
+        t.create_message_object(child_name="Namey", phone_number=t.phone_number, language="English",
+                                body="JOIN Namey 17-05-16", direction="Incoming")
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
+                                                    direction="Incoming", body="JOIN Namey 17-05-16").count())
+        t = TextProcessor(phone_number="1-116-1111")
+        t.create_message_object(child_name=msg_placeholder_child("Hindi"), phone_number=t.phone_number, language="Hindi",
+                                body=hindi_remind() + u' \u0905\u0917\u0932\u0947 ' + "10/03/16" , direction="Incoming")
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
+                                                    direction="Incoming", body=hindi_remind() + u' \u0905\u0917\u0932\u0947 ' + "10/03/16").count())
+
     def test_outgoing_message_objects_created_for_new_contacts(self):
         t = TextProcessor(phone_number="1-112-1111")
         t.create_message_object(child_name="New name", phone_number=t.phone_number, language="English",
