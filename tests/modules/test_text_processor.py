@@ -641,3 +641,59 @@ class TextProcessorProcessTests(TestCase):
                                 body="JOIN 11/07/17", direction="Incoming")
         self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
                                                     direction="Incoming", body="JOIN 11/07/17").count())
+
+    @patch("logging.info")
+    @patch("modules.text_processor.Texter.send")  # See https://stackoverflow.com/questions/16134281/python-mocking-a-function-from-an-imported-module
+    def test_processing_subscriptions_creates_message_objects(self, texting_mock, logging_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        self.assertFalse(Contact.objects.filter(name="Paula", phone_number="1-111-1111").exists())
+        self.assertFalse(Contact.objects.filter(phone_number=t.phone_number).exists())
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body="JOIN PAULA 25-11-2012"))
+        response = t.process("JOIN PAULA 25-11-2012")
+        self.assertTrue(Contact.objects.filter(name="Paula", phone_number="1-111-1111").exists())
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
+                                                    direction="Outgoing", body=msg_subscribe("English").format(name="Paula")).count())
+        logging_mock.assert_called_with("Subscribing `JOIN PAULA 25-11-2012`...")
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+
+        t = TextProcessor(phone_number="1-112-1111")
+        self.assertFalse(Contact.objects.filter(name=u'\u0906\u0930\u0935', phone_number="1-112-1111").exists())
+        self.assertFalse(Contact.objects.filter(phone_number=t.phone_number).exists())
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body=hindi_remind() + u' \u0906\u0930\u0935' + " 30-11-2016"))
+        response = t.process(hindi_remind() + u' \u0906\u0930\u0935' + " 30-11-2016")
+        self.assertTrue(Contact.objects.filter(name=u'\u0906\u0930\u0935', phone_number="1-112-1111").exists())
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
+                                                    direction="Outgoing", body=msg_subscribe("Hindi").format(name=u'\u0906\u0930\u0935')).count())
+        logging_mock.assert_called_with("Subscribing " + quote(hindi_remind() + u' \u0906\u0930\u0935' + " 30-11-2016") + "...")
+        texting_mock.assert_called_with(message=response, phone_number="1-112-1111")
+        self.assertEqual(2, texting_mock.call_count)
+
+    @patch("logging.info")
+    @patch("modules.text_processor.Texter.send")  # See https://stackoverflow.com/questions/16134281/python-mocking-a-function-from-an-imported-module
+    def test_processing_subscriptions_creates_message_objects_with_no_names(self, texting_mock, logging_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        self.assertFalse(Contact.objects.filter(name=msg_placeholder_child("English"), phone_number="1-111-1111").exists())
+        self.assertFalse(Contact.objects.filter(phone_number=t.phone_number).exists())
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body="JOIN 25-11-2012"))
+        response = t.process("JOIN 25-11-2012")
+        self.assertTrue(Contact.objects.filter(name=msg_placeholder_child("English"), phone_number="1-111-1111").exists())
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
+                                                    direction="Outgoing", body=msg_subscribe("English").format(name=msg_placeholder_child("English"))).count())
+        logging_mock.assert_called_with("Subscribing `JOIN 25-11-2012`...")
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+
+        t = TextProcessor(phone_number="1-112-1111")
+        self.assertFalse(Contact.objects.filter(name="", phone_number="1-112-1111").exists())
+        self.assertFalse(Contact.objects.filter(phone_number=t.phone_number).exists())
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body=hindi_remind() + " 30-11-2016"))
+        response = t.process(hindi_remind() + " 30-11-2016")
+        self.assertTrue(Contact.objects.filter(name=msg_placeholder_child("Hindi"), phone_number="1-112-1111").exists())
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
+                                                    direction="Outgoing", body=msg_subscribe("Hindi").format(name=msg_placeholder_child("Hindi"))).count())
+        logging_mock.assert_called_with("Subscribing " + quote(hindi_remind() + " 30-11-2016") + "...")
+        texting_mock.assert_called_with(message=response, phone_number="1-112-1111")
+        self.assertEqual(2, texting_mock.call_count)
