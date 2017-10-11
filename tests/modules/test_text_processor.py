@@ -2,7 +2,7 @@ from mock import patch
 from datetime import datetime
 from django.test import TestCase
 
-from management.models import Contact
+from management.models import Contact, Message
 from modules.utils import quote
 from modules.text_processor import TextProcessor
 from modules.i18n import hindi_remind, hindi_information, msg_placeholder_child, \
@@ -184,8 +184,7 @@ class TextProcessorProcessTests(TestCase):
         response = t.process("JOIN " + long_name + " 25-11-2012")
         self.assertEqual(response, msg_failure("English"))
         self.assertFalse(Contact.objects.filter(name=long_name.title(), phone_number="1-111-1111").exists())
-        self.assertFalse(t.get_contacts().exists())
-
+        self.assertTrue(Contact.objects.filter(phone_number="1-111-1111").exists())
 
     @patch("logging.info")
     @patch("modules.text_processor.Texter.send")
@@ -223,7 +222,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertFalse(Contact.objects.filter(phone_number="1-111-1112").exists())
         t = TextProcessor(phone_number="1-111-1112")
         response = t.process("END")
-        self.assertFalse(Contact.objects.filter(phone_number="1-111-1112").exists())
+        self.assertTrue(Contact.objects.filter(phone_number="1-111-1112").exists())
         self.assertEqual(response, msg_unsubscribe("English"))
         logging_error_mock.assert_called_with("`1-111-1112` asked to be unsubscribed but does not exist.")
 
@@ -546,3 +545,310 @@ class TextProcessorProcessTests(TestCase):
         self.assertEqual(response, msg_failure("English"))
         logging_mock.assert_called_with("Keyword `` in message ` ` was not understood by the system.")
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+
+    def test_outgoing_message_objects_created_for_existing_contacts(self):
+        contact = Contact.objects.create(name="Existy",
+                               phone_number="1-112-1111",
+                               delay_in_days=0,
+                               language_preference="English",
+                               method_of_sign_up="Text")
+        t = TextProcessor(phone_number="1-112-1111")
+        self.assertFalse(Message.objects.filter(contact=contact, direction="Outgoing", body="Some words about Existy"))
+        t.create_message_object(child_name="Existy", phone_number=t.phone_number, language="English",
+                                body="Some words about Existy", direction="Outgoing")
+        self.assertEqual(1, Message.objects.filter(contact=contact, direction="Outgoing", body="Some words about Existy").count())
+
+        hin_contact = Contact.objects.create(name=msg_placeholder_child("Hindi"),
+                               phone_number="1-112-1111",
+                               delay_in_days=0,
+                               language_preference="Hindi",
+                               method_of_sign_up="Text")
+        t = TextProcessor(phone_number="1-112-1111")
+        self.assertFalse(Message.objects.filter(contact=hin_contact, direction="Outgoing", body="Some words about Existy"))
+        t.create_message_object(child_name=msg_placeholder_child("Hindi"), phone_number=t.phone_number, language="English",
+                                body=msg_subscribe("Hindi"), direction="Outgoing")
+        self.assertEqual(1, Message.objects.filter(contact=hin_contact, direction="Outgoing", body=msg_subscribe("Hindi")).count())
+
+    def test_incoming_message_objects_created_for_existing_contacts(self):
+        contact = Contact.objects.create(name="Existy",
+                               phone_number="1-112-1111",
+                               delay_in_days=0,
+                               language_preference="English",
+                               method_of_sign_up="Text")
+        t = TextProcessor(phone_number="1-112-1111")
+        self.assertFalse(Message.objects.filter(contact=contact, direction="Incoming", body="JOIN Existy 17-05-16"))
+        t.create_message_object(child_name="Existy", phone_number=t.phone_number, language="English",
+                                body="JOIN Existy 17-05-16", direction="Incoming")
+        self.assertEqual(1, Message.objects.filter(contact=contact, direction="Incoming", body="JOIN Existy 17-05-16").count())
+
+        hin_contact = Contact.objects.create(name=msg_placeholder_child("Hindi"),
+                               phone_number="1-112-1111",
+                               delay_in_days=0,
+                               language_preference="Hindi",
+                               method_of_sign_up="Text")
+        t = TextProcessor(phone_number="1-112-1111")
+        self.assertFalse(Message.objects.filter(contact=hin_contact, direction="Incoming", body="Some words about Existy"))
+        t.create_message_object(child_name=msg_placeholder_child("Hindi"), phone_number=t.phone_number, language="English",
+                                body=hindi_remind() + u' \u0905\u0917\u0932\u0947 ' + "10/03/16", direction="Incoming")
+        self.assertEqual(1, Message.objects.filter(contact=hin_contact, direction="Incoming",
+                                                    body=hindi_remind() + u' \u0905\u0917\u0932\u0947 ' + "10/03/16").count())
+
+    def test_incoming_message_objects_created_for_new_contacts(self):
+        t = TextProcessor(phone_number="1-112-1111")
+        t.create_message_object(child_name="Namey", phone_number=t.phone_number, language="English",
+                                body="JOIN Namey 17-05-16", direction="Incoming")
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
+                                                    direction="Incoming", body="JOIN Namey 17-05-16").count())
+        t = TextProcessor(phone_number="1-116-1111")
+        t.create_message_object(child_name=msg_placeholder_child("Hindi"), phone_number=t.phone_number, language="Hindi",
+                                body=hindi_remind() + u' \u0905\u0917\u0932\u0947 ' + "10/03/16" , direction="Incoming")
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
+                                                    direction="Incoming", body=hindi_remind() + u' \u0905\u0917\u0932\u0947 ' + "10/03/16").count())
+
+    def test_outgoing_message_objects_created_for_new_contacts(self):
+        t = TextProcessor(phone_number="1-112-1111")
+        t.create_message_object(child_name="New name", phone_number=t.phone_number, language="English",
+                                body="Some words about New name", direction="Outgoing")
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
+                                                    direction="Outgoing", body="Some words about New name").count())
+        t = TextProcessor(phone_number="1-112-1111")
+        t.create_message_object(child_name=msg_placeholder_child("Hindi"), phone_number=t.phone_number, language="Hindi",
+                                body=msg_already_sub("Hindi"), direction="Outgoing")
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
+                                                    direction="Outgoing", body=msg_already_sub("Hindi")).count())
+
+    def test_message_objects_created_name_when_name_is_too_long(self):
+        t = TextProcessor(phone_number="1-112-1111")
+        long_name = "".join(["name" for _ in range(20)]) # length 100
+        t.create_message_object(child_name=long_name, phone_number=t.phone_number, language="English",
+                                body=msg_failure("English"), direction="Outgoing")
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
+                                                    direction="Outgoing", body=msg_failure("English")).count())
+
+    def test_message_objects_created_when_name_is_blank(self):
+        t = TextProcessor(phone_number="1-112-1111")
+        t.create_message_object(child_name="", phone_number=t.phone_number, language="English",
+                                body=msg_subscribe("English"), direction="Outgoing")
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
+                                                    direction="Outgoing", body=msg_subscribe("English")).count())
+
+        t.create_message_object(child_name="", phone_number=t.phone_number, language="Hindi",
+                                body=msg_subscribe("Hindi"), direction="Outgoing")
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
+                                                    direction="Outgoing", body=msg_subscribe("Hindi")).count())
+
+        t.create_message_object(child_name="", phone_number=t.phone_number, language="English",
+                                body="JOIN 11/07/17", direction="Incoming")
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
+                                                    direction="Incoming", body="JOIN 11/07/17").count())
+
+    @patch("logging.info")
+    @patch("modules.text_processor.Texter.send")  # See https://stackoverflow.com/questions/16134281/python-mocking-a-function-from-an-imported-module
+    def test_processing_subscriptions_creates_message_objects(self, texting_mock, logging_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        self.assertFalse(Contact.objects.filter(name="Paula", phone_number="1-111-1111").exists())
+        self.assertFalse(Contact.objects.filter(phone_number=t.phone_number).exists())
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body="JOIN PAULA 25-11-2012"))
+        response = t.process("JOIN PAULA 25-11-2012")
+        self.assertTrue(Contact.objects.filter(name="Paula", phone_number="1-111-1111").exists())
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body="JOIN PAULA 25-11-2012").count())
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
+                                                    direction="Outgoing", body=msg_subscribe("English").format(name="Paula")).count())
+        logging_mock.assert_called_with("Subscribing `JOIN PAULA 25-11-2012`...")
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+
+        t = TextProcessor(phone_number="1-112-1111")
+        self.assertFalse(Contact.objects.filter(name=u'\u0906\u0930\u0935', phone_number="1-112-1111").exists())
+        self.assertFalse(Contact.objects.filter(phone_number=t.phone_number).exists())
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body=hindi_remind() + u' \u0906\u0930\u0935' + " 30-11-2016"))
+        response = t.process(hindi_remind() + u' \u0906\u0930\u0935' + " 30-11-2016")
+        self.assertTrue(Contact.objects.filter(name=u'\u0906\u0930\u0935', phone_number="1-112-1111").exists())
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
+                                                    direction="Outgoing", body=msg_subscribe("Hindi").format(name=u'\u0906\u0930\u0935')).count())
+        logging_mock.assert_called_with("Subscribing " + quote(hindi_remind() + u' \u0906\u0930\u0935' + " 30-11-2016") + "...")
+        texting_mock.assert_called_with(message=response, phone_number="1-112-1111")
+        self.assertEqual(2, texting_mock.call_count)
+
+    @patch("logging.info")
+    @patch("modules.text_processor.Texter.send")  # See https://stackoverflow.com/questions/16134281/python-mocking-a-function-from-an-imported-module
+    def test_processing_subscriptions_creates_message_objects_with_no_names(self, texting_mock, logging_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        self.assertFalse(Contact.objects.filter(name=msg_placeholder_child("English"), phone_number="1-111-1111").exists())
+        self.assertFalse(Contact.objects.filter(phone_number=t.phone_number).exists())
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body="JOIN 25-11-2012"))
+        response = t.process("JOIN 25-11-2012")
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body="JOIN 25-11-2012").count())
+        self.assertTrue(Contact.objects.filter(name=msg_placeholder_child("English"), phone_number="1-111-1111").exists())
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
+                                                    direction="Outgoing", body=msg_subscribe("English").format(name=msg_placeholder_child("English"))).count())
+        logging_mock.assert_called_with("Subscribing `JOIN 25-11-2012`...")
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+
+        t = TextProcessor(phone_number="1-112-1111")
+        self.assertFalse(Contact.objects.filter(name="", phone_number="1-112-1111").exists())
+        self.assertFalse(Contact.objects.filter(phone_number=t.phone_number).exists())
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body=hindi_remind() + " 30-11-2016"))
+        response = t.process(hindi_remind() + " 30-11-2016")
+        self.assertTrue(Contact.objects.filter(name=msg_placeholder_child("Hindi"), phone_number="1-112-1111").exists())
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
+                                                    direction="Outgoing", body=msg_subscribe("Hindi").format(name=msg_placeholder_child("Hindi"))).count())
+        logging_mock.assert_called_with("Subscribing " + quote(hindi_remind() + " 30-11-2016") + "...")
+        texting_mock.assert_called_with(message=response, phone_number="1-112-1111")
+        self.assertEqual(2, texting_mock.call_count)
+
+    @patch("logging.info")
+    @patch("modules.text_processor.Texter.send")  # See https://stackoverflow.com/questions/16134281/python-mocking-a-function-from-an-imported-module
+    def test_processing_unsubscriptions_creates_message_objects(self, texting_mock, logging_mock):
+        t = TextProcessor(phone_number="1-111-1112")
+        t.process("JOIN Roland 12/11/2017")
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body="END"))
+        response = t.process("END")
+        self.assertTrue(t.get_contacts().first().cancelled)
+        self.assertEqual(response, msg_unsubscribe("English"))
+        logging_mock.assert_called_with("Unsubscribing `1-111-1112`...")
+        texting_mock.assert_called_with(message=response, phone_number="1-111-1112")
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body="END").count())
+
+        t = TextProcessor(phone_number="1-111-1113")
+        t.process(hindi_remind() + u' \u0906\u0930\u0935' + " 30-11-2016")
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body="END"))
+        response = t.process("END")
+        self.assertTrue(t.get_contacts().first().cancelled)
+        self.assertEqual(response, msg_unsubscribe("Hindi"))
+        logging_mock.assert_called_with("Unsubscribing `1-111-1113`...")
+        texting_mock.assert_called_with(message=response, phone_number="1-111-1113")
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body="END").count())
+
+    @patch("logging.error")
+    @patch("modules.text_processor.Texter.send")  # See https://stackoverflow.com/questions/16134281/python-mocking-a-function-from-an-imported-module
+    def test_processing_failure_messages_creates_message_objects(self, texting_mock, logging_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        self.assertFalse(Contact.objects.filter(phone_number=t.phone_number).exists())
+        response = t.process("JLORN COACHZ 25-11-2012")
+        self.assertEqual(response, msg_failure("English"))
+        logging_mock.assert_called_with("Keyword `jlorn` in message `JLORN COACHZ 25-11-2012` was not understood by the system.")
+        texting_mock.assert_called_with(message=response, phone_number="1-111-1111")
+        
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body="JLORN COACHZ 25-11-2012").count())
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Outgoing", body=msg_failure("English")).count())
+
+
+        t2 = TextProcessor(phone_number="1-111-1111")
+        response2 = t2.process(u'\u0906\u0930 \u0906\u0930\u0935 25-11-2012')
+        self.assertEqual(response2, msg_failure("Hindi"))
+        logging_mock.assert_called_with(u'Keyword `\u0906\u0930` in message `\u0906\u0930 \u0906\u0930\u0935 25-11-2012` was not understood by the system.')
+        texting_mock.assert_called_with(message=response2, phone_number="1-111-1111")
+
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.filter(phone_number=t2.phone_number),
+                                                direction="Incoming", body=u'\u0906\u0930 \u0906\u0930\u0935 25-11-2012').count())
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.filter(phone_number=t2.phone_number),
+                                                direction="Outgoing", body=msg_failure("Hindi")).count())
+
+
+    @patch("modules.text_processor.Texter.send")
+    def test_processing_pregnancy_updates_creates_message_objects(self, texting_mock):
+        new_contact, _ = Contact.objects.update_or_create(name="Tina", phone_number="910003456789", language_preference="English", date_of_birth=datetime(2017, 7, 10, 0, 0), preg_signup=True)
+        t = TextProcessor(phone_number="910003456789")
+        self.assertTrue(t.get_contacts().exists())
+        self.assertTrue(Contact.objects.filter(name="Tina", phone_number="910003456789", language_preference="English", date_of_birth=datetime(2017, 7, 10, 0, 0), preg_signup=True, preg_update=False).exists())
+        existing_contact_update = t.process("BORN Tina 25-07-2017")
+        self.assertEqual(existing_contact_update, msg_subscribe("English").format(name="Tina"))
+        self.assertTrue(Contact.objects.filter(name="Tina", phone_number="910003456789", language_preference="English", date_of_birth=datetime(2017, 7, 25, 0, 0), preg_signup=True, preg_update=True).exists())
+
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body="BORN Tina 25-07-2017").count())
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Outgoing", body=msg_subscribe("English").format(name="Tina")).count())
+        new_contact.delete()
+
+        hin_contact, _ = Contact.objects.update_or_create(name="Sanjiv", phone_number="910003456789", language_preference="Hindi", date_of_birth=datetime(2017, 7, 10, 0, 0), preg_signup=True)
+        t2 = TextProcessor(phone_number="910003456789")
+        self.assertTrue(t2.get_contacts().exists())
+        self.assertTrue(Contact.objects.filter(name="Sanjiv", phone_number="910003456789", language_preference="Hindi", date_of_birth=datetime(2017, 7, 10, 0, 0), preg_signup=True, preg_update=False).exists())
+        existing_contact_update = t2.process(hindi_born() + " Sanjiv 25-07-2017")
+        self.assertEqual(existing_contact_update, msg_subscribe("Hindi").format(name="Sanjiv"))
+        texting_mock.assert_called_with(message=existing_contact_update, phone_number="910003456789")
+        self.assertTrue(Contact.objects.filter(name="Sanjiv", phone_number="910003456789", language_preference="Hindi", date_of_birth=datetime(2017, 7, 25, 0, 0), preg_signup=True, preg_update=True).exists())
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.filter(phone_number=t2.phone_number),
+                                                direction="Incoming", body=hindi_born() + " Sanjiv 25-07-2017").count())
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.filter(phone_number=t2.phone_number),
+                                                direction="Outgoing", body=msg_subscribe("Hindi").format(name="Sanjiv")).count())
+
+        hin_contact.delete()
+
+    @patch("logging.info")
+    @patch("modules.text_processor.Texter.send")  # See https://stackoverflow.com/questions/16134281/python-mocking-a-function-from-an-imported-module
+    def test_processing_creates_correct_amount_of_message_objects(self, texting_mock, logging_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        self.assertFalse(Contact.objects.filter(name="Paula", phone_number="1-111-1111").exists())
+        self.assertFalse(Contact.objects.filter(phone_number=t.phone_number).exists())
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body="JOIN PAULA 25-11-2012"))
+        response = t.process("JOIN PAULA 25-11-2012")
+        self.assertTrue(Contact.objects.filter(name="Paula", phone_number="1-111-1111").exists())
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body="JOIN PAULA 25-11-2012").count())
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
+                                                    direction="Outgoing", body=msg_subscribe("English").format(name="Paula")).count())
+        logging_mock.assert_called_with("Subscribing `JOIN PAULA 25-11-2012`...")
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+
+        t2 = TextProcessor(phone_number="1-112-1111")
+        t2.process("JOIN SMITH 25-11-2012")
+        t3 = TextProcessor(phone_number="1-113-1111")
+        t3.process("JOIN Aaja 25-11-2012")
+        t4 = TextProcessor(phone_number="1-114-1111")
+        t4.process("JOIN Lauren 25-11-2012")
+        t.process("END")
+
+        self.assertEqual(2, Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming").count())
+        self.assertEqual(2, Message.objects.filter(contact=Contact.objects.get(phone_number=t.phone_number),
+                                                    direction="Outgoing").count())
+
+        self.assertEqual(5, Message.objects.filter(direction="Outgoing").count())
+        self.assertEqual(5, Message.objects.filter(direction="Incoming").count())
+        self.assertEqual(10, Message.objects.all().count())
+
+        t5 = TextProcessor(phone_number="1-111-1115")
+        self.assertFalse(Contact.objects.filter(name=u'\u0906\u0930\u0935', phone_number="1-111-1115").exists())
+        self.assertFalse(Contact.objects.filter(phone_number=t5.phone_number).exists())
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body=hindi_remind() + u' \u0906\u0930\u0935' + " 30-11-2016"))
+        response = t5.process(hindi_remind() + u' \u0906\u0930\u0935' + " 30-11-2016")
+        self.assertTrue(Contact.objects.filter(name=u'\u0906\u0930\u0935', phone_number="1-111-1115").exists())
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t5.phone_number),
+                                                    direction="Outgoing", body=msg_subscribe("Hindi").format(name=u'\u0906\u0930\u0935')).count())
+        logging_mock.assert_called_with("Subscribing " + quote(hindi_remind() + u' \u0906\u0930\u0935' + " 30-11-2016") + "...")
+        texting_mock.assert_called_with(message=response, phone_number="1-111-1115")
+
+        t6 = TextProcessor(phone_number="1-111-1116")
+        t6.process(hindi_information() + " SMITH 25-11-2012")
+        t7 = TextProcessor(phone_number="1-111-1117")
+        t7.process(hindi_information() + " Aaja 25-11-2012")
+        t8 = TextProcessor(phone_number="1-111-1118")
+        t8.process(hindi_information() + " Lauren 25-11-2012")
+        t5.process("END")
+
+        self.assertEqual(2, Message.objects.filter(contact=Contact.objects.filter(phone_number=t5.phone_number),
+                                                direction="Incoming").count())
+        self.assertEqual(2, Message.objects.filter(contact=Contact.objects.get(phone_number=t5.phone_number),
+                                                    direction="Outgoing").count())
+
+        self.assertEqual(10, Message.objects.filter(direction="Outgoing").count())
+        self.assertEqual(10, Message.objects.filter(direction="Incoming").count())
+        self.assertEqual(20, Message.objects.all().count())
+
+        self.assertEqual(10, texting_mock.call_count)
