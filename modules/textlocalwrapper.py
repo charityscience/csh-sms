@@ -6,14 +6,15 @@ from six import unichr
 from six.moves.urllib import request, parse
 from datetime import timedelta
 
-from cshsms.settings import TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID
+from cshsms.settings import TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID, TEXTLOCAL_SENDERNAME
 from modules.date_helper import datetime_from_date_string
 
 
 class TextLocal(object):
-    def __init__(self, apikey, primary_id):
+    def __init__(self, apikey, primary_id, sendername):
         self.apikey = apikey
         self.primary_id = primary_id
+        self.sendername = sendername
 
 
     def get_all_inboxes(self):
@@ -63,3 +64,18 @@ class TextLocal(object):
             if self.is_message_new(message):
                 num_message_dict.setdefault(message['number'], []).append(message['message'])
         return num_message_dict
+
+    def send_message(self, apikey, phone_numbers, sender, message):
+        send_url = "https://api.textlocal.in/send/?"
+        if not isinstance(message, str):
+            message = message.encode('utf-8')
+        data = parse.urlencode({'numbers': phone_numbers,
+                                'message': message,
+                                'sender': self.sendername,
+                                'apikey': self.apikey})
+        data = data.encode('utf-8')
+        # Avoid triggering bot errors by setting a user agent
+        user_agent = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'}
+        requester = request.Request(send_url, headers=user_agent)
+        f = request.urlopen(requester, data)
+        return json.loads(f.read().decode('latin1'))

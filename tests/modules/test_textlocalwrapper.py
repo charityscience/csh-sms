@@ -17,12 +17,12 @@ class MockResponse():
 
 class TextLocalInboxesTests(TestCase):
     def test_create_object(self):
-        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id')
+        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
         self.assertIsInstance(textlocal, TextLocal)
 
 
     def test_is_message_new(self):
-        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id')
+        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
         new_message = {'number': '910987654321', 'message': 'New message',
             'isNew': True}
         old_message = {'number': '910987654321', 'message': 'Old message',
@@ -34,7 +34,7 @@ class TextLocalInboxesTests(TestCase):
 
     @patch("modules.textlocalwrapper.request")
     def test_new_messages_by_number(self, mock_request):
-        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id')
+        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
         old_message = {'number': '910987654321', 'message': 'Old message', 'date': '2017-08-05 21:12:07', 'isNew': None}
         new_message = {'number': '910987654321', 'message': 'New message', 'date': '2017-09-06 12:12:07', 'isNew': True}
         new_message2 = {'number': '910987654321', 'message': 'Newer message', 'date': '2017-09-06 21:12:07', 'isNew': True}
@@ -49,7 +49,7 @@ class TextLocalInboxesTests(TestCase):
 
     @patch("modules.textlocalwrapper.request")
     def test_get_primary_inbox_messages(self, mock_request):
-        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id')
+        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
         mock_request.urlopen.return_value = MockResponse(read_value=json.dumps({'messages': [{'id': '000000024', 'number': 1112223334,
             'message': 'Testy test', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': 'Example message testy', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}]}).encode('latin1'))
@@ -64,7 +64,7 @@ class TextLocalInboxesTests(TestCase):
 
 
     def test_is_message_new(self):
-        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id')
+        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
         new_message = {'number': '910987654321', 'message': 'New message',
             'isNew': True}
         old_message = {'number': '910987654321', 'message': 'Old message',
@@ -74,7 +74,7 @@ class TextLocalInboxesTests(TestCase):
 
 
     def test_doesnt_correct_corrupted_unicode_matches_english(self):
-        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id')
+        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
         self.assertEqual(textlocal.correct_corrupted_unicode_matches("Here's a test"), "Here's a test")
         self.assertEqual(textlocal.correct_corrupted_unicode_matches("Remind Tina 09-12-10"), "Remind Tina 09-12-10")
         self.assertEqual(textlocal.correct_corrupted_unicode_matches("JOIN Tina 09-12-10"), "JOIN Tina 09-12-10")
@@ -98,7 +98,7 @@ class TextLocalInboxesTests(TestCase):
 
 
     def test_correct_regex_matches_unicode(self):
-        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id')
+        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
         self.assertEqual(textlocal.correct_corrupted_unicode_matches("0907 test"), u"\u0907 test")
         self.assertEqual(textlocal.correct_corrupted_unicode_matches("096509430922 test"), u"\u0965\u0943\u0922 test")
         self.assertEqual(textlocal.correct_corrupted_unicode_matches("09070924094d0924093f0932093e Tina 09-12-10"), u"\u0907\u0924\u094d\u0924\u093f\u0932\u093e Tina 09-12-10")
@@ -107,7 +107,7 @@ class TextLocalInboxesTests(TestCase):
 
     @patch("modules.textlocalwrapper.TextLocal.get_primary_inbox_messages")
     def test_correct_unicode_no_unicode(self, mock_primary_inbox_messages):
-        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id')
+        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
         mock_primary_inbox_messages.return_value = [{'id': '000000024', 'number': 1112223334, 'message': 'Testy test', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': 'Example message testy', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}]
         messages = textlocal.correct_unicode(textlocal.get_primary_inbox_messages())
@@ -134,7 +134,7 @@ class TextLocalInboxesTests(TestCase):
 
     @patch("modules.textlocalwrapper.TextLocal.get_primary_inbox_messages")
     def test_correct_unicode_with_unicode(self, mock_primary_inbox_messages):
-        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id')
+        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
         mock_primary_inbox_messages.return_value = [{'id': '000000024', 'number': 1112223334, 'message': '0907 test', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': 'Example message testy', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}]
         messages = textlocal.correct_unicode(textlocal.get_primary_inbox_messages())
@@ -165,3 +165,33 @@ class TextLocalInboxesTests(TestCase):
             {'id': '00000449', 'number': 0, 'message': 'Remind Tina 09/12/10', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': hindi_information() + u' \u0906\u0930\u0935 10/12/09', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': u'\u0907\u0924\u094d\u0924\u093f \u0932\u093e \u0907\u0924\u094D 10-12-09', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}])
+
+    @patch("modules.textlocalwrapper.request")
+    def test_send_message(self, mock_request):
+        class MockResponse():
+            def read(self):
+                return json.dumps({'message': 'yay'}).encode('latin1')
+        mock_request.urlopen.return_value = MockResponse()
+        tl = TextLocal(apikey='mock_key',
+                        primary_id='mock_id',
+                        sendername='mock_sendername')
+        response = tl.send_message(apikey="mock_key",
+                                    phone_numbers='0000000',
+                                    sender="mock_sender",
+                                    message='Test')
+        self.assertEqual(response['message'], 'yay')
+
+    @patch("modules.textlocalwrapper.request")
+    def test_send_message_hindi(self, mock_request):
+        class MockResponse():
+            def read(self):
+                return json.dumps({'message': hindi_remind()}).encode('latin1')
+        mock_request.urlopen.return_value = MockResponse()
+        tl = TextLocal(apikey='mock_key',
+                        primary_id='mock_id',
+                        sendername='mock_sendername')
+        response = tl.send_message(apikey="mock_key",
+                                    phone_numbers='0000000',
+                                    sender="mock_sender",
+                                    message='Test')
+        self.assertEqual(response['message'], hindi_remind())

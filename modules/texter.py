@@ -1,10 +1,10 @@
-from cshsms.settings import TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID, HSPSMS_API, HSPSMS_USERNAME, HSPSMS_SENDERNAME
+from cshsms.settings import TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID, HSPSMS_API, HSPSMS_USERNAME, HSPSMS_SENDERNAME, TEXTLOCAL_SENDERNAME
 from modules.textlocalwrapper import TextLocal
 from modules.hspsmswrapper import Hspsms
 
 class Texter(object):
     def read_inbox(self):
-        textlocal = TextLocal(apikey=TEXTLOCAL_API, primary_id=TEXTLOCAL_PRIMARY_ID)
+        textlocal = TextLocal(apikey=TEXTLOCAL_API, primary_id=TEXTLOCAL_PRIMARY_ID, sendername=TEXTLOCAL_SENDERNAME)
         num_message_dict = textlocal.new_messages_by_number()
         return num_message_dict
 
