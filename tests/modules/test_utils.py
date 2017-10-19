@@ -15,6 +15,9 @@ class QuoteTests(TestCase):
     def test_quote(self):
         self.assertEqual(quote("text"), "`text`")
 
+    def test_quote_with_a_float(self):
+        self.assertEqual(quote(2.0), "`2.0`")
+
 
 class DateIsValidTests(TestCase):
     def test_normal_date(self):

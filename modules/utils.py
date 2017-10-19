@@ -2,7 +2,7 @@ import re
 from management.models import Group
 
 def quote(word):
-    return "`" + word + "`"
+    return u"`{}`".format(word)
 
 
 def add_contact_to_group(contact, group_name):
