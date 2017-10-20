@@ -7,7 +7,7 @@ from django.test import TestCase
 from freezegun import freeze_time
 
 from cshsms.settings import TEXTLOCAL_PHONENUMBER
-from management.models import Contact, Group
+from management.models import Contact, Group, Message
 from modules.texter import Texter
 from modules.text_reminder import TextReminder
 from modules.text_processor import TextProcessor
@@ -64,11 +64,19 @@ class TexterGetInboxesTests(TestCase):
         tp = TextProcessor(TEXTLOCAL_PHONENUMBER)
         processed = False
         logging.info("checking text can be processed")
+        self.assertFalse(Contact.objects.filter(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER))
         for text in new_messages:
             if text == join_text:
                 processed = True
                 tp.process(text)
         self.assertTrue(processed)
+        logging.info("checking message objects are created")
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER),
+        											direction="Incoming",
+        											body=join_text).count())
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER),
+        											direction="Outgoing",
+        											body=msg_subscribe(language).format(name=person_name)).count())
 
         logging.info("checking contact object is created")
         self.assertTrue(Contact.objects.filter(name=person_name,
@@ -94,7 +102,11 @@ class TexterGetInboxesTests(TestCase):
 
         logging.info("Two days after...")
         with freeze_time(subscribe_date + relativedelta(days = 2)):
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+            										body=msg_subscribe(language).format(name=person_name)).count())
             self.assertFalse(tr.remind())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+            										body=msg_subscribe(language).format(name=person_name)).count())
             self.assertEqual(tr.why_not_remind_reasons(),
                              ["Contact has no reminders for today's date."])
         logging.info("sleeping three minutes before checking for reminder text")
@@ -103,7 +115,9 @@ class TexterGetInboxesTests(TestCase):
 
         logging.info("Seven days before the six week mark...")
         with freeze_time(subscribe_date + relativedelta(weeks = 6) - relativedelta(days = 7)): 
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing", body=tr.get_reminder_msg()).count())
             self.assertTrue(tr.remind())
+            self.assertEqual(1, Message.objects.filter(contact=tr.contact, direction="Outgoing", body=tr.get_reminder_msg()).count())
         logging.info("sleeping three minutes before checking for reminder text")
         time.sleep(180)
         logging.info("checking for reminder text")
@@ -113,7 +127,11 @@ class TexterGetInboxesTests(TestCase):
 
         logging.info("One day before the six week mark...")
         with freeze_time(subscribe_date + relativedelta(weeks = 6) - relativedelta(days = 1)):
+            self.assertEqual(1, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+            										body=msg_subscribe(language).format(name=person_name)).count())
             self.assertTrue(tr.remind())
+            self.assertEqual(2, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+            										body=msg_subscribe(language).format(name=person_name)).count())
         logging.info("sleeping three minutes before checking for reminder text")
         time.sleep(180)
         logging.info("checking for reminder text")
@@ -133,7 +151,16 @@ class TexterGetInboxesTests(TestCase):
         time.sleep(180)
         logging.info("checking cancellation text can be processed")
         self.assertEqual(t.read_inbox()[0][0], "END")
+        self.assertEqual(0, Message.objects.filter(contact=Contact.objects.get(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER),
+        											direction="Incoming",
+        											body="END").count())
         tp.process("END")
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER),
+        											direction="Incoming",
+        											body="END").count())
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER),
+        											direction="Outgoing",
+        											body=msg_unsubscribe(language)).count())
         logging.info("sleeping four minutes before checking for confirmation")
         time.sleep(240)
         logging.info("checking person is cancelled")
@@ -145,7 +172,13 @@ class TexterGetInboxesTests(TestCase):
 
         logging.info("checking that cancelled person can no longer be reminded")
         with freeze_time(subscribe_date + relativedelta(weeks = 6) - relativedelta(days = 1)):
+            self.assertEqual(2, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+            										body=msg_subscribe(language).format(name=person_name)).exclude(
+            										msg_unsubscribe(language)).count())
             self.assertFalse(tr.remind())  # ...cannot be reminded
+            self.assertEqual(2, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+            										body=msg_subscribe(language).format(name=person_name)).exclude(
+            										msg_unsubscribe(language)).count())
             self.assertEqual(tr.why_not_remind_reasons(), ["Contact is cancelled."])
         logging.info("sleeping three minutes before checking for lack of reminder text")
         time.sleep(180)
@@ -157,7 +190,15 @@ class TexterGetInboxesTests(TestCase):
         subscribe_date = datetime(2017, 10, 20).date()
         join_text = join_keyword + " " + person_name + " " + date_to_date_string(subscribe_date)
         tp = TextProcessor(TEXTLOCAL_PHONENUMBER)
+        self.assertFalse(Contact.objects.filter(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER))
         tp.process(join_text)
+        logging.info("checking message objects are created")
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER),
+        											direction="Incoming",
+        											body=join_text).count())
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER),
+        											direction="Outgoing",
+        											body=msg_subscribe(language).format(name=person_name)).count())
         logging.info("sleeping three minutes before checking for subscription text")
         time.sleep(180)
         logging.info("checking subscription text")
@@ -180,7 +221,11 @@ class TexterGetInboxesTests(TestCase):
 
         logging.info("Two weeks after...")
         with freeze_time(subscribe_date + relativedelta(weeks = 2)):
+            self.assertFalse(Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+            											body=msg_subscribe(language).format(name=person_name)))
             self.assertTrue(tr.remind())
+            self.assertEqual(1, Message.objects.filter(contact=tr.contact, direction="Outgoing", body=tr.get_reminder_msg()).exclude(
+            											body=msg_subscribe(language).format(name=person_name)).count())
         logging.info("sleeping three minutes before checking for reminder text")
         time.sleep(180)
         logging.info("checking for born reminder text")
@@ -190,7 +235,11 @@ class TexterGetInboxesTests(TestCase):
 
         logging.info("Four weeks after...")
         with freeze_time(subscribe_date + relativedelta(weeks = 4)):
+            self.assertEqual(1, Message.objects.filter(contact=tr.contact, direction="Outgoing", body=tr.get_reminder_msg()).exclude(
+                        								body=msg_subscribe(language).format(name=person_name)).count())
             self.assertTrue(tr.remind())
+            self.assertEqual(2, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                        								body=msg_subscribe(language).format(name=person_name)).count())
         logging.info("sleeping three minutes before checking for reminder text")
         time.sleep(180)
         logging.info("checking for born reminder text")
@@ -210,11 +259,20 @@ class TexterGetInboxesTests(TestCase):
         new_messages = t.read_inbox()[0]  # TODO: Match to job
         processed = False
         logging.info("checking text can be processed")
+        self.assertEqual(0, Message.objects.filter(contact=Contact.objects.get(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER),
+        											direction="Incoming",
+        											body=born_text).count())
         for text in new_messages:
             if text == born_text:
                 processed = True
                 tp.process(text)
         self.assertTrue(processed)
+        self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER),
+        											direction="Incoming",
+        											body=born_text).count())
+        self.assertEqual(2, Message.objects.filter(contact=Contact.objects.get(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER),
+        											direction="Outgoing",
+        											body=msg_subscribe(language).format(name=person_name)).count())
 
         logging.info("sleeping four minutes before checking for subscription text")
         time.sleep(240)
@@ -235,7 +293,11 @@ class TexterGetInboxesTests(TestCase):
 
         logging.info("Seven days before the six week mark after first texting...")
         with freeze_time(subscribe_date + relativedelta(weeks = 6) - relativedelta(days = 7)): 
+            self.assertEqual(2, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                        								body=msg_subscribe(language).format(name=person_name)).count())
             self.assertFalse(tr.remind())  # ...cannot be reminded
+            self.assertEqual(2, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                        								body=msg_subscribe(language).format(name=person_name)).count())
             self.assertEqual(tr.why_not_remind_reasons(),
                              ["Contact has no reminders for today's date."])
         logging.info("sleeping three minutes before checking for lack of reminder text")
@@ -244,7 +306,9 @@ class TexterGetInboxesTests(TestCase):
 
         logging.info("Seven days before the six week mark after birth...")
         with freeze_time(born_date + relativedelta(weeks = 6) - relativedelta(days = 7)): 
+            self.assertFalse(Message.objects.filter(contact=tr.contact, direction="Outgoing", body=tr.get_reminder_msg()))
             self.assertTrue(tr.remind())
+            self.assertEqual(1, Message.objects.filter(contact=tr.contact, direction="Outgoing", body=tr.get_reminder_msg()).count())
         logging.info("sleeping three minutes before checking for reminder text")
         time.sleep(180)
         logging.info("checking for reminder text")
