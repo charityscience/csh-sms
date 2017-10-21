@@ -157,16 +157,19 @@ class TextProcessor(object):
         response_text_message = action(child_name=child_name,
                                        date_of_birth=date,
                                        preg_update=preg_update)
-        self.create_message_object(child_name=child_name,
-                                    phone_number=self.phone_number,
-                                    language=self.language,
-                                    body=message,
-                                    direction="Incoming")
-        self.create_message_object(child_name=child_name,
-                                    phone_number=self.phone_number,
-                                    language=self.language,
-                                    body=response_text_message,
-                                    direction="Outgoing")
+        incoming = self.create_message_object(child_name=child_name,
+                                              phone_number=self.phone_number,
+                                              language=self.language,
+                                              body=message,
+                                              direction="Incoming")
+        Contact.objects.filter(pk=incoming.contact.id).update(last_heard_from=incoming.time)
+        
+        outgoing = self.create_message_object(child_name=child_name,
+                                              phone_number=self.phone_number,
+                                              language=self.language,
+                                              body=response_text_message,
+                                              direction="Outgoing")
+        Contact.objects.filter(pk=outgoing.contact.id).update(last_contacted=outgoing.time)
         Texter().send(message=response_text_message,
                         phone_number=self.phone_number)
         return response_text_message
@@ -181,5 +184,5 @@ class TextProcessor(object):
         except MultipleObjectsReturned:
             contact = Contact.objects.filter(name=child_name, phone_number=phone_number).first()
 
-        Message.objects.create(contact=contact, direction=direction, body=body)
-        return True
+        return Message.objects.create(contact=contact, direction=direction, body=body)
+        
