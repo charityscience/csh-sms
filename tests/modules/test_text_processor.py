@@ -1043,3 +1043,22 @@ class TextProcessorProcessTests(TestCase):
                                                         direction="Outgoing", body=msg_failure("Hindi")).first()
         self.assertEqual(fail_message_object.time, original_contact.last_heard_from)
         self.assertEqual(failed_message_response.time, original_contact.last_contacted)
+
+    @patch("logging.error")
+    @patch("modules.text_processor.Texter.send")
+    def test_processing_only_updates_contact_time_references_for_correct_contact(self, texting_mock, logging_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        keyword = "SDFDAJFDF"
+        fail_message = "SDFDAJFDF PAULA 25-11-2012"
+        response = t.process(fail_message)
+        original_contact = Contact.objects.filter(phone_number="1-111-1111").first()
+        logging_mock.assert_called_with("Keyword " + quote(keyword.lower()) + " in message " + quote(fail_message) +
+                          " was not understood by the system.")
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+
+        t2 = TextProcessor(phone_number="5-555-5555")
+        failed_date_response = t2.process("BORN PAULA 60-11-2012")
+        second_contact = Contact.objects.filter(phone_number="5-555-5555").first()
+
+        self.assertNotEqual(original_contact.last_heard_from, second_contact.last_heard_from)
+        self.assertNotEqual(original_contact.last_contacted, second_contact.last_contacted)
