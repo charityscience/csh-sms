@@ -6,8 +6,9 @@ from django.test import TestCase
 from datetime import datetime
 
 from tests.fixtures import contact_object, text_reminder_object
-from management.models import Message
+from management.models import Message, Contact
 from modules.text_processor import TextProcessor
+from modules.text_reminder import TextReminder
 from modules.i18n import six_week_reminder_seven_days, six_week_reminder_one_day, \
                          ten_week_reminder_seven_days, ten_week_reminder_one_day, \
                          fourteen_week_reminder_seven_days, fourteen_week_reminder_one_day, \
@@ -804,3 +805,27 @@ class TextReminderTests(TestCase):
         self.assertFalse(tr.correct_date_for_reminder(months_after_birth=16, days_before_appointment=1))
         self.assertFalse(tr.correct_date_for_reminder(years_after_birth=5, days_before_appointment=7))
         self.assertFalse(tr.correct_date_for_reminder(years_after_birth=5, days_before_appointment=1))
+
+    @freeze_time(FAKE_NOW)
+    def test_remind_updates_last_contacted_english(self):
+        tr = text_reminder_object("03/7/2017", preg_signup=True, preg_update=False) # 2 weeks, 0 days ago
+        tr.remind()
+        two_week_message = Message.objects.filter(contact=tr.contact, direction="Outgoing").first()
+        self.assertEqual(tr.contact.last_contacted, two_week_message.time)
+
+        tr2 = text_reminder_object("19/6/2017", preg_signup=True, preg_update=False)
+        tr2.remind()
+        four_week_message = Message.objects.filter(contact=tr2.contact, direction="Outgoing").first()
+        self.assertEqual(tr2.contact.last_contacted, four_week_message.time)
+
+    @freeze_time(FAKE_NOW)
+    def test_remind_updates_last_contacted_hindi(self):
+        tr = text_reminder_object("03/7/2017", language="Hindi", preg_signup=True, preg_update=False) # 2 weeks, 0 days ago
+        tr.remind()
+        two_week_message = Message.objects.filter(contact=tr.contact, direction="Outgoing").first()
+        self.assertEqual(tr.contact.last_contacted, two_week_message.time)
+
+        tr2 = text_reminder_object("19/6/2017", language="Hindi", preg_signup=True, preg_update=False)
+        tr2.remind()
+        four_week_message = Message.objects.filter(contact=tr2.contact, direction="Outgoing").first()
+        self.assertEqual(tr2.contact.last_contacted, four_week_message.time)
