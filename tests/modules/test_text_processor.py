@@ -852,3 +852,194 @@ class TextProcessorProcessTests(TestCase):
         self.assertEqual(20, Message.objects.all().count())
 
         self.assertEqual(10, texting_mock.call_count)
+
+    @patch("logging.info")
+    @patch("modules.text_processor.Texter.send")
+    def test_processing_updates_contact_last_heard_from_english(self, texting_mock, logging_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        response = t.process("JOIN PAULA 25-11-2012")
+        original_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
+        logging_mock.assert_called_with("Subscribing `JOIN PAULA 25-11-2012`...")
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+
+        born_response = t.process("BORN PAULA 25-11-2012")
+        texting_mock.assert_called_with(message=born_response, phone_number="1-111-1111")
+        updated_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
+        self.assertNotEqual(original_contact.last_heard_from, updated_contact.last_heard_from)
+        self.assertLess(original_contact.last_heard_from, updated_contact.last_heard_from)
+        
+        end_response = t.process("END")
+        texting_mock.assert_called_with(message=end_response, phone_number="1-111-1111")
+        unsub_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
+        self.assertNotEqual(original_contact.last_heard_from, unsub_contact.last_heard_from)
+        self.assertLess(original_contact.last_heard_from, unsub_contact.last_heard_from)
+        self.assertNotEqual(updated_contact.last_heard_from, unsub_contact.last_heard_from)
+        self.assertLess(updated_contact.last_heard_from, unsub_contact.last_heard_from)
+
+    @patch("logging.info")
+    @patch("modules.text_processor.Texter.send")
+    def test_processing_updates_contact_last_heard_from_hindi(self, texting_mock, logging_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        join_message = hindi_remind() + " Aarav 25-11-2012"
+        response = t.process(hindi_remind() + " Aarav 25-11-2012")
+        original_contact = Contact.objects.filter(name="Aarav", phone_number="1-111-1111").first()
+        logging_mock.assert_called_with("Subscribing " + quote(join_message) + "...")
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+
+        born_response = t.process("BORN Aarav 25-11-2012")
+        texting_mock.assert_called_with(message=born_response, phone_number="1-111-1111")
+        updated_contact = Contact.objects.filter(name="Aarav", phone_number="1-111-1111").first()
+        self.assertNotEqual(original_contact.last_heard_from, updated_contact.last_heard_from)
+        self.assertLess(original_contact.last_heard_from, updated_contact.last_heard_from)
+        
+        end_response = t.process("END")
+        texting_mock.assert_called_with(message=end_response, phone_number="1-111-1111")
+        unsub_contact = Contact.objects.filter(name="Aarav", phone_number="1-111-1111").first()
+        self.assertNotEqual(original_contact.last_heard_from, unsub_contact.last_heard_from)
+        self.assertLess(original_contact.last_heard_from, unsub_contact.last_heard_from)
+        self.assertNotEqual(updated_contact.last_heard_from, unsub_contact.last_heard_from)
+        self.assertLess(updated_contact.last_heard_from, unsub_contact.last_heard_from)
+
+    @patch("logging.info")
+    @patch("modules.text_processor.Texter.send")
+    def test_processing_updates_contact_last_contacted_english(self, texting_mock, logging_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        response = t.process("JOIN PAULA 25-11-2012")
+        original_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
+        logging_mock.assert_called_with("Subscribing `JOIN PAULA 25-11-2012`...")
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+
+        born_response = t.process("BORN PAULA 25-11-2012")
+        texting_mock.assert_called_with(message=born_response, phone_number="1-111-1111")
+        updated_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
+        self.assertNotEqual(original_contact.last_contacted, updated_contact.last_contacted)
+        self.assertLess(original_contact.last_contacted, updated_contact.last_contacted)
+        
+        end_response = t.process("END")
+        texting_mock.assert_called_with(message=end_response, phone_number="1-111-1111")
+        unsub_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
+        self.assertNotEqual(original_contact.last_contacted, unsub_contact.last_contacted)
+        self.assertLess(original_contact.last_contacted, unsub_contact.last_contacted)
+        self.assertNotEqual(updated_contact.last_contacted, unsub_contact.last_contacted)
+        self.assertLess(updated_contact.last_contacted, unsub_contact.last_contacted)
+
+    @patch("logging.info")
+    @patch("modules.text_processor.Texter.send")
+    def test_processing_updates_contact_last_contacted_hindi(self, texting_mock, logging_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        join_message = hindi_remind() + " Aarav 25-11-2012"
+        response = t.process(hindi_remind() + " Aarav 25-11-2012")
+        original_contact = Contact.objects.filter(name="Aarav", phone_number="1-111-1111").first()
+        logging_mock.assert_called_with("Subscribing " + quote(join_message) + "...")
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+
+        born_response = t.process("BORN Aarav 25-11-2012")
+        texting_mock.assert_called_with(message=born_response, phone_number="1-111-1111")
+        updated_contact = Contact.objects.filter(name="Aarav", phone_number="1-111-1111").first()
+        self.assertNotEqual(original_contact.last_contacted, updated_contact.last_contacted)
+        self.assertLess(original_contact.last_contacted, updated_contact.last_contacted)
+        
+        end_response = t.process("END")
+        texting_mock.assert_called_with(message=end_response, phone_number="1-111-1111")
+        unsub_contact = Contact.objects.filter(name="Aarav", phone_number="1-111-1111").first()
+        self.assertNotEqual(original_contact.last_contacted, unsub_contact.last_contacted)
+        self.assertLess(original_contact.last_contacted, unsub_contact.last_contacted)
+        self.assertNotEqual(updated_contact.last_contacted, unsub_contact.last_contacted)
+        self.assertLess(updated_contact.last_contacted, unsub_contact.last_contacted)
+
+    @patch("logging.info")
+    @patch("modules.text_processor.Texter.send")
+    def test_processing_makes_contact_last_heard_from_time_message_time(self, texting_mock, logging_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        response = t.process("JOIN PAULA 25-11-2012")
+        original_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
+        logging_mock.assert_called_with("Subscribing `JOIN PAULA 25-11-2012`...")
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+        join_message = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body="JOIN PAULA 25-11-2012").first()
+        self.assertEqual(join_message.time, original_contact.last_heard_from)
+
+        born_response = t.process("BORN PAULA 25-11-2012")
+        texting_mock.assert_called_with(message=born_response, phone_number="1-111-1111")
+        born_message = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body="BORN PAULA 25-11-2012").first()
+        updated_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
+        self.assertEqual(born_message.time, updated_contact.last_heard_from)
+        
+        end_response = t.process("END")
+        texting_mock.assert_called_with(message=end_response, phone_number="1-111-1111")
+        end_message = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Incoming", body="END").first()
+        unsub_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
+        self.assertEqual(end_message.time, unsub_contact.last_heard_from)
+
+    @patch("logging.info")
+    @patch("modules.text_processor.Texter.send")
+    def test_processing_makes_contact_last_contacted_time_message_time(self, texting_mock, logging_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        response = t.process("JOIN PAULA 25-11-2012")
+        original_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
+        logging_mock.assert_called_with("Subscribing `JOIN PAULA 25-11-2012`...")
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+        subscribe_message = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Outgoing", body=msg_subscribe("English").format(name="Paula")).first()
+        self.assertEqual(subscribe_message.time, original_contact.last_contacted)
+
+        born_response = t.process("BORN PAULA 25-11-2012")
+        texting_mock.assert_called_with(message=born_response, phone_number="1-111-1111")
+        subscribe_message2 = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Outgoing", body=msg_subscribe("English").format(name="Paula")).last()
+        updated_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
+        self.assertEqual(subscribe_message2.time, updated_contact.last_contacted)
+        
+        end_response = t.process("END")
+        texting_mock.assert_called_with(message=end_response, phone_number="1-111-1111")
+        end_message = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                direction="Outgoing", body=msg_unsubscribe("English")).first()
+        unsub_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
+        self.assertEqual(end_message.time, unsub_contact.last_contacted)
+
+    @patch("logging.error")
+    @patch("modules.text_processor.Texter.send")
+    def test_processing_english_failed_messages_updates_contact_time_references(self, texting_mock, logging_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        keyword = "SDFDAJFDF"
+        fail_message = "SDFDAJFDF PAULA 25-11-2012"
+        response = t.process(fail_message)
+        original_contact = Contact.objects.filter(phone_number="1-111-1111").first()
+        logging_mock.assert_called_with("Keyword " + quote(keyword.lower()) + " in message " + quote(fail_message) +
+                          " was not understood by the system.")
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+        fail_message_object = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                        direction="Incoming", body=fail_message).first()
+        failed_message_response = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                        direction="Outgoing", body=msg_failure("English")).first()
+        self.assertEqual(fail_message_object.time, original_contact.last_heard_from)
+        self.assertEqual(failed_message_response.time, original_contact.last_contacted)
+
+        failed_date_response = t.process("BORN PAULA 60-11-2012")
+        updated_contact = Contact.objects.filter(phone_number="1-111-1111").first()
+        fail_date_object = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                        direction="Incoming", body="BORN PAULA 60-11-2012").first()
+        failed_date_response = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                        direction="Outgoing", body=msg_failed_date("English")).first()
+        self.assertEqual(fail_date_object.time, updated_contact.last_heard_from)
+        self.assertEqual(failed_date_response.time, updated_contact.last_contacted)
+
+    @patch("logging.error")
+    @patch("modules.text_processor.Texter.send")
+    def test_processing_hindi_failed_messages_updates_contact_time_references(self, texting_mock, logging_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        keyword = u"\u0906\u092a"
+        fail_message = keyword + " Aarav 25-11-2012"
+        response = t.process(fail_message)
+        original_contact = Contact.objects.filter(phone_number="1-111-1111").first()
+        logging_mock.assert_called_with("Keyword " + quote(keyword.lower()) + " in message " + quote(fail_message) +
+                          " was not understood by the system.")
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+        fail_message_object = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                        direction="Incoming", body=fail_message).first()
+        failed_message_response = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
+                                                        direction="Outgoing", body=msg_failure("Hindi")).first()
+        self.assertEqual(fail_message_object.time, original_contact.last_heard_from)
+        self.assertEqual(failed_message_response.time, original_contact.last_contacted)
