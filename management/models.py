@@ -132,6 +132,7 @@ class Message(models.Model):
     direction = models.CharField(max_length=10)
     
     time = models.DateTimeField(auto_now_add=True)
+    is_processed = models.BooleanField(default=False, blank=False)
 
     def __str__(self):
         return self.body
