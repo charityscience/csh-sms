@@ -112,10 +112,25 @@ class TextProcessor(object):
         date = date_string_to_date(date) if date and date_is_valid(date) else None
         return (keyword, child_name, date)
 
+    def write_to_database(self, message):
+        keyword, child_name, date = self.get_data_from_message(message)
+        language = "Hindi" if keyword and keyword[0] not in string.ascii_lowercase else "English"
+        if not child_name and self.get_contacts():
+            contact = self.get_contacts().first()
+            child_name = contact.name
+            language = contact.language_preference
+        incoming = self.create_message_object(child_name=child_name,
+                                              phone_number=self.phone_number,
+                                              language=language,
+                                              body=message,
+                                              direction="Incoming")
+        Contact.objects.filter(pk=incoming.contact.id).update(last_heard_from=incoming.time)
+        return incoming
 
     def process(self, message):
-        """This is the main function that is run on an incoming text message to process it."""
-        keyword, child_name, date = self.get_data_from_message(message)
+        """This is the main function that is run on an message to process it."""
+        contact = Contact.objects.get(pk=message.contact.id)
+        keyword, child_name, date = self.get_data_from_message(message.body)
         preg_update = False
         if keyword in subscribe_keywords("English"):
             self.language = "English"
@@ -130,7 +145,7 @@ class TextProcessor(object):
         elif keyword == "end":
             action = self.process_unsubscribe
         else:
-            logging.error("Keyword " + quote(keyword) + " in message " + quote(message) +
+            logging.error("Keyword " + quote(keyword) + " in message " + quote(message.body) +
                           " was not understood by the system.")
             self.language = "Hindi" if keyword and keyword[0] not in string.ascii_lowercase else "English"
             action = self.process_failure
@@ -138,7 +153,7 @@ class TextProcessor(object):
         if action == self.process_subscribe:
             if child_name is None:
                 # If a child name is not found, we call them "your child".
-                child_name = msg_placeholder_child(self.language)
+                child_name = msg_placeholder_child(contact.language_preference)
             else:
                 child_name = child_name.title()
 
@@ -146,43 +161,43 @@ class TextProcessor(object):
                 action = self.process_failure
 
             if date is None:
-                logging.error("Date in message " + quote(message) + " is invalid.")
+                logging.error("Date in message " + quote(message.body) + " is invalid.")
                 action = self.process_failed_date
 
         if action == self.process_subscribe:
-            logging.info("Subscribing " + quote(message) + "...")
+            logging.info("Subscribing " + quote(message.body) + "...")
         elif action == self.process_unsubscribe:
-            logging.info("Unsubscribing " + quote(self.phone_number) + "...")
+            logging.info("Unsubscribing " + quote(contact.phone_number) + "...")
 
         response_text_message = action(child_name=child_name,
                                        date_of_birth=date,
                                        preg_update=preg_update)
-        incoming = self.create_message_object(child_name=child_name,
-                                              phone_number=self.phone_number,
-                                              language=self.language,
-                                              body=message,
-                                              direction="Incoming")
-        Contact.objects.filter(pk=incoming.contact.id).update(last_heard_from=incoming.time)
         
         outgoing = self.create_message_object(child_name=child_name,
-                                              phone_number=self.phone_number,
-                                              language=self.language,
+                                              phone_number=contact.phone_number,
+                                              language=contact.language_preference,
                                               body=response_text_message,
                                               direction="Outgoing")
         Contact.objects.filter(pk=outgoing.contact.id).update(last_contacted=outgoing.time)
         Texter().send(message=response_text_message,
                         phone_number=self.phone_number)
+        message.is_processed = True
+        message.save()
         return response_text_message
 
     def create_message_object(self, child_name, phone_number, language, body, direction):
         if not child_name or len(child_name) > 50:
             if not language:
-                language = "English"   
+                language = "English"
             child_name = msg_placeholder_child(language)
         try:
-            contact, _ = Contact.objects.get_or_create(phone_number=phone_number)
+            contact, _ = Contact.objects.get_or_create(name=child_name,
+                                                        phone_number=phone_number,
+                                                        language_preference=language)
         except MultipleObjectsReturned:
-            contact = Contact.objects.filter(name=child_name, phone_number=phone_number).first()
+            contact = Contact.objects.filter(name=child_name,
+                                                phone_number=phone_number,
+                                                language_preference=language).first()
 
         return Message.objects.create(contact=contact, direction=direction, body=body)
         
