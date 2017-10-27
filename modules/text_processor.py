@@ -27,31 +27,33 @@ class TextProcessor(object):
 
 
     def create_contact(self, child_name, phone_number, date_of_birth, language, preg_update=False):
-        if self.contacts.exists():
-            contact = Contact.objects.filter(name=child_name, phone_number=self.phone_number)
-            if contact.exists():
-                contact = contact.first()
-                if contact.cancelled or preg_update:
-                    # Update and resubscribe
-                    contact.cancelled = False
-                    contact.language_preference = language
-                    contact.date_of_birth = date_of_birth
-                    contact.functional_date_of_birth = date_of_birth
-                    contact.preg_update = preg_update
-                    contact.save()
-                    return True
-                else:
-                    # Already exists (error)
-                    logging.error("Contact for {name} at {phone} was subscribed but already exists!".format(name=child_name, phone=self.phone_number))
-                    return False 
+        contact = Contact.objects.filter(name=child_name, phone_number=self.phone_number).first()
+        if contact.cancelled or preg_update:
+            # Update and resubscribe
+            contact.cancelled = False
+            contact.language_preference = language
+            contact.date_of_birth = date_of_birth
+            contact.functional_date_of_birth = date_of_birth
+            contact.preg_update = preg_update
+            contact.save()
+            return True
+        elif Message.objects.filter(contact=contact,
+                                            direction="Outgoing",
+                                            body=msg_subscribe(language)).exists():
+            # Already exists (error)
+            logging.error("Contact for {name} at {phone} was subscribed but already exists!".format(name=child_name, phone=self.phone_number))
+            return False
+
         # Otherwise, create
-        contact = Contact.objects.create(name=child_name,
+        update_dict = {"delay_in_days": 0,
+                        "language_preference": language,
+                        "date_of_birth": date_of_birth,
+                        "functional_date_of_birth": date_of_birth,
+                        "method_of_sign_up": "Text"
+                        }
+        contact, _ = Contact.objects.update_or_create(name=child_name,
                                          phone_number=phone_number,
-                                         delay_in_days=0,
-                                         language_preference=language,
-                                         date_of_birth=date_of_birth,
-                                         functional_date_of_birth=date_of_birth,
-                                         method_of_sign_up="Text")
+                                         defaults=update_dict)
         for group_name in ["Text Sign Ups",
                            "Text Sign Ups - " + language.title(),
                            "Everyone - " + language.title()]:
@@ -67,7 +69,7 @@ class TextProcessor(object):
         return True
 
 
-    def process_subscribe(self, child_name, date_of_birth, preg_update):
+    def process_subscribe(self, child_name, date_of_birth, preg_update):        
         if self.create_contact(child_name=child_name,
                                phone_number=self.phone_number,
                                date_of_birth=date_of_birth,
@@ -119,6 +121,9 @@ class TextProcessor(object):
             contact = self.get_contacts().first()
             child_name = contact.name
             language = contact.language_preference
+
+        if child_name:
+            child_name = child_name.title()
         incoming = self.create_message_object(child_name=child_name,
                                               phone_number=self.phone_number,
                                               language=language,

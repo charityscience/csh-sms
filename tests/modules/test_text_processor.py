@@ -818,7 +818,6 @@ class TextProcessorProcessTests(TestCase):
         self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
                                                 direction="Incoming", body="JOIN PAULA 25-11-2012"))
         message_object = t.write_to_database("JOIN PAULA 25-11-2012")
-        # t.process(message_object)
         self.assertTrue(Contact.objects.filter(name="Paula", phone_number="1-111-1111").exists())
         self.assertEqual(1, Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number).first(),
                                                 direction="Incoming", body="JOIN PAULA 25-11-2012").count())
@@ -829,12 +828,16 @@ class TextProcessorProcessTests(TestCase):
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
 
         t2 = TextProcessor(phone_number="1-112-1111")
-        t2.process("JOIN SMITH 25-11-2012")
+        second_message = t2.write_to_database("JOIN SMITH 25-11-2012")
+        t2.process(second_message)
         t3 = TextProcessor(phone_number="1-113-1111")
-        t3.process("JOIN Aaja 25-11-2012")
+        third_message = t3.write_to_database("JOIN Aaja 25-11-2012")
+        t3.process(third_message)
         t4 = TextProcessor(phone_number="1-114-1111")
-        t4.process("JOIN Lauren 25-11-2012")
-        t.process("END")
+        fourth_message = t4.write_to_database("JOIN Lauren 25-11-2012")
+        t4.process(fourth_message)
+        end_message = t.write_to_database("END")
+        t.process(end_message)
 
         self.assertEqual(2, Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
                                                 direction="Incoming").count())
