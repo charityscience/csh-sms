@@ -178,7 +178,7 @@ class TextProcessor(object):
                                        date_of_birth=date,
                                        preg_update=preg_update)
         
-        outgoing = self.create_message_object(child_name=child_name,
+        outgoing = self.create_message_object(child_name=contact.name,
                                               phone_number=contact.phone_number,
                                               language=contact.language_preference,
                                               body=response_text_message,

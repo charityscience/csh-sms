@@ -727,10 +727,12 @@ class TextProcessorProcessTests(TestCase):
     @patch("modules.text_processor.Texter.send")  # See https://stackoverflow.com/questions/16134281/python-mocking-a-function-from-an-imported-module
     def test_processing_unsubscriptions_creates_message_objects(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1112")
-        t.process("JOIN Roland 12/11/2017")
+        join_message = t.write_to_database("JOIN Roland 12/11/2017")
         self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
                                                 direction="Incoming", body="END"))
-        response = t.process("END")
+        t.process(join_message)
+        end_message = t.write_to_database("END")
+        response = t.process(end_message)
         self.assertTrue(t.get_contacts().first().cancelled)
         self.assertEqual(response, msg_unsubscribe("English"))
         logging_mock.assert_called_with("Unsubscribing `1-111-1112`...")
@@ -739,10 +741,12 @@ class TextProcessorProcessTests(TestCase):
                                                 direction="Incoming", body="END").count())
 
         t = TextProcessor(phone_number="1-111-1113")
-        t.process(hindi_remind() + u' \u0906\u0930\u0935' + " 30-11-2016")
+        hindi_sub_message = t.write_to_database(hindi_remind() + u' \u0906\u0930\u0935' + " 30-11-2016")
+        t.process(hindi_sub_message)
         self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
                                                 direction="Incoming", body="END"))
-        response = t.process("END")
+        hindi_end = t.write_to_database("END")
+        response = t.process(hindi_end)
         self.assertTrue(t.get_contacts().first().cancelled)
         self.assertEqual(response, msg_unsubscribe("Hindi"))
         logging_mock.assert_called_with("Unsubscribing `1-111-1113`...")
@@ -836,8 +840,8 @@ class TextProcessorProcessTests(TestCase):
         t4 = TextProcessor(phone_number="1-114-1111")
         fourth_message = t4.write_to_database("JOIN Lauren 25-11-2012")
         t4.process(fourth_message)
-        end_message = t.write_to_database("END")
-        t.process(end_message)
+        t_end_message = t.write_to_database("END")
+        t.process(t_end_message)
 
         self.assertEqual(2, Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
                                                 direction="Incoming").count())
@@ -853,7 +857,8 @@ class TextProcessorProcessTests(TestCase):
         self.assertFalse(Contact.objects.filter(phone_number=t5.phone_number).exists())
         self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
                                                 direction="Incoming", body=hindi_remind() + u' \u0906\u0930\u0935' + " 30-11-2016"))
-        response = t5.process(hindi_remind() + u' \u0906\u0930\u0935' + " 30-11-2016")
+        t5_message = t5.write_to_database(hindi_remind() + u' \u0906\u0930\u0935' + " 30-11-2016")
+        response = t5.process(t5_message)
         self.assertTrue(Contact.objects.filter(name=u'\u0906\u0930\u0935', phone_number="1-111-1115").exists())
         self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(phone_number=t5.phone_number),
                                                     direction="Outgoing", body=msg_subscribe("Hindi").format(name=u'\u0906\u0930\u0935')).count())
@@ -861,12 +866,16 @@ class TextProcessorProcessTests(TestCase):
         texting_mock.assert_called_with(message=response, phone_number="1-111-1115")
 
         t6 = TextProcessor(phone_number="1-111-1116")
-        t6.process(hindi_information() + " SMITH 25-11-2012")
+        t6_message = t6.write_to_database(hindi_information() + " SMITH 25-11-2012")
+        t6.process(t6_message)
         t7 = TextProcessor(phone_number="1-111-1117")
-        t7.process(hindi_information() + " Aaja 25-11-2012")
+        t7_message = t7.write_to_database(hindi_information() + " Aaja 25-11-2012")
+        t7.process(t7_message)
         t8 = TextProcessor(phone_number="1-111-1118")
-        t8.process(hindi_information() + " Lauren 25-11-2012")
-        t5.process("END")
+        t8_message = t8.write_to_database(hindi_information() + " Lauren 25-11-2012")
+        t8.process(t8_message)
+        t5_end_message = t5.write_to_database("END")
+        t5.process(t5_end_message)
 
         self.assertEqual(2, Message.objects.filter(contact=Contact.objects.filter(phone_number=t5.phone_number),
                                                 direction="Incoming").count())
@@ -1105,3 +1114,46 @@ class TextProcessorProcessTests(TestCase):
         self.assertEqual(1, Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-2222").first(),
                                                     body="END",
                                                     direction="Incoming").count())
+
+    def test_write_to_database_finds_existing_contact_names_english(self):
+        t = TextProcessor(phone_number="1-111-1111")
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-1111").first()))
+        incoming = t.write_to_database("JOIN Marshall 20-10-2017")
+        t.process(incoming)
+        contact = Contact.objects.get(phone_number=t.phone_number)
+        self.assertEqual("Marshall", contact.name)
+        t.write_to_database("END")
+        end_message = Message.objects.get(body="END", direction="Incoming")
+        t.process(end_message)
+        self.assertEqual(contact.name, end_message.contact.name)
+        self.assertEqual(contact.id, end_message.contact.id)
+        self.assertEqual(1, Contact.objects.all().count())
+
+        second_contact = self.create_contact(name="Existy",
+                                        phone_number="9101234567890",
+                                        delay_in_days=0,
+                                        language_preference="English",
+                                        method_of_sign_up="Door to Door")
+        t2 = TextProcessor(phone_number="9101234567890")
+        self.assertTrue(Contact.objects.get(pk=second_contact.id))
+        t2.write_to_database("END")
+        second_end_message = Message.objects.get(contact=second_contact, body="END", direction="Incoming")
+        t2.process(end_message)
+        self.assertEqual(second_contact.name, second_end_message.contact.name)
+        self.assertEqual(second_contact.id, second_end_message.contact.id)
+        self.assertEqual(2, Contact.objects.all().count())
+
+    def test_write_to_database_finds_existing_contact_names_hindi(self):
+        t = TextProcessor(phone_number="1-111-1111")
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-1111").first()))
+        incoming = t.write_to_database(hindi_remind() + " Marshall 20-10-2017")
+        t.process(incoming)
+        contact = Contact.objects.get(phone_number=t.phone_number)
+        self.assertEqual("Marshall", contact.name)
+        t.write_to_database("END")
+        contact = Contact.objects.get(phone_number=t.phone_number)
+        end_message = Message.objects.get(body="END", direction="Incoming")
+        t.process(end_message)
+        self.assertEqual(contact.name, end_message.contact.name)
+        self.assertEqual(contact.id, end_message.contact.id)
+        self.assertEqual(1, Contact.objects.all().count())
