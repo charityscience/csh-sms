@@ -39,7 +39,7 @@ class TextProcessor(object):
             return True
         elif Message.objects.filter(contact=contact,
                                             direction="Outgoing",
-                                            body=msg_subscribe(language)).exists():
+                                            body=msg_subscribe(language).format(name=contact.name)).exists():
             # Already exists (error)
             logging.error("Contact for {name} at {phone} was subscribed but already exists!".format(name=child_name, phone=self.phone_number))
             return False

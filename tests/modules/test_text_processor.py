@@ -263,6 +263,7 @@ class TextProcessorProcessTests(TestCase):
         texting_mock.assert_called_with(message=second_response, phone_number="1-111-1114")
         logging_error_mock.assert_called_with("Contact for Rose at 1-111-1114 was subscribed but already exists!")
         self.assertTrue(Contact.objects.filter(name="Rose", phone_number="1-111-1114").exists())
+        self.assertEqual(1, Contact.objects.filter(name="Rose", phone_number="1-111-1114").count())
         self.assertTrue(t2.get_contacts().exists())
         actual_groups = [str(g) for g in t2.get_contacts().first().group_set.all()]
         expected_groups = ['Everyone - English', 'Text Sign Ups', 'Text Sign Ups - English']
@@ -1027,7 +1028,8 @@ class TextProcessorProcessTests(TestCase):
         self.assertNotEqual(original_last_contacted, updated_contact.last_contacted)
         self.assertLess(original_contact.last_contacted, updated_contact.last_contacted)
         
-        end_response = t.process("END")
+        end_message = t.write_to_database("END")
+        end_response = t.process(end_message)
         texting_mock.assert_called_with(message=end_response, phone_number="1-111-1111")
         unsub_contact = Contact.objects.filter(name="Aarav", phone_number="1-111-1111").first()
         self.assertNotEqual(original_contact.last_contacted, unsub_contact.last_contacted)
