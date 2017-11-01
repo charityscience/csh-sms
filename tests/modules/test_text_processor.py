@@ -418,6 +418,23 @@ class TextProcessorProcessTests(TestCase):
         self.assertTrue(Contact.objects.filter(name="Sanjiv", phone_number="910003456789", language_preference="Hindi", date_of_birth=datetime(2017, 7, 25, 0, 0), preg_signup=True, preg_update=True).exists())
         new_contact.delete()
 
+    @patch("logging.info")
+    @patch("modules.text_processor.Texter.send")
+    def test_preg_updates_with_opposite_language_keep_original_language_hindi(self, texting_mock, logging_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        join_message = t.write_to_database(hindi_remind() + " Aarav 25-11-2012")
+        response = t.process(join_message)
+        logging_mock.assert_called_with("Subscribing " + quote(join_message.body) + "...")
+        texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
+        contact = Contact.objects.filter(name="Aarav", phone_number="1-111-1111").first()
+        self.assertEqual("Hindi", contact.language_preference)
+
+        born_message = t.write_to_database("BORN Aarav 25-11-2012")
+        born_response = t.process(born_message)
+        texting_mock.assert_called_with(message=born_response, phone_number="1-111-1111")
+        contact = Contact.objects.filter(name="Aarav", phone_number="1-111-1111").first()
+        self.assertEqual("Hindi", contact.language_preference)
+
     @patch("logging.error")
     @patch("logging.info")
     @patch("modules.text_processor.Texter.send")
@@ -956,6 +973,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertLess(original_contact.last_heard_from, unsub_contact.last_heard_from)
         self.assertNotEqual(updated_contact.last_heard_from, unsub_contact.last_heard_from)
         self.assertLess(updated_contact.last_heard_from, unsub_contact.last_heard_from)
+
 
     @patch("logging.info")
     @patch("modules.text_processor.Texter.send")

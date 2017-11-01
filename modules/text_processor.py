@@ -122,6 +122,10 @@ class TextProcessor(object):
             child_name = contact.name
             language = contact.language_preference
 
+        if self.get_contacts() and keyword == "born":
+            contact = self.get_contacts().first()
+            language = contact.language_preference
+
         if child_name:
             child_name = child_name.title()
         incoming = self.create_message_object(child_name=child_name,
@@ -141,11 +145,13 @@ class TextProcessor(object):
             self.language = "English"
             if keyword == "born":
                 preg_update = True
+                self.language = contact.language_preference or "English"
             action = self.process_subscribe
         elif keyword in subscribe_keywords("Hindi"):
             self.language = "Hindi"
             if keyword == hindi_born():
                 preg_update = True
+                self.language = contact.language_preference or "Hindi"
             action = self.process_subscribe
         elif keyword == "end":
             action = self.process_unsubscribe
@@ -178,9 +184,13 @@ class TextProcessor(object):
                                        date_of_birth=date,
                                        preg_update=preg_update)
         
+        if not self.language:
+            # Will only happen in the event of a number asked to be unsubbed but doesn't exist
+            self.language = "English"
+
         outgoing = self.create_message_object(child_name=contact.name,
                                               phone_number=contact.phone_number,
-                                              language=contact.language_preference,
+                                              language=self.language,
                                               body=response_text_message,
                                               direction="Outgoing")
         Contact.objects.filter(pk=outgoing.contact.id).update(last_contacted=outgoing.time)

@@ -469,7 +469,8 @@ class TextReminderTests(TestCase):
         tr = text_reminder_object("12/6/2017") # 7 days before the 6 week appointment
         self.assertTrue(tr.should_remind_today())
         tp = TextProcessor(phone_number=tr.phone_number)
-        tp.process("END")
+        end_message = tp.write_to_database("END")
+        tp.process(end_message)
         self.assertTrue("Contact is cancelled." in tr.why_not_remind_reasons())
         self.assertFalse(tr.should_remind_today())
 
