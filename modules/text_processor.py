@@ -196,8 +196,8 @@ class TextProcessor(object):
         Contact.objects.filter(pk=outgoing.contact.id).update(last_contacted=outgoing.time)
         Texter().send(message=response_text_message,
                         phone_number=self.phone_number)
-        message.is_processed = True
-        message.save()
+        outgoing.is_processed = True
+        outgoing.save()
         return response_text_message
 
     def create_message_object(self, child_name, phone_number, language, body, direction):

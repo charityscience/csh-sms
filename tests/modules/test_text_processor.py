@@ -1082,6 +1082,33 @@ class TextProcessorProcessTests(TestCase):
         self.assertNotEqual(updated_contact.last_contacted, unsub_contact.last_contacted)
         self.assertLess(updated_contact.last_contacted, unsub_contact.last_contacted)
 
+    @patch("logging.error")
+    def test_processing_updates_contact_last_contacted_for_failures(self, logging_error_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        join_message = t.write_to_database("JOIN PAULA 25-11-2012")
+        response = t.process(join_message)
+        original_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
+        
+        fail_message = t.write_to_database("Nonsense")
+        fail_response = t.process(fail_message)
+        fail_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
+        logging_error_mock.assert_called()
+        self.assertNotEqual(original_contact.last_contacted, fail_contact.last_contacted)
+        self.assertLess(original_contact.last_contacted, fail_contact.last_contacted)
+
+        t2 = TextProcessor(phone_number="1-111-3333")
+        hin_join_message = hindi_remind() + " Aarav 25-11-2012"
+        hin_join_message = t2.write_to_database(hindi_remind() + " Aarav 25-11-2012")
+        response = t2.process(hin_join_message)
+        hin_original_contact = Contact.objects.filter(name="Aarav", phone_number="1-111-3333").first()
+        
+        hin_fail_message = t2.write_to_database(u"\u0926\u093f\u0928")
+        hin_fail_response = t2.process(fail_message)
+        self.assertEqual(2, logging_error_mock.call_count)
+        hin_fail_contact = Contact.objects.filter(name="Aarav", phone_number="1-111-3333").first()
+        self.assertNotEqual(hin_original_contact.last_contacted, hin_fail_contact.last_contacted)
+        self.assertLess(hin_original_contact.last_contacted, hin_fail_contact.last_contacted)
+
     @patch("logging.info")
     @patch("modules.text_processor.Texter.send")
     def test_processing_makes_contact_last_heard_from_time_message_time(self, texting_mock, logging_mock):
@@ -1265,3 +1292,36 @@ class TextProcessorProcessTests(TestCase):
         self.assertEqual(contact.name, end_message.contact.name)
         self.assertEqual(contact.id, end_message.contact.id)
         self.assertEqual(1, Contact.objects.all().count())
+
+    def test_processing_updates_message_is_processed(self):
+        t = TextProcessor(phone_number="1-111-1111")
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-1111").first()))
+        hindi_join = t.write_to_database(hindi_remind() + " Marshall 20-10-2017")
+        self.assertFalse(hindi_join.is_processed)
+        self.assertEqual(1, Message.objects.filter(direction="Incoming").count())
+        t.process(hindi_join)
+        self.assertEqual(1, Message.objects.filter(direction="Incoming").count())
+        hindi_join = Message.objects.filter(direction="Incoming").first()
+        self.assertTrue(hindi_join.is_processed)
+        end_message = t.write_to_database("END")
+        self.assertFalse(end_message.is_processed)
+        t.process(end_message)
+        self.assertEqual(1, Message.objects.filter(direction="Incoming", body="END").count())
+        end_message = Message.objects.filter(direction="Incoming", body="END").first()
+        self.assertTrue(end_message.is_processed)
+
+        t2 = TextProcessor(phone_number="1-111-2222")
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-2222").first()))
+        eng_join = t2.write_to_database("JOIN Marshall 20-10-2017")
+        self.assertFalse(eng_join.is_processed)
+        contact = Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-2222")).first().contact
+        self.assertEqual(1, Message.objects.filter(contact=contact).count())
+        t2.process(eng_join)
+        self.assertEqual(1, Message.objects.filter(contact=contact).count())
+        eng_join = Message.objects.filter(contact=contact).first()
+        self.assertTrue(eng_join.is_processed)
+        eng_end_message = t2.write_to_database("END")
+        self.assertFalse(eng_end_message.is_processed)
+        t2.process(end_message)
+        eng_end_message = Message.objects.filter(contact=contact, body="END").first()
+        self.assertTrue(eng_end_message.is_processed)
