@@ -1002,6 +1002,33 @@ class TextProcessorProcessTests(TestCase):
         self.assertNotEqual(updated_contact.last_heard_from, unsub_contact.last_heard_from)
         self.assertLess(updated_contact.last_heard_from, unsub_contact.last_heard_from)
 
+    @patch("logging.error")
+    def test_processing_updates_contact_last_heard_from_for_failures(self, logging_error_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        join_message = t.write_to_database("JOIN PAULA 25-11-2012")
+        response = t.process(join_message)
+        original_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
+        
+        fail_message = t.write_to_database("Nonsense")
+        fail_response = t.process(fail_message)
+        fail_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
+        logging_error_mock.assert_called()
+        self.assertNotEqual(original_contact.last_heard_from, fail_contact.last_heard_from)
+        self.assertLess(original_contact.last_heard_from, fail_contact.last_heard_from)
+
+        t2 = TextProcessor(phone_number="1-111-3333")
+        hin_join_message = hindi_remind() + " Aarav 25-11-2012"
+        hin_join_message = t2.write_to_database(hindi_remind() + " Aarav 25-11-2012")
+        response = t2.process(hin_join_message)
+        hin_original_contact = Contact.objects.filter(name="Aarav", phone_number="1-111-3333").first()
+        
+        hin_fail_message = t2.write_to_database(u"\u0926\u093f\u0928")
+        hin_fail_response = t2.process(fail_message)
+        self.assertEqual(2, logging_error_mock.call_count)
+        hin_fail_contact = Contact.objects.filter(name="Aarav", phone_number="1-111-3333").first()
+        self.assertNotEqual(hin_original_contact.last_heard_from, hin_fail_contact.last_heard_from)
+        self.assertLess(hin_original_contact.last_heard_from, hin_fail_contact.last_heard_from)
+
     @patch("logging.info")
     @patch("modules.text_processor.Texter.send")
     def test_processing_updates_contact_last_contacted_english(self, texting_mock, logging_mock):
