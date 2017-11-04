@@ -133,7 +133,9 @@ class TextProcessor(object):
                                               language=language,
                                               body=message,
                                               direction="Incoming")
-        Contact.objects.filter(pk=incoming.contact.id).update(last_heard_from=incoming.time)
+        contact = Contact.objects.get(pk=incoming.contact.id)
+        contact.last_heard_from = incoming.time
+        contact.save()
         return incoming
 
     def process(self, message):
@@ -193,7 +195,9 @@ class TextProcessor(object):
                                               language=self.language,
                                               body=response_text_message,
                                               direction="Outgoing")
-        Contact.objects.filter(pk=outgoing.contact.id).update(last_contacted=outgoing.time)
+        contact = Contact.objects.get(pk=outgoing.contact.id)
+        contact.last_contacted = outgoing.time
+        contact.save()
         Texter().send(message=response_text_message,
                         phone_number=self.phone_number)
         outgoing.is_processed = True
