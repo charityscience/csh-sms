@@ -68,9 +68,9 @@ class Contact(models.Model):
     time_created = models.DateField(auto_now=False, auto_now_add=False,
         default=datetime.date.today)
     last_heard_from = models.DateTimeField(auto_now=False, auto_now_add=False, blank=True,
-        null=True, default=timezone.now)
+        null=True)
     last_contacted = models.DateTimeField(auto_now=False, auto_now_add=False, blank=True,
-        null=True, default=timezone.now)
+        null=True)
 
     def __str__(self):
         return "%s, %s, %s" % (self.name, self.phone_number, self.date_of_birth)
