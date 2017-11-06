@@ -238,10 +238,11 @@ class TextProcessorProcessTests(TestCase):
         self.assertFalse(Contact.objects.filter(phone_number="1-111-1112").exists())
         t = TextProcessor(phone_number="1-111-1112")
         end_message = t.write_to_database("END")
+        self.assertTrue(Contact.objects.filter(phone_number="1-111-1112").exists())
         response = t.process(end_message)
         self.assertTrue(Contact.objects.filter(phone_number="1-111-1112").exists())
         self.assertEqual(response, msg_unsubscribe("English"))
-        logging_error_mock.assert_called_with("`1-111-1112` asked to be unsubscribed but does not exist.")
+        logging_error_mock.assert_called_with("`1-111-1112` asked to be unsubscribed but some data is missing on the existing contact object.")
 
     @patch("logging.error")
     @patch("logging.info")

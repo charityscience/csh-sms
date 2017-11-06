@@ -82,11 +82,12 @@ class TextProcessor(object):
 
     def process_unsubscribe(self, child_name, date_of_birth, preg_update=False):
         if self.contacts.exists():
+            if child_name is None or date_of_birth is None or self.language is None:
+                logging.error(quote(self.phone_number) + " asked to be unsubscribed but some data is missing on the existing contact object.")
             self.cancel_contacts()
-            return msg_unsubscribe(self.language)
         else:
             logging.error(quote(self.phone_number) + " asked to be unsubscribed but does not exist.")
-            return msg_unsubscribe("English")
+        return msg_unsubscribe(self.language or "English")
 
 
     def process_failure(self, child_name, date_of_birth, preg_update=False):
