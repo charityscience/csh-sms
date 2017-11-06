@@ -26,9 +26,6 @@ class TextProcessorJobTests(TestCase):
         # All outgoing messages are recorded in DB
         outgoing_messages_in_db = Message.objects.filter(direction="Outgoing")
         self.assertEqual(len(outgoing_messages_in_db), 3)
-        self.assertTrue(any([msg_unsubscribe("Hindi") == m.body for m in outgoing_messages_in_db]))
-        self.assertTrue(any([msg_subscribe("English").format(name = "Roland") == m.body for m in outgoing_messages_in_db]))
-        self.assertTrue(any([msg_subscribe("Hindi").format(name = "Sai") == m.body for m in outgoing_messages_in_db]))
 
         # All messages are marked processed
         self.assertTrue(all([m.is_processed for m in outgoing_messages_in_db]))
@@ -41,6 +38,8 @@ class TextProcessorJobTests(TestCase):
                       phone_number="1-112-1111"),
                  call(message=msg_unsubscribe("Hindi"),
                       phone_number="1-112-1111")]
+        import pdb
+        pdb.set_trace()
         mocked_texter_send.assert_has_calls(calls, any_order=True)
         self.assertEqual(mocked_texter_send.call_count, 3)
 

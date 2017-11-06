@@ -14,9 +14,11 @@ from modules.i18n import msg_subscribe, msg_unsubscribe, msg_placeholder_child, 
 class TextProcessor(object):
     def __init__(self, phone_number):
         self.phone_number = phone_number
-        self.get_contacts()
-        if self.contacts.exists():
-            self.language = self.contacts.first().language_preference
+        self.set_language(default=None)
+
+    def set_language(self, default):
+        if self.get_contacts().exists():
+            self.language = self.contacts.first().language_preference or default
         else:
             self.language = None
 
@@ -47,7 +49,7 @@ class TextProcessor(object):
 
         # Otherwise, create
         update_dict = {"delay_in_days": 0,
-                       "language_preference": language,
+                       "language_preference": self.language,
                        "date_of_birth": date_of_birth,
                        "functional_date_of_birth": date_of_birth,
                        "method_of_sign_up": "Text"}
@@ -55,8 +57,8 @@ class TextProcessor(object):
                                                       phone_number=phone_number,
                                                       defaults=update_dict)
         for group_name in ["Text Sign Ups",
-                           "Text Sign Ups - " + language.title(),
-                           "Everyone - " + language.title()]:
+                           "Text Sign Ups - " + self.language.title(),
+                           "Everyone - " + self.language.title()]:
             add_contact_to_group(contact, group_name)
         self.get_contacts()
         return True
@@ -117,23 +119,22 @@ class TextProcessor(object):
 
     def write_to_database(self, message):
         keyword, child_name, date = self.get_data_from_message(message)
-        language = "Hindi" if keyword and keyword[0] not in string.ascii_lowercase else "English"
+        inferred_language = "Hindi" if keyword and keyword[0] not in string.ascii_lowercase else "English"
+        language = self.language or inferred_language
+
         if not child_name and self.get_contacts():
             contact = self.get_contacts().first()
             child_name = contact.name
-            language = contact.language_preference
-
-        if self.get_contacts() and keyword == "born":
-            contact = self.get_contacts().first()
-            language = contact.language_preference
 
         if child_name:
             child_name = child_name.title()
+
         incoming = self.create_message_object(child_name=child_name,
                                               phone_number=self.phone_number,
                                               language=language,
                                               body=message,
                                               direction="Incoming")
+
         contact = Contact.objects.get(pk=incoming.contact.id)
         contact.last_heard_from = incoming.time
         contact.save()
@@ -146,29 +147,27 @@ class TextProcessor(object):
         keyword, child_name, date = self.get_data_from_message(message.body)
         preg_update = False
         if keyword in subscribe_keywords("English"):
-            self.language = "English"
+            self.set_language(default="English")
             if keyword == "born":
                 preg_update = True
-                self.language = contact.language_preference or "English"
             action = self.process_subscribe
         elif keyword in subscribe_keywords("Hindi"):
-            self.language = "Hindi"
+            self.set_language(default="Hindi")
             if keyword == hindi_born():
                 preg_update = True
-                self.language = contact.language_preference or "Hindi"
             action = self.process_subscribe
         elif keyword == "end":
+            self.set_language(default="English")
             action = self.process_unsubscribe
         else:
             logging.error("Keyword " + quote(keyword) + " in message " + quote(message.body) +
                           " was not understood by the system.")
-            self.language = "Hindi" if keyword and keyword[0] not in string.ascii_lowercase else "English"
             action = self.process_failure
 
         if action == self.process_subscribe:
             if child_name is None:
                 # If a child name is not found, we call them "your child".
-                child_name = msg_placeholder_child(contact.language_preference)
+                child_name = msg_placeholder_child(self.language)
             else:
                 child_name = child_name.title()
 
