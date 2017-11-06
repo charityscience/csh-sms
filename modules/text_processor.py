@@ -47,14 +47,13 @@ class TextProcessor(object):
 
         # Otherwise, create
         update_dict = {"delay_in_days": 0,
-                        "language_preference": language,
-                        "date_of_birth": date_of_birth,
-                        "functional_date_of_birth": date_of_birth,
-                        "method_of_sign_up": "Text"
-                        }
+                       "language_preference": language,
+                       "date_of_birth": date_of_birth,
+                       "functional_date_of_birth": date_of_birth,
+                       "method_of_sign_up": "Text"}
         contact, _ = Contact.objects.update_or_create(name=child_name,
-                                         phone_number=phone_number,
-                                         defaults=update_dict)
+                                                      phone_number=phone_number,
+                                                      defaults=update_dict)
         for group_name in ["Text Sign Ups",
                            "Text Sign Ups - " + language.title(),
                            "Everyone - " + language.title()]:
@@ -137,6 +136,7 @@ class TextProcessor(object):
         contact = Contact.objects.get(pk=incoming.contact.id)
         contact.last_heard_from = incoming.time
         contact.save()
+        self.get_contacts()
         return incoming
 
     def process(self, message):
