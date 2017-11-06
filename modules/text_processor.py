@@ -202,7 +202,7 @@ class TextProcessor(object):
         contact.save()
         self.get_contacts()
         Texter().send(message=response_text_message,
-                        phone_number=self.phone_number)
+                      phone_number=self.phone_number)
         outgoing.is_processed = True
         outgoing.save()
         return response_text_message
