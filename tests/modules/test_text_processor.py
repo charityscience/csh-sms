@@ -1172,7 +1172,7 @@ class TextProcessorProcessTests(TestCase):
         born_response = t.process(born_message)
         texting_mock.assert_called_with(message=born_response, phone_number="1-111-1111")
         born_message_object = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
-                                                direction="Incoming", body="BORN PAULA 25-11-2012").first()
+                                                    direction="Incoming", body="BORN PAULA 25-11-2012").first()
         updated_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
         self.assertEqual(born_message_object.time, updated_contact.last_heard_from)
         
@@ -1180,7 +1180,7 @@ class TextProcessorProcessTests(TestCase):
         end_response = t.process(end_message)
         texting_mock.assert_called_with(message=end_response, phone_number="1-111-1111")
         end_message_object = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
-                                                direction="Incoming", body="END").first()
+                                                    direction="Incoming", body="END").first()
         unsub_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
         self.assertEqual(end_message_object.time, unsub_contact.last_heard_from)
 
