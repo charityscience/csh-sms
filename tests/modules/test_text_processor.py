@@ -1126,7 +1126,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertLess(updated_contact.last_contacted, unsub_contact.last_contacted)
 
     @patch("logging.error")
-    def test_processing_updates_contact_last_contacted_for_failures(self, logging_error_mock):
+    def test_processing_updates_contact_last_contacted_for_failures_english(self, logging_error_mock):
         t = TextProcessor(phone_number="1-111-1111")
         join_message = t.write_to_database("JOIN PAULA 25-11-2012")
         response = t.process(join_message)
@@ -1137,10 +1137,13 @@ class TextProcessorProcessTests(TestCase):
         fail_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
         logging_error_mock.assert_called()
         fail_message_object = Message.objects.filter(direction="Outgoing", body=fail_response).first()
+        self.assertEqual(1, logging_error_mock.call_count)
         self.assertEqual(fail_message_object.time, fail_contact.last_contacted)
         self.assertNotEqual(original_contact.last_contacted, fail_contact.last_contacted)
         self.assertLess(original_contact.last_contacted, fail_contact.last_contacted)
 
+    @patch("logging.error")
+    def test_processing_updates_contact_last_contacted_for_failures_hindi(self, logging_error_mock):
         t2 = TextProcessor(phone_number="1-111-3333")
         hin_join_message = hindi_remind() + " Aarav 25-11-2012"
         hin_join_message = t2.write_to_database(hindi_remind() + " Aarav 25-11-2012")
@@ -1148,9 +1151,9 @@ class TextProcessorProcessTests(TestCase):
         hin_original_contact = Contact.objects.filter(name="Aarav", phone_number="1-111-3333").first()
         
         hin_fail_message = t2.write_to_database(u"\u0926\u093f\u0928")
-        hin_fail_response = t2.process(fail_message)
+        hin_fail_response = t2.process(hin_fail_message)
         hin_fail_message_object = Message.objects.filter(direction="Outgoing", body=hin_fail_response).first()
-        self.assertEqual(2, logging_error_mock.call_count)
+        self.assertEqual(1, logging_error_mock.call_count)
         hin_fail_contact = Contact.objects.filter(name="Aarav", phone_number="1-111-3333").first()
         self.assertEqual(hin_fail_message_object.time, hin_fail_contact.last_contacted)
         self.assertNotEqual(hin_original_contact.last_contacted, hin_fail_contact.last_contacted)
