@@ -89,9 +89,11 @@ class TextReminder(object):
     def remind(self):
         if self.should_remind_today():
             logging.info("Sent reminder to " + quote(self.phone_number))
-            outgoing_message = Message.objects.create(contact=self.get_contact(), direction="Outgoing",
+            contact = self.get_contact()
+            outgoing_message = Message.objects.create(contact=contact, direction="Outgoing",
                 body=self.get_reminder_msg())
-            Contact.objects.filter(pk=self.get_contact().id).update(last_contacted=outgoing_message.time)
+            contact.last_contacted = outgoing_message.time
+            contact.save()
             Texter().send(message=self.get_reminder_msg(),
                           phone_number=self.phone_number)
             return True
