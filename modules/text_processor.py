@@ -200,6 +200,7 @@ class TextProcessor(object):
         contact = Contact.objects.get(pk=outgoing.contact.id)
         contact.last_contacted = outgoing.time
         contact.save()
+        self.get_contacts()
         Texter().send(message=response_text_message,
                         phone_number=self.phone_number)
         outgoing.is_processed = True
