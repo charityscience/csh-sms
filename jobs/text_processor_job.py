@@ -18,6 +18,6 @@ def check_and_process_registrations():
     num_unprocessed = unprocessed_messages.count()
     logging.info("...Processing {} messages from database".format(num_unprocessed))
     for message in unprocessed_messages:
-            print("Message is: ", message)
-            t.process(message)
+        print("Message is: ", message)
+        t.process(message)
     logging.info("...Completed.")
