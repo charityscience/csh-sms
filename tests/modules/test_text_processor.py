@@ -1343,7 +1343,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertEqual(contact.id, end_message.contact.id)
         self.assertEqual(1, Contact.objects.all().count())
 
-    def test_processing_updates_message_is_processed(self):
+    def test_processing_updates_message_is_processed_hindi(self):
         t = TextProcessor(phone_number="1-111-1111")
         self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-1111").first()))
         hindi_join = t.write_to_database(hindi_remind() + " Marshall 20-10-2017")
@@ -1360,6 +1360,7 @@ class TextProcessorProcessTests(TestCase):
         end_message = Message.objects.filter(direction="Incoming", body="END").first()
         self.assertTrue(end_message.is_processed)
 
+    def test_processing_updates_message_is_processed_english(self):
         t2 = TextProcessor(phone_number="1-111-2222")
         self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-2222").first()))
         eng_join = t2.write_to_database("JOIN Marshall 20-10-2017")
@@ -1367,7 +1368,7 @@ class TextProcessorProcessTests(TestCase):
         contact = Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-2222")).first().contact
         self.assertEqual(1, Message.objects.filter(contact=contact).count())
         t2.process(eng_join)
-        self.assertEqual(1, Message.objects.filter(contact=contact).count())
+        self.assertEqual(2, Message.objects.filter(contact=contact).count())
         eng_join = Message.objects.filter(contact=contact).first()
         self.assertTrue(eng_join.is_processed)
         eng_end_message = t2.write_to_database("END")
