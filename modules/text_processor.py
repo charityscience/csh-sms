@@ -28,21 +28,22 @@ class TextProcessor(object):
 
     def create_contact(self, child_name, phone_number, date_of_birth, language, preg_update=False):
         contact = Contact.objects.filter(name=child_name, phone_number=self.phone_number).first()
-        if contact.cancelled or preg_update:
-            # Update and resubscribe
-            contact.cancelled = False
-            contact.language_preference = language
-            contact.date_of_birth = date_of_birth
-            contact.functional_date_of_birth = date_of_birth
-            contact.preg_update = preg_update
-            contact.save()
-            return True
-        elif Message.objects.filter(contact=contact,
-                                            direction="Outgoing",
-                                            body=msg_subscribe(language).format(name=contact.name)).exists():
-            # Already exists (error)
-            logging.error("Contact for {name} at {phone} was subscribed but already exists!".format(name=child_name, phone=self.phone_number))
-            return False
+        if contact:
+            if contact.cancelled or preg_update:
+                # Update and resubscribe
+                contact.cancelled = False
+                contact.language_preference = language
+                contact.date_of_birth = date_of_birth
+                contact.functional_date_of_birth = date_of_birth
+                contact.preg_update = preg_update
+                contact.save()
+                return True
+            elif Message.objects.filter(contact=contact,
+                                        direction="Outgoing",
+                                        body=msg_subscribe(language).format(name=contact.name)).exists():
+                # Already exists (error)
+                logging.error("Contact for {name} at {phone} was subscribed but already exists!".format(name=child_name, phone=self.phone_number))
+                return False
 
         # Otherwise, create
         update_dict = {"delay_in_days": 0,
@@ -211,12 +212,12 @@ class TextProcessor(object):
             child_name = msg_placeholder_child(language)
         try:
             contact, _ = Contact.objects.get_or_create(name=child_name,
-                                                        phone_number=phone_number,
-                                                        language_preference=language)
+                                                       phone_number=phone_number,
+                                                       language_preference=language)
         except MultipleObjectsReturned:
             contact = Contact.objects.filter(name=child_name,
-                                                phone_number=phone_number,
-                                                language_preference=language).first()
+                                             phone_number=phone_number,
+                                             language_preference=language).first()
 
         return Message.objects.create(contact=contact, direction=direction, body=body)
         
