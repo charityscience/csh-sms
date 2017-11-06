@@ -205,6 +205,8 @@ class TextProcessor(object):
                       phone_number=self.phone_number)
         outgoing.is_processed = True
         outgoing.save()
+        message.is_processed = True
+        message.save()
         return response_text_message
 
     def create_message_object(self, child_name, phone_number, language, body, direction):
