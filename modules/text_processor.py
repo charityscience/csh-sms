@@ -160,6 +160,7 @@ class TextProcessor(object):
             self.set_language(default="English")
             action = self.process_unsubscribe
         else:
+            self.set_language(default="English")
             logging.error("Keyword " + quote(keyword) + " in message " + quote(message.body) +
                           " was not understood by the system.")
             action = self.process_failure
@@ -186,10 +187,6 @@ class TextProcessor(object):
         response_text_message = action(child_name=child_name,
                                        date_of_birth=date,
                                        preg_update=preg_update)
-        
-        if not self.language:
-            # Will only happen in the event of a number asked to be unsubbed but doesn't exist
-            self.language = "English"
 
         outgoing = self.create_message_object(child_name=contact.name,
                                               phone_number=contact.phone_number,
