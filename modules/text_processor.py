@@ -6,7 +6,7 @@ from django.core.exceptions import MultipleObjectsReturned
 
 from management.models import Contact, Group, Message
 from modules.texter import Texter
-from modules.utils import quote, add_contact_to_group
+from modules.utils import quote, add_contact_to_group, keywords_without_word
 from modules.date_helper import date_is_valid, date_string_to_date
 from modules.i18n import msg_subscribe, msg_unsubscribe, msg_placeholder_child, msg_failure, \
                          msg_failed_date, subscribe_keywords, msg_already_sub, hindi_born
@@ -21,6 +21,11 @@ class TextProcessor(object):
             self.language = self.contacts.first().language_preference or default
         else:
             self.language = None
+
+    def update_language(self, language, inferred_language, keyword):
+        if keyword in keywords_without_word(language=inferred_language, word="born"):
+            return inferred_language
+        return language
 
     # self.get_contacts() is preferred to self.contact due to triggering a Django DB reload.
     def get_contacts(self):
@@ -122,6 +127,11 @@ class TextProcessor(object):
         inferred_language = "Hindi" if keyword and keyword[0] not in string.ascii_lowercase else "English"
         language = self.language or inferred_language
 
+        if language != inferred_language:
+            language = self.update_language(language=language,
+                                            inferred_language=inferred_language,
+                                            keyword=keyword)
+
         if not child_name and self.get_contacts():
             contact = self.get_contacts().first()
             child_name = contact.name
@@ -212,12 +222,12 @@ class TextProcessor(object):
             child_name = msg_placeholder_child(language)
         try:
             contact, _ = Contact.objects.get_or_create(name=child_name,
-                                                       phone_number=phone_number,
-                                                       language_preference=language)
+                                                       phone_number=phone_number)
         except MultipleObjectsReturned:
             contact = Contact.objects.filter(name=child_name,
-                                             phone_number=phone_number,
-                                             language_preference=language).first()
+                                             phone_number=phone_number).first()
 
+        contact.language_preference = language
+        contact.save()
         return Message.objects.create(contact=contact, direction=direction, body=body)
         
