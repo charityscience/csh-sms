@@ -1380,3 +1380,110 @@ class TextProcessorProcessTests(TestCase):
         t2.process(eng_end_message)
         eng_end_message = Message.objects.filter(contact=contact, body="END").first()
         self.assertTrue(eng_end_message.is_processed)
+
+    def test_update_language_returns_inferred_language_if_keyword_is_subscribe_word(self):
+        t = TextProcessor(phone_number="1-111-2222")
+        updated_language_remind = t.update_language(language="English",
+                                                    inferred_language="Hindi",
+                                                    keyword=hindi_remind())
+        self.assertEqual("Hindi", updated_language_remind)
+
+        updated_language_info = t.update_language(language="English",
+                                                    inferred_language="Hindi",
+                                                    keyword=hindi_information())
+        self.assertEqual("Hindi", updated_language_info)
+
+        updated_language_born = t.update_language(language="English",
+                                                    inferred_language="Hindi",
+                                                    keyword=hindi_born())
+        self.assertEqual("Hindi", updated_language_info)
+
+        updated_language_join = t.update_language(language="Hindi",
+                                                    inferred_language="English",
+                                                    keyword="join")
+        self.assertEqual("English", updated_language_join)
+
+        updated_language_eng_remind = t.update_language(language="Hindi",
+                                                        inferred_language="English",
+                                                        keyword="remind")
+        self.assertEqual("English", updated_language_eng_remind)
+
+
+        both_hindi = t.update_language(language="Hindi",
+                                        inferred_language="Hindi",
+                                        keyword=hindi_remind())
+        self.assertEqual("Hindi", both_hindi)
+
+        both_english = t.update_language(language="English",
+                                            inferred_language="English",
+                                            keyword=hindi_remind())
+        self.assertEqual("English", both_english)
+
+    def test_update_language_returns_language_if_keyword_is_born(self):
+        t = TextProcessor(phone_number="1-111-2222")
+        lan_english = t.update_language(language="English",
+                                        inferred_language="Hindi",
+                                        keyword="born")
+        self.assertEqual("English", lan_english)
+
+        both_english = t.update_language(language="English",
+                                        inferred_language="English",
+                                        keyword="born")
+        self.assertEqual("English", both_english)
+
+        lan_hindi = t.update_language(language="Hindi",
+                                        inferred_language="English",
+                                        keyword="born")
+        self.assertEqual("Hindi", lan_hindi)
+
+        both_hindi = t.update_language(language="Hindi",
+                                        inferred_language="Hindi",
+                                        keyword="born")
+        self.assertEqual("Hindi", both_hindi)
+
+    def test_update_language_returns_language_if_keyword_not_in_subscribe_keywords(self):
+        t = TextProcessor(phone_number="1-111-2222")
+        hindi_random_chars1 = t.update_language(language="English",
+                                                    inferred_language="Hindi",
+                                                    keyword=u"\u092e\u0947\u0902")
+        self.assertEqual("English", hindi_random_chars1)
+
+        hindi_random_chars2 = t.update_language(language="English",
+                                                    inferred_language="Hindi",
+                                                    keyword=u"\u0917\u0932\u0947")
+        self.assertEqual("English", hindi_random_chars2)
+
+        blank_key = t.update_language(language="Hindi",
+                                        inferred_language="English",
+                                        keyword=" ")
+        self.assertEqual("Hindi", blank_key)
+
+        none_key = t.update_language(language="Hindi",
+                                        inferred_language="English",
+                                        keyword=None)
+        self.assertEqual("Hindi", none_key)
+
+        blank_key_eng = t.update_language(language="English",
+                                        inferred_language="Hindi",
+                                        keyword=" ")
+        self.assertEqual("English", blank_key_eng)
+
+        none_key_eng = t.update_language(language="English",
+                                        inferred_language="Hindi",
+                                        keyword=None)
+        self.assertEqual("English", none_key_eng)
+
+        stop_key = t.update_language(language="Hindi",
+                                        inferred_language="English",
+                                        keyword="stop")
+        self.assertEqual("Hindi", stop_key)
+
+        end_key = t.update_language(language="Hindi",
+                                        inferred_language="English",
+                                        keyword="end")
+        self.assertEqual("Hindi", end_key)
+
+        end_key_eng = t.update_language(language="English",
+                                        inferred_language="English",
+                                        keyword="end")
+        self.assertEqual("English", end_key_eng)
