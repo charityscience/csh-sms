@@ -3,12 +3,15 @@ from django.test import TestCase
 from django.utils import timezone
 
 from modules.utils import quote, phone_number_is_valid, remove_nondigit_characters, \
-                                add_country_code_to_phone_number, prepare_phone_number
+                                add_country_code_to_phone_number, prepare_phone_number, \
+                                keywords_without_word
 from modules.date_helper import date_string_to_date, date_is_valid, \
                                 date_to_date_string, date_string_dmy_to_date, \
                                 date_string_mdy_to_date, date_string_ymd_to_date, \
                                 try_parsing_partner_date, try_parsing_gen_date, \
                                 datetime_string_mdy_to_datetime
+from modules.i18n import hindi_information, hindi_remind, hindi_born, \
+                            subscribe_keywords
 from six import u
 
 class QuoteTests(TestCase):
@@ -646,3 +649,83 @@ class NumberHandlingTests(TestCase):
         self.assertEqual("", prepare_phone_number(" "))
         self.assertEqual("", prepare_phone_number("   "))
         self.assertEqual("", prepare_phone_number("  0 "))
+
+
+class KeywordTests(TestCase):
+    def test_removes_english_words(self):
+        no_join_list = keywords_without_word(language="English", word="join")
+        list_comp_minus_join = [key for key in subscribe_keywords("English") if key not in ["join"]]
+        self.assertEqual(list_comp_minus_join, no_join_list)
+        no_remind_list = keywords_without_word(language="English", word="remind")
+        list_comp_minus_remind = [key for key in subscribe_keywords("English") if key not in ["remind"]]
+        self.assertEqual(list_comp_minus_remind, no_remind_list)
+        no_born_list = keywords_without_word(language="English", word="born")
+        list_comp_minus_born = [key for key in subscribe_keywords("English") if key not in ["born"]]
+        self.assertEqual(list_comp_minus_born, no_born_list)
+
+    def test_removes_hindi_words(self):
+        no_info_list = keywords_without_word(language="Hindi", word=hindi_information())
+        list_comp_minus_info = [key for key in subscribe_keywords("Hindi") if key not in [hindi_information()]]
+        self.assertEqual(list_comp_minus_info, no_info_list)
+        no_remind_list = keywords_without_word(language="Hindi", word=hindi_remind())
+        list_comp_minus_remind = [key for key in subscribe_keywords("Hindi") if key not in [hindi_remind()]]
+        self.assertEqual(list_comp_minus_remind, no_remind_list)
+        no_born_list = keywords_without_word(language="Hindi", word=hindi_born())
+        list_comp_minus_born = [key for key in subscribe_keywords("Hindi") if key not in [hindi_born()]]
+        self.assertEqual(list_comp_minus_born, no_born_list)
+
+    def test_only_removes_words_in_set_english(self):
+        no_laugh_list = keywords_without_word(language="English", word="hahahaha")
+        self.assertEqual(subscribe_keywords("English"), no_laugh_list)
+        no_capital_born_list = keywords_without_word(language="English", word="Born")
+        self.assertEqual(subscribe_keywords("English"), no_capital_born_list)
+        no_partial_born_list = keywords_without_word(language="English", word="bor")
+        self.assertEqual(subscribe_keywords("English"), no_partial_born_list)
+        no_hyphen_list = keywords_without_word(language="English", word="---")
+        self.assertEqual(subscribe_keywords("English"), no_hyphen_list)
+        no_speical_character_list = keywords_without_word(language="English", word="!*^%$")
+        self.assertEqual(subscribe_keywords("English"), no_speical_character_list)
+        no_empty_list = keywords_without_word(language="English", word="")
+        self.assertEqual(subscribe_keywords("English"), no_empty_list)
+        no_blank_list = keywords_without_word(language="English", word=" ")
+        self.assertEqual(subscribe_keywords("English"), no_blank_list)
+        no_triple_blank_list = keywords_without_word(language="English", word="   ")
+        self.assertEqual(subscribe_keywords("English"), no_triple_blank_list)
+        no_int_list = keywords_without_word(language="English", word=10)
+        self.assertEqual(subscribe_keywords("English"), no_int_list)
+        no_digit_list = keywords_without_word(language="English", word="100")
+        self.assertEqual(subscribe_keywords("English"), no_digit_list)
+        no_hindi_remind_list = keywords_without_word(language="English", word=hindi_remind())
+        self.assertEqual(subscribe_keywords("English"), no_hindi_remind_list)
+        no_hindi_information_list = keywords_without_word(language="English", word=hindi_information())
+        self.assertEqual(subscribe_keywords("English"), no_hindi_information_list)
+        no_hindi_born_list = keywords_without_word(language="English", word=hindi_born())
+        self.assertEqual(subscribe_keywords("English"), no_hindi_born_list)
+
+    def test_only_removes_words_in_set_hindi(self):
+        no_random_char_list1 = keywords_without_word(language="Hindi", word=u"\u092e\u0947\u0902")
+        self.assertEqual(subscribe_keywords("Hindi"), no_random_char_list1)
+        no_random_char_list2 = keywords_without_word(language="Hindi", word=u"\u0917\u0932\u0947")
+        self.assertEqual(subscribe_keywords("Hindi"), no_random_char_list2)
+        no_partial_born_list = keywords_without_word(language="Hindi", word=u"\u091c\u0928\u094d")
+        self.assertEqual(subscribe_keywords("Hindi"), no_partial_born_list)
+        no_hyphen_list = keywords_without_word(language="Hindi", word="---")
+        self.assertEqual(subscribe_keywords("Hindi"), no_hyphen_list)
+        no_speical_character_list = keywords_without_word(language="Hindi", word="!*^%$")
+        self.assertEqual(subscribe_keywords("Hindi"), no_speical_character_list)
+        no_empty_list = keywords_without_word(language="Hindi", word="")
+        self.assertEqual(subscribe_keywords("Hindi"), no_empty_list)
+        no_blank_list = keywords_without_word(language="Hindi", word=" ")
+        self.assertEqual(subscribe_keywords("Hindi"), no_blank_list)
+        no_triple_blank_list = keywords_without_word(language="Hindi", word="   ")
+        self.assertEqual(subscribe_keywords("Hindi"), no_triple_blank_list)
+        no_int_list = keywords_without_word(language="Hindi", word=10)
+        self.assertEqual(subscribe_keywords("Hindi"), no_int_list)
+        no_digit_list = keywords_without_word(language="Hindi", word="100")
+        self.assertEqual(subscribe_keywords("Hindi"), no_digit_list)
+        no_english_remind_list = keywords_without_word(language="Hindi", word="remind")
+        self.assertEqual(subscribe_keywords("Hindi"), no_english_remind_list)
+        no_english_join_list = keywords_without_word(language="Hindi", word="join")
+        self.assertEqual(subscribe_keywords("Hindi"), no_english_join_list)
+        no_english_born_list = keywords_without_word(language="Hindi", word="born")
+        self.assertEqual(subscribe_keywords("Hindi"), no_english_born_list)

@@ -44,5 +44,8 @@ def prepare_phone_number(phone_number):
 		return phone_number
 	return add_country_code_to_phone_number(stripped_phone_number)
 
-def keywords_without_word(word, language):
-    return [key for key in subscribe_keywords(language) if key not in [word]]
+def keywords_without_word(language, word):
+	new_keys = subscribe_keywords(language)
+	if word in new_keys:
+		new_keys.remove(word)
+	return new_keys
