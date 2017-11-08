@@ -231,10 +231,9 @@ class TextProcessorProcessTests(TestCase):
         logging_mock.assert_called_with("Unsubscribing `1-112-1112`...")
         texting_mock.assert_called_once_with(message=response, phone_number="1-112-1112")
 
-    @patch("logging.error")
     @patch("logging.info")
     @patch("modules.text_processor.Texter.send")
-    def test_unsubscribe_without_contact(self, texting_mock, logging_info_mock, logging_error_mock):
+    def test_unsubscribe_as_first_message(self, texting_mock, logging_info_mock):
         self.assertFalse(Contact.objects.filter(phone_number="1-111-1112").exists())
         t = TextProcessor(phone_number="1-111-1112")
         end_message = t.write_to_database("END")
@@ -242,7 +241,6 @@ class TextProcessorProcessTests(TestCase):
         response = t.process(end_message)
         self.assertTrue(Contact.objects.filter(phone_number="1-111-1112").exists())
         self.assertEqual(response, msg_unsubscribe("English"))
-        logging_error_mock.assert_called_with("`1-111-1112` asked to be unsubscribed but some data is missing on the existing contact object.")
 
     @patch("logging.error")
     @patch("logging.info")
