@@ -22,7 +22,7 @@ class TextProcessor(object):
         else:
             self.language = None
 
-    def update_language(self, language, inferred_language, keyword):
+    def get_language(self, language, inferred_language, keyword):
         if keyword in keywords_without_word(language=inferred_language, word="born"):
             return inferred_language
         return language
@@ -129,7 +129,7 @@ class TextProcessor(object):
         language = self.language or inferred_language
 
         if language != inferred_language:
-            language = self.update_language(language=language,
+            language = self.get_language(language=language,
                                             inferred_language=inferred_language,
                                             keyword=keyword)
 
