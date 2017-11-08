@@ -105,10 +105,10 @@ class TextProcessorGetDataTests(TestCase):
 class TextProcessorProcessTests(TestCase):
     def create_contact(self, name, phone_number, delay_in_days, language_preference, method_of_sign_up):
         return Contact.objects.create(name=name,
-                               phone_number=phone_number,
-                               delay_in_days=delay_in_days,
-                               language_preference=language_preference,
-                               method_of_sign_up=method_of_sign_up)
+                                        phone_number=phone_number,
+                                        delay_in_days=delay_in_days,
+                                        language_preference=language_preference,
+                                        method_of_sign_up=method_of_sign_up)
 
     @patch("logging.info")
     @patch("modules.text_processor.Texter.send")  # See https://stackoverflow.com/questions/16134281/python-mocking-a-function-from-an-imported-module
@@ -610,10 +610,10 @@ class TextProcessorProcessTests(TestCase):
     def test_blank_message(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1111")
         contact = self.create_contact(name="",
-                                    phone_number="1-111-1111",
-                                    delay_in_days=0,
-                                    language_preference="English",
-                                    method_of_sign_up="Text")
+                                        phone_number="1-111-1111",
+                                        delay_in_days=0,
+                                        language_preference="English",
+                                        method_of_sign_up="Text")
         response = t.process(Message.objects.create(contact=contact, direction="Incoming", body=" ", is_processed=False))
         self.assertEqual(response, msg_failure("English"))
         logging_mock.assert_called_with("Keyword `` in message ` ` was not understood by the system.")
@@ -621,10 +621,10 @@ class TextProcessorProcessTests(TestCase):
 
     def test_outgoing_message_objects_created_for_existing_contacts(self):
         contact = Contact.objects.create(name="Existy",
-                               phone_number="1-112-1111",
-                               delay_in_days=0,
-                               language_preference="English",
-                               method_of_sign_up="Text")
+                                        phone_number="1-112-1111",
+                                        delay_in_days=0,
+                                        language_preference="English",
+                                        method_of_sign_up="Text")
         t = TextProcessor(phone_number="1-112-1111")
         self.assertFalse(Message.objects.filter(contact=contact, direction="Outgoing", body="Some words about Existy"))
         t.create_message_object(child_name="Existy", phone_number=t.phone_number, language="English",
@@ -632,10 +632,10 @@ class TextProcessorProcessTests(TestCase):
         self.assertEqual(1, Message.objects.filter(contact=contact, direction="Outgoing", body="Some words about Existy").count())
 
         hin_contact = Contact.objects.create(name=msg_placeholder_child("Hindi"),
-                               phone_number="1-112-1111",
-                               delay_in_days=0,
-                               language_preference="Hindi",
-                               method_of_sign_up="Text")
+                                            phone_number="1-112-1111",
+                                            delay_in_days=0,
+                                            language_preference="Hindi",
+                                            method_of_sign_up="Text")
         t = TextProcessor(phone_number="1-112-1111")
         self.assertFalse(Message.objects.filter(contact=hin_contact, direction="Outgoing", body="Some words about Existy"))
         t.create_message_object(child_name=msg_placeholder_child("Hindi"), phone_number=t.phone_number, language="Hindi",
@@ -644,10 +644,10 @@ class TextProcessorProcessTests(TestCase):
 
     def test_incoming_message_objects_created_for_existing_contacts(self):
         contact = Contact.objects.create(name="Existy",
-                               phone_number="1-112-1111",
-                               delay_in_days=0,
-                               language_preference="English",
-                               method_of_sign_up="Text")
+                                        phone_number="1-112-1111",
+                                        delay_in_days=0,
+                                        language_preference="English",
+                                        method_of_sign_up="Text")
         t = TextProcessor(phone_number="1-112-1111")
         self.assertFalse(Message.objects.filter(contact=contact, direction="Incoming", body="JOIN Existy 17-05-16"))
         t.create_message_object(child_name="Existy", phone_number=t.phone_number, language="English",
@@ -655,10 +655,10 @@ class TextProcessorProcessTests(TestCase):
         self.assertEqual(1, Message.objects.filter(contact=contact, direction="Incoming", body="JOIN Existy 17-05-16").count())
 
         hin_contact = Contact.objects.create(name=msg_placeholder_child("Hindi"),
-                               phone_number="1-112-1111",
-                               delay_in_days=0,
-                               language_preference="Hindi",
-                               method_of_sign_up="Text")
+                                            phone_number="1-112-1111",
+                                            delay_in_days=0,
+                                            language_preference="Hindi",
+                                            method_of_sign_up="Text")
         t = TextProcessor(phone_number="1-112-1111")
         self.assertFalse(Message.objects.filter(contact=hin_contact, direction="Incoming", body="Some words about Existy"))
         t.create_message_object(child_name=msg_placeholder_child("Hindi"), phone_number=t.phone_number, language="Hindi",
@@ -1313,10 +1313,10 @@ class TextProcessorProcessTests(TestCase):
         self.assertEqual(1, Contact.objects.all().count())
 
         second_contact = self.create_contact(name="Existy",
-                                        phone_number="9101234567890",
-                                        delay_in_days=0,
-                                        language_preference="English",
-                                        method_of_sign_up="Door to Door")
+                                            phone_number="9101234567890",
+                                            delay_in_days=0,
+                                            language_preference="English",
+                                            method_of_sign_up="Door to Door")
         t2 = TextProcessor(phone_number="9101234567890")
         self.assertTrue(Contact.objects.get(pk=second_contact.id))
         t2.write_to_database("END")
