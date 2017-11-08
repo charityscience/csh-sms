@@ -13,12 +13,8 @@ def check_and_process_registrations():
     for phone_number, texts in messages.items():
         t = TextProcessor(phone_number)
         for text in texts:
-            t.write_to_database(text)
-    
-        unprocessed_messages = Message.objects.filter(direction="Incoming",
-                                                      contact=t.get_contacts().first(),
-                                                      is_processed=False)
-        for message in unprocessed_messages:
-            t.process(message)
+            message = t.write_to_database(text)
+            if not message.is_processed:
+                t.process(message)
 
     logging.info("...Completed.")

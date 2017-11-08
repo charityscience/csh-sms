@@ -38,8 +38,6 @@ class TextProcessorJobTests(TestCase):
                       phone_number="1-112-1111"),
                  call(message=msg_unsubscribe("Hindi"),
                       phone_number="1-112-1111")]
-        import pdb
-        pdb.set_trace()
         mocked_texter_send.assert_has_calls(calls, any_order=True)
         self.assertEqual(mocked_texter_send.call_count, 3)
 
