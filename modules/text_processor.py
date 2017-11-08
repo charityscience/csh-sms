@@ -23,7 +23,10 @@ class TextProcessor(object):
             self.language = None
 
     def get_language(self, language, inferred_language, keyword):
-        if keyword in keywords_without_word(language=inferred_language, word="born"):
+        # Returns inferred language if the keyword is in the subscribe keywords of the inferred langauge,
+        #  ignoring "born"
+        subscribe_keys_without_born = keywords_without_word(language=inferred_language, word="born")
+        if keyword in subscribe_keys_without_born:
             return inferred_language
         return language
 
