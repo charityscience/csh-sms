@@ -1,5 +1,6 @@
 import re
 from management.models import Group
+from modules.i18n import subscribe_keywords
 
 def quote(word):
     return "`" + word + "`"
@@ -42,3 +43,9 @@ def prepare_phone_number(phone_number):
 	elif len(stripped_phone_number) < 10:
 		return phone_number
 	return add_country_code_to_phone_number(stripped_phone_number)
+
+def keywords_without_word(language, word):
+	new_keys = subscribe_keywords(language)
+	if word in new_keys:
+		new_keys.remove(word)
+	return new_keys

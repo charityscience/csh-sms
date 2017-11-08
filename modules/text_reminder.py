@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-from management.models import Message
+from management.models import Message, Contact
 from modules.texter import Texter
 from modules.utils import quote
 from modules.i18n import six_week_reminder_seven_days, six_week_reminder_one_day, \
@@ -89,8 +89,11 @@ class TextReminder(object):
     def remind(self):
         if self.should_remind_today():
             logging.info("Sent reminder to " + quote(self.phone_number))
-            Message.objects.create(contact=self.get_contact(), direction="Outgoing",
+            contact = self.get_contact()
+            outgoing_message = Message.objects.create(contact=contact, direction="Outgoing",
                 body=self.get_reminder_msg())
+            contact.last_contacted = outgoing_message.time
+            contact.save()
             Texter().send(message=self.get_reminder_msg(),
                           phone_number=self.phone_number)
             return True
