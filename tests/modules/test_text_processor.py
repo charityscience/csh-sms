@@ -1343,6 +1343,72 @@ class TextProcessorProcessTests(TestCase):
         self.assertEqual(contact.id, end_message.contact.id)
         self.assertEqual(1, Contact.objects.all().count())
 
+    def test_write_to_database_assigns_incoming_datetime_as_message_received_at_english(self):
+        t = TextProcessor(phone_number="1-111-1111")
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-1111").first()))
+        incoming = t.write_to_database(("JOIN Marshall 20-10-2017", datetime(2017, 6, 5, 10, 15).replace(tzinfo=timezone.get_default_timezone())))
+        self.assertEqual(incoming.received_at, datetime(2017, 6, 5, 10, 15).replace(tzinfo=timezone.get_default_timezone()))
+        t.process(incoming)
+        self.assertEqual(incoming.received_at, datetime(2017, 6, 5, 10, 15).replace(tzinfo=timezone.get_default_timezone()))
+        contact = Contact.objects.get(phone_number=t.phone_number)
+        born = t.write_to_database(("BORN Marshall 20-10-2017", datetime(2017, 6, 8, 10, 15).replace(tzinfo=timezone.get_default_timezone())))
+        self.assertEqual(born.received_at, datetime(2017, 6, 8, 10, 15).replace(tzinfo=timezone.get_default_timezone()))
+        t.process(born)
+        self.assertEqual(born.received_at, datetime(2017, 6, 8, 10, 15).replace(tzinfo=timezone.get_default_timezone()))
+        t.write_to_database(("END", datetime(2017, 6, 6, 0, 5).replace(tzinfo=timezone.get_default_timezone())))
+        end_message = Message.objects.get(body="END", direction="Incoming")
+        self.assertEqual(end_message.received_at, datetime(2017, 6, 6, 0, 5).replace(tzinfo=timezone.get_default_timezone()))
+        t.process(end_message)
+        self.assertEqual(end_message.received_at, datetime(2017, 6, 6, 0, 5).replace(tzinfo=timezone.get_default_timezone()))
+        self.assertEqual(1, Contact.objects.all().count())
+
+        second_contact = self.create_contact(name="Existy",
+                                            phone_number="9101234567890",
+                                            delay_in_days=0,
+                                            language_preference="English",
+                                            method_of_sign_up="Door to Door")
+        t2 = TextProcessor(phone_number="9101234567890")
+        self.assertTrue(Contact.objects.get(pk=second_contact.id))
+        t2.write_to_database(("END", datetime(2017, 10, 6, 0, 5).replace(tzinfo=timezone.get_default_timezone())))
+        second_end_message = Message.objects.get(contact=second_contact, body="END", direction="Incoming")
+        self.assertEqual(second_end_message.received_at, datetime(2017, 10, 6, 0, 5).replace(tzinfo=timezone.get_default_timezone()))
+        t2.process(end_message)
+        self.assertEqual(second_end_message.received_at, datetime(2017, 10, 6, 0, 5).replace(tzinfo=timezone.get_default_timezone()))
+        self.assertEqual(second_contact.id, second_end_message.contact.id)
+
+    def test_write_to_database_assigns_incoming_datetime_as_message_received_at_hindi(self):
+        t = TextProcessor(phone_number="1-111-1111")
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-1111").first()))
+        incoming = t.write_to_database((hindi_remind() + " Marshall 20-10-2017", datetime(2017, 6, 5, 10, 15).replace(tzinfo=timezone.get_default_timezone())))
+        self.assertEqual(incoming.received_at, datetime(2017, 6, 5, 10, 15).replace(tzinfo=timezone.get_default_timezone()))
+        t.process(incoming)
+        self.assertEqual(incoming.received_at, datetime(2017, 6, 5, 10, 15).replace(tzinfo=timezone.get_default_timezone()))
+        born = t.write_to_database((hindi_born() + " Marshall 20-10-2017", datetime(2017, 6, 8, 10, 15).replace(tzinfo=timezone.get_default_timezone())))
+        self.assertEqual(born.received_at, datetime(2017, 6, 8, 10, 15).replace(tzinfo=timezone.get_default_timezone()))
+        t.process(born)
+        self.assertEqual(born.received_at, datetime(2017, 6, 8, 10, 15).replace(tzinfo=timezone.get_default_timezone()))
+        
+        t.write_to_database(("END", datetime(2017, 6, 10, 0, 5).replace(tzinfo=timezone.get_default_timezone())))
+        end_message = Message.objects.get(body="END", direction="Incoming")
+        self.assertEqual(end_message.received_at, datetime(2017, 6, 10, 0, 5).replace(tzinfo=timezone.get_default_timezone()))
+        t.process(end_message)
+        self.assertEqual(end_message.received_at, datetime(2017, 6, 10, 0, 5).replace(tzinfo=timezone.get_default_timezone()))
+        self.assertEqual(1, Contact.objects.all().count())
+
+        second_contact = self.create_contact(name="Existy",
+                                            phone_number="9101234567890",
+                                            delay_in_days=0,
+                                            language_preference="Hindi",
+                                            method_of_sign_up="Door to Door")
+        t2 = TextProcessor(phone_number="9101234567890")
+        self.assertTrue(Contact.objects.get(pk=second_contact.id))
+        t2.write_to_database(("END", datetime(2017, 10, 6, 0, 5).replace(tzinfo=timezone.get_default_timezone())))
+        second_end_message = Message.objects.get(contact=second_contact, body="END", direction="Incoming")
+        self.assertEqual(second_end_message.received_at, datetime(2017, 10, 6, 0, 5).replace(tzinfo=timezone.get_default_timezone()))
+        t2.process(end_message)
+        self.assertEqual(second_end_message.received_at, datetime(2017, 10, 6, 0, 5).replace(tzinfo=timezone.get_default_timezone()))
+        self.assertEqual(second_contact.id, second_end_message.contact.id)
+
     def test_processing_updates_message_is_processed_hindi(self):
         t2 = TextProcessor(phone_number="1-111-1111")
         self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-1111").first()))
