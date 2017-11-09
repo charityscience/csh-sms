@@ -11,6 +11,8 @@ from modules.i18n import hindi_remind, hindi_information, msg_placeholder_child,
                          msg_subscribe, msg_unsubscribe, msg_failure, msg_failed_date, \
                          msg_already_sub, hindi_born
 
+FAKE_NOW = datetime(2017, 7, 17, 0, 0)
+
 class TextProcessorGetDataTests(TestCase):
     def test_all_caps(self):
         t = TextProcessor(phone_number="1-111-1111")
@@ -118,7 +120,7 @@ class TextProcessorProcessTests(TestCase):
         t = TextProcessor(phone_number="1-111-1111")
         self.assertFalse(Contact.objects.filter(name="Paula", phone_number="1-111-1111").exists())
         self.assertFalse(t.get_contacts().exists())
-        join_message = t.write_to_database("JOIN PAULA 25-11-2012")
+        join_message = t.write_to_database(("JOIN PAULA 25-11-2012", FAKE_NOW.replace(tzinfo=timezone.get_default_timezone())))
         response = t.process(join_message)
         self.assertEqual(response, msg_subscribe("English").format(name="Paula"))
         logging_mock.assert_called_with("Subscribing `JOIN PAULA 25-11-2012`...")
@@ -135,7 +137,8 @@ class TextProcessorProcessTests(TestCase):
         t = TextProcessor(phone_number="1-112-1111")
         self.assertFalse(Contact.objects.filter(name="Sai", phone_number="1-112-1111").exists())
         self.assertFalse(t.get_contacts().exists())
-        message = t.write_to_database(hindi_remind() + " Sai 11/09/2013")
+        message = t.write_to_database((hindi_remind() + " Sai 11/09/2013",
+                                        FAKE_NOW.replace(tzinfo=timezone.get_default_timezone())))
         response = t.process(message)
         self.assertEqual(response, msg_subscribe("Hindi").format(name="Sai"))
         texting_mock.assert_called_once_with(message=response, phone_number="1-112-1111")
@@ -150,7 +153,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertFalse(Contact.objects.filter(name=u'\u0906\u0930\u0935',
                                                 phone_number="1-112-1112").exists())
         self.assertFalse(t.get_contacts().exists())
-        message_object = t.write_to_database(message)
+        message_object = t.write_to_database((message, FAKE_NOW.replace(tzinfo=timezone.get_default_timezone())))
         response = t.process(message_object)
         expected_response = msg_subscribe('Hindi').format(name=u'\u0906\u0930\u0935')
         self.assertEqual(response, expected_response)
@@ -166,7 +169,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertFalse(Contact.objects.filter(name=msg_placeholder_child("English"),
                                                 phone_number="1-111-1113").exists())
         self.assertFalse(t.get_contacts().exists())
-        message_object = t.write_to_database("JOIN 25-11-2012")
+        message_object = t.write_to_database(("JOIN 25-11-2012", FAKE_NOW.replace(tzinfo=timezone.get_default_timezone())))
         response = t.process(message_object)
         self.assertEqual(response, msg_subscribe("English").format(name=msg_placeholder_child("English")))
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1113")
@@ -181,7 +184,8 @@ class TextProcessorProcessTests(TestCase):
         self.assertFalse(Contact.objects.filter(name=msg_placeholder_child("Hindi"),
                                                 phone_number="1-112-1113").exists())
         self.assertFalse(t.get_contacts().exists())
-        message_object = t.write_to_database(hindi_remind() + " 25-11-2012")
+        message_object = t.write_to_database((hindi_remind() + " 25-11-2012",
+                                                FAKE_NOW.replace(tzinfo=timezone.get_default_timezone())))
         response = t.process(message_object)
         self.assertEqual(response,
                          msg_subscribe("Hindi").format(name=msg_placeholder_child("Hindi")))
@@ -195,7 +199,8 @@ class TextProcessorProcessTests(TestCase):
     def test_subscribe_with_too_long_name(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1111")
         long_name = "".join(["name" for _ in range(20)]) # length 100
-        long_name_join = t.write_to_database("JOIN " + long_name + " 25-11-2012")
+        long_name_join = t.write_to_database(("JOIN " + long_name + " 25-11-2012",
+                                                FAKE_NOW.replace(tzinfo=timezone.get_default_timezone())))
         response = t.process(long_name_join)
         self.assertEqual(response, msg_failure("English"))
         self.assertFalse(Contact.objects.filter(name=long_name.title(), phone_number="1-111-1111").exists())
