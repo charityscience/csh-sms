@@ -812,21 +812,21 @@ class TextReminderTests(TestCase):
         tr = text_reminder_object("03/7/2017", preg_signup=True, preg_update=False) # 2 weeks, 0 days ago
         tr.remind()
         two_week_message = Message.objects.filter(contact=tr.contact, direction="Outgoing").first()
-        self.assertEqual(tr.contact.last_contacted, two_week_message.time)
+        self.assertEqual(tr.contact.last_contacted, two_week_message.created_at)
 
         tr2 = text_reminder_object("19/6/2017", preg_signup=True, preg_update=False)
         tr2.remind()
         four_week_message = Message.objects.filter(contact=tr2.contact, direction="Outgoing").first()
-        self.assertEqual(tr2.contact.last_contacted, four_week_message.time)
+        self.assertEqual(tr2.contact.last_contacted, four_week_message.created_at)
 
     @freeze_time(FAKE_NOW)
     def test_remind_updates_last_contacted_hindi(self):
         tr = text_reminder_object("03/7/2017", language="Hindi", preg_signup=True, preg_update=False) # 2 weeks, 0 days ago
         tr.remind()
         two_week_message = Message.objects.filter(contact=tr.contact, direction="Outgoing").first()
-        self.assertEqual(tr.contact.last_contacted, two_week_message.time)
+        self.assertEqual(tr.contact.last_contacted, two_week_message.created_at)
 
         tr2 = text_reminder_object("19/6/2017", language="Hindi", preg_signup=True, preg_update=False)
         tr2.remind()
         four_week_message = Message.objects.filter(contact=tr2.contact, direction="Outgoing").first()
-        self.assertEqual(tr2.contact.last_contacted, four_week_message.time)
+        self.assertEqual(tr2.contact.last_contacted, four_week_message.created_at)

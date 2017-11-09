@@ -150,7 +150,7 @@ class TextProcessor(object):
                                               direction="Incoming")
 
         contact = Contact.objects.get(pk=incoming.contact.id)
-        contact.last_heard_from = incoming.time
+        contact.last_heard_from = incoming.created_at
         contact.save()
         self.get_contacts()
         return incoming
@@ -208,7 +208,7 @@ class TextProcessor(object):
                                               body=response_text_message,
                                               direction="Outgoing")
         contact = Contact.objects.get(pk=outgoing.contact.id)
-        contact.last_contacted = outgoing.time
+        contact.last_contacted = outgoing.created_at
         contact.save()
         self.get_contacts()
         Texter().send(message=response_text_message,

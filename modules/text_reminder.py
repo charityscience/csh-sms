@@ -92,7 +92,7 @@ class TextReminder(object):
             contact = self.get_contact()
             outgoing_message = Message.objects.create(contact=contact, direction="Outgoing",
                 body=self.get_reminder_msg())
-            contact.last_contacted = outgoing_message.time
+            contact.last_contacted = outgoing_message.created_at
             contact.save()
             Texter().send(message=self.get_reminder_msg(),
                           phone_number=self.phone_number)

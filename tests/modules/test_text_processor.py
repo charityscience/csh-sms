@@ -960,7 +960,7 @@ class TextProcessorProcessTests(TestCase):
         fail_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
         self.assertNotEqual(original_contact.last_heard_from, fail_contact.last_heard_from)
         self.assertLess(original_contact.last_heard_from, fail_contact.last_heard_from)
-        self.assertEqual(fail_message.time, fail_contact.last_heard_from)
+        self.assertEqual(fail_message.created_at, fail_contact.last_heard_from)
 
         t3 = TextProcessor(phone_number="1-111-1111")
         born_message = t3.write_to_database("BORN PAULA 25-11-2012")
@@ -968,14 +968,14 @@ class TextProcessorProcessTests(TestCase):
         updated_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
         self.assertNotEqual(fail_contact.last_heard_from, updated_contact.last_heard_from)
         self.assertLess(fail_contact.last_heard_from, updated_contact.last_heard_from)
-        self.assertEqual(born_message.time, updated_contact.last_heard_from)
+        self.assertEqual(born_message.created_at, updated_contact.last_heard_from)
 
         stop_message = t3.write_to_database("STOP")
         stop_response = t3.process(born_message)
         stop_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
         self.assertNotEqual(updated_contact.last_heard_from, stop_contact.last_heard_from)
         self.assertLess(updated_contact.last_heard_from, stop_contact.last_heard_from)
-        self.assertEqual(stop_message.time, stop_contact.last_heard_from)
+        self.assertEqual(stop_message.created_at, stop_contact.last_heard_from)
 
         t4 = TextProcessor(phone_number="1-111-1111")
         rejoin_message = t.write_to_database("JOIN PAULA 25-11-2012")
@@ -983,7 +983,7 @@ class TextProcessorProcessTests(TestCase):
         rejoin_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
         self.assertNotEqual(stop_contact.last_heard_from, rejoin_contact.last_heard_from)
         self.assertLess(stop_contact.last_heard_from, rejoin_contact.last_heard_from)
-        self.assertEqual(stop_message.time, stop_contact.last_heard_from)
+        self.assertEqual(stop_message.created_at, stop_contact.last_heard_from)
         self.assertEqual(1, Contact.objects.filter(name="Paula", phone_number="1-111-1111").count())
 
     @patch("logging.error")
@@ -996,7 +996,7 @@ class TextProcessorProcessTests(TestCase):
         end_message = t.write_to_database("END")
         t.process(end_message)
         end_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
-        self.assertEqual(end_message.time, end_contact.last_heard_from)
+        self.assertEqual(end_message.created_at, end_contact.last_heard_from)
         self.assertNotEqual(original_contact.last_heard_from, end_contact.last_heard_from)
         self.assertLess(original_contact.last_heard_from, end_contact.last_heard_from)
         
@@ -1006,7 +1006,7 @@ class TextProcessorProcessTests(TestCase):
         second_join_contact = Contact.objects.filter(name="Namey", phone_number="1-111-4444").first()
         self.assertNotEqual(original_contact.last_heard_from, second_join_contact.last_heard_from)
         self.assertLess(original_contact.last_heard_from, second_join_contact.last_heard_from)
-        self.assertEqual(second_join_message.time, second_join_contact.last_heard_from)
+        self.assertEqual(second_join_message.created_at, second_join_contact.last_heard_from)
 
         t3 = TextProcessor(phone_number="1-111-4444")
         second_end_message = t3.write_to_database("END")
@@ -1014,7 +1014,7 @@ class TextProcessorProcessTests(TestCase):
         second_end_contact = Contact.objects.filter(name="Namey", phone_number="1-111-4444").first()
         self.assertNotEqual(second_join_contact.last_heard_from, second_end_contact.last_heard_from)
         self.assertLess(second_join_contact.last_heard_from, second_end_contact.last_heard_from)
-        self.assertEqual(second_end_message.time, second_end_contact.last_heard_from)
+        self.assertEqual(second_end_message.created_at, second_end_contact.last_heard_from)
 
     @patch("logging.info")
     @patch("modules.text_processor.Texter.send")
@@ -1136,7 +1136,7 @@ class TextProcessorProcessTests(TestCase):
         logging_error_mock.assert_called()
         fail_message_object = Message.objects.filter(direction="Outgoing", body=fail_response).first()
         self.assertEqual(1, logging_error_mock.call_count)
-        self.assertEqual(fail_message_object.time, fail_contact.last_contacted)
+        self.assertEqual(fail_message_object.created_at, fail_contact.last_contacted)
         self.assertNotEqual(original_contact.last_contacted, fail_contact.last_contacted)
         self.assertLess(original_contact.last_contacted, fail_contact.last_contacted)
 
@@ -1153,7 +1153,7 @@ class TextProcessorProcessTests(TestCase):
         hin_fail_message_object = Message.objects.filter(direction="Outgoing", body=hin_fail_response).first()
         self.assertEqual(1, logging_error_mock.call_count)
         hin_fail_contact = Contact.objects.filter(name="Aarav", phone_number="1-111-3333").first()
-        self.assertEqual(hin_fail_message_object.time, hin_fail_contact.last_contacted)
+        self.assertEqual(hin_fail_message_object.created_at, hin_fail_contact.last_contacted)
         self.assertNotEqual(hin_original_contact.last_contacted, hin_fail_contact.last_contacted)
         self.assertLess(hin_original_contact.last_contacted, hin_fail_contact.last_contacted)
 
@@ -1168,7 +1168,7 @@ class TextProcessorProcessTests(TestCase):
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
         join_message_object = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
                                                 direction="Incoming", body="JOIN PAULA 25-11-2012").first()
-        self.assertEqual(join_message_object.time, original_contact.last_heard_from)
+        self.assertEqual(join_message_object.created_at, original_contact.last_heard_from)
 
         born_message = t.write_to_database("BORN PAULA 25-11-2012")
         born_response = t.process(born_message)
@@ -1176,7 +1176,7 @@ class TextProcessorProcessTests(TestCase):
         born_message_object = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
                                                     direction="Incoming", body="BORN PAULA 25-11-2012").first()
         updated_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
-        self.assertEqual(born_message_object.time, updated_contact.last_heard_from)
+        self.assertEqual(born_message_object.created_at, updated_contact.last_heard_from)
         
         end_message = t.write_to_database("END")
         end_response = t.process(end_message)
@@ -1184,7 +1184,7 @@ class TextProcessorProcessTests(TestCase):
         end_message_object = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
                                                     direction="Incoming", body="END").first()
         unsub_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
-        self.assertEqual(end_message_object.time, unsub_contact.last_heard_from)
+        self.assertEqual(end_message_object.created_at, unsub_contact.last_heard_from)
 
     @patch("logging.info")
     @patch("modules.text_processor.Texter.send")
@@ -1197,7 +1197,7 @@ class TextProcessorProcessTests(TestCase):
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
         subscribe_message = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
                                                 direction="Outgoing", body=msg_subscribe("English").format(name="Paula")).first()
-        self.assertEqual(subscribe_message.time, original_contact.last_contacted)
+        self.assertEqual(subscribe_message.created_at, original_contact.last_contacted)
 
         born_message = t.write_to_database("BORN PAULA 25-11-2012")
         born_response = t.process(born_message)
@@ -1205,7 +1205,7 @@ class TextProcessorProcessTests(TestCase):
         subscribe_message2 = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
                                                 direction="Outgoing", body=msg_subscribe("English").format(name="Paula")).last()
         updated_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
-        self.assertEqual(subscribe_message2.time, updated_contact.last_contacted)
+        self.assertEqual(subscribe_message2.created_at, updated_contact.last_contacted)
         
         end_message = t.write_to_database("END")
         end_response = t.process(end_message)
@@ -1213,7 +1213,7 @@ class TextProcessorProcessTests(TestCase):
         end_message_object = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
                                                 direction="Outgoing", body=msg_unsubscribe("English")).first()
         unsub_contact = Contact.objects.filter(name="Paula", phone_number="1-111-1111").first()
-        self.assertEqual(end_message_object.time, unsub_contact.last_contacted)
+        self.assertEqual(end_message_object.created_at, unsub_contact.last_contacted)
 
     @patch("logging.error")
     @patch("modules.text_processor.Texter.send")
@@ -1230,8 +1230,8 @@ class TextProcessorProcessTests(TestCase):
                                                         direction="Incoming", body=fail_message.body).first()
         failed_message_response = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
                                                         direction="Outgoing", body=msg_failure("English")).first()
-        self.assertEqual(fail_message_object.time, original_contact.last_heard_from)
-        self.assertEqual(failed_message_response.time, original_contact.last_contacted)
+        self.assertEqual(fail_message_object.created_at, original_contact.last_heard_from)
+        self.assertEqual(failed_message_response.created_at, original_contact.last_contacted)
 
         failed_date_message = t.write_to_database("BORN PAULA 60-11-2012")
         failed_date_response = t.process(failed_date_message)
@@ -1240,8 +1240,8 @@ class TextProcessorProcessTests(TestCase):
                                                         direction="Incoming", body="BORN PAULA 60-11-2012").first()
         failed_date_response = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
                                                         direction="Outgoing", body=msg_failed_date("English")).first()
-        self.assertEqual(fail_date_object.time, updated_contact.last_heard_from)
-        self.assertEqual(failed_date_response.time, updated_contact.last_contacted)
+        self.assertEqual(fail_date_object.created_at, updated_contact.last_heard_from)
+        self.assertEqual(failed_date_response.created_at, updated_contact.last_contacted)
 
     @patch("logging.error")
     @patch("modules.text_processor.Texter.send")
@@ -1258,8 +1258,8 @@ class TextProcessorProcessTests(TestCase):
                                                         direction="Incoming", body=fail_message).first()
         failed_message_response = Message.objects.filter(contact=Contact.objects.filter(phone_number=t.phone_number),
                                                         direction="Outgoing", body=msg_failure("Hindi")).first()
-        self.assertEqual(fail_message_object.time, original_contact.last_heard_from)
-        self.assertEqual(failed_message_response.time, original_contact.last_contacted)
+        self.assertEqual(fail_message_object.created_at, original_contact.last_heard_from)
+        self.assertEqual(failed_message_response.created_at, original_contact.last_contacted)
 
     @patch("logging.error")
     @patch("modules.text_processor.Texter.send")
