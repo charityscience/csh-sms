@@ -7,7 +7,7 @@ from datetime import datetime
 
 from modules.textlocalwrapper import TextLocal
 from modules.i18n import hindi_remind, hindi_information, msg_subscribe
-
+from modules.date_helper import datetime_from_date_string
 
 class MockResponse():
     def __init__(self, read_value):
@@ -92,7 +92,7 @@ class TextLocalInboxesTests(TestCase):
 
     @freeze_time(datetime(2017, 9, 6, 22, 0, 0))
     @patch("modules.textlocalwrapper.request")
-    def test_new_messages_by_number(self, mock_request):
+    def test_new_messages_by_number_returns_message_and_datetime(self, mock_request):
         textlocal = TextLocal(apikey='mock_key', primary_id='mock_id')
         old_message = {'number': '910987654321', 'message': 'Old message', 'date': '2017-08-05 21:12:07', 'isNew': None}
         new_message = {'number': '910987654321', 'message': 'New message', 'date': '2017-09-06 12:12:07', 'isNew': True}
@@ -101,10 +101,14 @@ class TextLocalInboxesTests(TestCase):
         fake_num_message_dict = textlocal.new_messages_by_number()
         self.assertIsInstance(fake_num_message_dict, dict)
         self.assertIsInstance(fake_num_message_dict['910987654321'], list)
-        self.assertFalse(old_message['message'] in fake_num_message_dict['910987654321'])
-        self.assertTrue(new_message['message'] in fake_num_message_dict['910987654321'])
-        self.assertTrue(new_message2['message'] in fake_num_message_dict['910987654321'])
-
+        old_message_datetime = datetime_from_date_string(old_message['date'], "%Y-%m-%d %H:%M:%S")
+        new_message_datetime = datetime_from_date_string(new_message['date'], "%Y-%m-%d %H:%M:%S")
+        new_message2_datetime = datetime_from_date_string(new_message2['date'], "%Y-%m-%d %H:%M:%S")
+        self.assertFalse((old_message['message'], old_message_datetime) in fake_num_message_dict['910987654321'])
+        self.assertIsInstance(fake_num_message_dict['910987654321'][0], tuple)
+        self.assertIsInstance(fake_num_message_dict['910987654321'][1], tuple)
+        self.assertTrue((new_message['message'], new_message_datetime) in fake_num_message_dict['910987654321'])
+        self.assertTrue((new_message2['message'], new_message2_datetime) in fake_num_message_dict['910987654321'])
 
     @patch("modules.textlocalwrapper.request")
     def test_get_primary_inbox_messages(self, mock_request):
