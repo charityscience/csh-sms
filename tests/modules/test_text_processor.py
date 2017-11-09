@@ -1,6 +1,8 @@
 from mock import patch
 from datetime import datetime
 from django.test import TestCase
+from django.utils import timezone
+from freezegun import freeze_time
 
 from management.models import Contact, Message
 from modules.utils import quote
@@ -1378,6 +1380,100 @@ class TextProcessorProcessTests(TestCase):
         t2.process(eng_end_message)
         eng_end_message = Message.objects.filter(contact=contact, body="END").first()
         self.assertTrue(eng_end_message.is_processed)
+
+    @patch("modules.text_processor.Texter.send")
+    def test_processing_assigns_message_sent_at_to_now_english(self, texting_mock):
+        with freeze_time(datetime(2017, 7, 17, 0, 0)):
+            t2 = TextProcessor(phone_number="1-111-2222")
+            self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-2222").first()))
+            eng_join = t2.write_to_database("JOIN Marshall 20-10-2017")
+            self.assertFalse(eng_join.is_processed)
+            contact = Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-2222")).first().contact
+            self.assertEqual(1, Message.objects.filter(contact=contact).count())
+            t2.process(eng_join)
+            self.assertEqual(2, Message.objects.filter(contact=contact).count())
+            join_outgoing = Message.objects.filter(contact=contact, direction="Outgoing").first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), join_outgoing.sent_at)
+
+            eng_end_message = t2.write_to_database("END")
+            self.assertFalse(eng_end_message.is_processed)
+            end_outgoing_response_body = t2.process(eng_end_message)
+            self.assertEqual(4, Message.objects.filter(contact=contact).count())
+            end_outgoing = Message.objects.filter(contact=contact, body=end_outgoing_response_body).first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), end_outgoing.sent_at)
+        
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), join_outgoing.sent_at)
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), end_outgoing.sent_at)
+
+        with freeze_time(datetime(2017, 7, 17, 5, 10)):
+            t3 = TextProcessor(phone_number="1-111-5555")
+            self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-5555").first()))
+            eng_join = t3.write_to_database("JOIN Marshall 20-10-2017")
+            self.assertFalse(eng_join.is_processed)
+            contact = Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-5555")).first().contact
+            self.assertEqual(1, Message.objects.filter(contact=contact).count())
+            t3.process(eng_join)
+            self.assertEqual(2, Message.objects.filter(contact=contact).count())
+            join_outgoing = Message.objects.filter(contact=contact, direction="Outgoing").first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), join_outgoing.sent_at)
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), join_outgoing.sent_at)
+        
+        with freeze_time(datetime(2017, 7, 18, 23, 47, 12)):
+            t4 = TextProcessor(phone_number="1-111-5555")
+            eng_end_message = t4.write_to_database("END")
+            self.assertFalse(eng_end_message.is_processed)
+            end_outgoing_response_body = t4.process(eng_end_message)
+            self.assertEqual(4, Message.objects.filter(contact=contact).count())
+            end_outgoing = Message.objects.filter(contact=contact, body=end_outgoing_response_body).first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), end_outgoing.sent_at)
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), end_outgoing.sent_at)
+
+    @patch("modules.text_processor.Texter.send")
+    def test_processing_assigns_message_sent_at_to_now_hindi(self, texting_mock):
+        with freeze_time(datetime(2017, 7, 17, 0, 0)):
+            t2 = TextProcessor(phone_number="1-111-2222")
+            self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-2222").first()))
+            eng_join = t2.write_to_database(hindi_remind() + " Aarav 20-10-2017")
+            self.assertFalse(eng_join.is_processed)
+            contact = Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-2222")).first().contact
+            self.assertEqual(1, Message.objects.filter(contact=contact).count())
+            t2.process(eng_join)
+            self.assertEqual(2, Message.objects.filter(contact=contact).count())
+            join_outgoing = Message.objects.filter(contact=contact, direction="Outgoing").first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), join_outgoing.sent_at)
+
+            eng_end_message = t2.write_to_database("END")
+            self.assertFalse(eng_end_message.is_processed)
+            end_outgoing_response_body = t2.process(eng_end_message)
+            self.assertEqual(4, Message.objects.filter(contact=contact).count())
+            end_outgoing = Message.objects.filter(contact=contact, body=end_outgoing_response_body).first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), end_outgoing.sent_at)
+        
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), join_outgoing.sent_at)
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), end_outgoing.sent_at)
+
+        with freeze_time(datetime(2017, 7, 17, 5, 10)):
+            t3 = TextProcessor(phone_number="1-111-5555")
+            self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-5555").first()))
+            eng_join = t3.write_to_database("JOIN Marshall 20-10-2017")
+            self.assertFalse(eng_join.is_processed)
+            contact = Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-5555")).first().contact
+            self.assertEqual(1, Message.objects.filter(contact=contact).count())
+            t3.process(eng_join)
+            self.assertEqual(2, Message.objects.filter(contact=contact).count())
+            join_outgoing = Message.objects.filter(contact=contact, direction="Outgoing").first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), join_outgoing.sent_at)
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), join_outgoing.sent_at)
+        
+        with freeze_time(datetime(2017, 7, 18, 23, 47, 12)):
+            t4 = TextProcessor(phone_number="1-111-5555")
+            eng_end_message = t4.write_to_database("END")
+            self.assertFalse(eng_end_message.is_processed)
+            end_outgoing_response_body = t4.process(eng_end_message)
+            self.assertEqual(4, Message.objects.filter(contact=contact).count())
+            end_outgoing = Message.objects.filter(contact=contact, body=end_outgoing_response_body).first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), end_outgoing.sent_at)
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), end_outgoing.sent_at)
 
     def test_get_language_returns_inferred_language_if_keyword_is_subscribe_word(self):
         t = TextProcessor(phone_number="1-111-2222")

@@ -1,6 +1,7 @@
 import logging
 import string
 
+from datetime import datetime
 from django.utils import timezone
 from django.core.exceptions import MultipleObjectsReturned
 
@@ -214,6 +215,7 @@ class TextProcessor(object):
         Texter().send(message=response_text_message,
                       phone_number=self.phone_number)
         outgoing.is_processed = True
+        outgoing.sent_at = datetime.now().replace(tzinfo=timezone.get_default_timezone())
         outgoing.save()
         message.is_processed = True
         message.save()
