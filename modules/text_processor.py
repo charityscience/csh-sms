@@ -127,8 +127,7 @@ class TextProcessor(object):
         date = date_string_to_date(date) if date and date_is_valid(date) else None
         return (keyword, child_name, date)
 
-    def write_to_database(self, message_date_tuple):
-        message = message_date_tuple[0]
+    def write_to_database(self, message, date):
         keyword, child_name, date = self.get_data_from_message(message)
         inferred_language = "Hindi" if keyword and keyword[0] not in string.ascii_lowercase else "English"
         language = self.language or inferred_language
@@ -153,7 +152,7 @@ class TextProcessor(object):
 
         contact = Contact.objects.get(pk=incoming.contact.id)
         contact.last_heard_from = incoming.created_at
-        incoming.received_at = message_date_tuple[1]
+        incoming.received_at = date
         incoming.save()
         contact.save()
         self.get_contacts()
