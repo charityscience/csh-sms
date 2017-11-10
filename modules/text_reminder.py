@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from django.utils import timezone
 
 from management.models import Message, Contact
 from modules.texter import Texter
@@ -92,10 +93,12 @@ class TextReminder(object):
             contact = self.get_contact()
             outgoing_message = Message.objects.create(contact=contact, direction="Outgoing",
                 body=self.get_reminder_msg())
-            contact.last_contacted = outgoing_message.time
+            contact.last_contacted = outgoing_message.created_at
             contact.save()
             Texter().send(message=self.get_reminder_msg(),
                           phone_number=self.phone_number)
+            outgoing_message.sent_at = datetime.now().replace(tzinfo=timezone.get_default_timezone())
+            outgoing_message.save()
             return True
         else:
             return False

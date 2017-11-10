@@ -13,7 +13,7 @@ def check_and_process_registrations():
     for phone_number, texts in messages.items():
         t = TextProcessor(phone_number)
         for text in texts:
-            message = t.write_to_database(text)
+            message = t.write_to_database(message=text[0], date=text[1])
             if not message.is_processed:
                 t.process(message)
 

@@ -63,5 +63,6 @@ class TextLocal(object):
         num_message_dict = {}
         for message in corrected_messages:
             if self.is_message_new(message):
-                num_message_dict.setdefault(message['number'], []).append(message['message'])
+                date_of_message = datetime_from_date_string(message['date'], "%Y-%m-%d %H:%M:%S")
+                num_message_dict.setdefault(message['number'], []).append((message['message'], date_of_message))
         return num_message_dict

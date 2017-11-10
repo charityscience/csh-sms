@@ -2,6 +2,7 @@ import mock
 from mock import patch
 from freezegun import freeze_time
 from django.test import TestCase
+from django.utils import timezone
 
 from datetime import datetime
 
@@ -469,7 +470,7 @@ class TextReminderTests(TestCase):
         tr = text_reminder_object("12/6/2017") # 7 days before the 6 week appointment
         self.assertTrue(tr.should_remind_today())
         tp = TextProcessor(phone_number=tr.phone_number)
-        end_message = tp.write_to_database("END")
+        end_message = tp.write_to_database(message="END", date=FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()))
         tp.process(end_message)
         self.assertTrue("Contact is cancelled." in tr.why_not_remind_reasons())
         self.assertFalse(tr.should_remind_today())
@@ -812,21 +813,113 @@ class TextReminderTests(TestCase):
         tr = text_reminder_object("03/7/2017", preg_signup=True, preg_update=False) # 2 weeks, 0 days ago
         tr.remind()
         two_week_message = Message.objects.filter(contact=tr.contact, direction="Outgoing").first()
-        self.assertEqual(tr.contact.last_contacted, two_week_message.time)
+        self.assertEqual(tr.contact.last_contacted, two_week_message.created_at)
 
         tr2 = text_reminder_object("19/6/2017", preg_signup=True, preg_update=False)
         tr2.remind()
         four_week_message = Message.objects.filter(contact=tr2.contact, direction="Outgoing").first()
-        self.assertEqual(tr2.contact.last_contacted, four_week_message.time)
+        self.assertEqual(tr2.contact.last_contacted, four_week_message.created_at)
 
     @freeze_time(FAKE_NOW)
     def test_remind_updates_last_contacted_hindi(self):
         tr = text_reminder_object("03/7/2017", language="Hindi", preg_signup=True, preg_update=False) # 2 weeks, 0 days ago
         tr.remind()
         two_week_message = Message.objects.filter(contact=tr.contact, direction="Outgoing").first()
-        self.assertEqual(tr.contact.last_contacted, two_week_message.time)
+        self.assertEqual(tr.contact.last_contacted, two_week_message.created_at)
 
         tr2 = text_reminder_object("19/6/2017", language="Hindi", preg_signup=True, preg_update=False)
         tr2.remind()
         four_week_message = Message.objects.filter(contact=tr2.contact, direction="Outgoing").first()
-        self.assertEqual(tr2.contact.last_contacted, four_week_message.time)
+        self.assertEqual(tr2.contact.last_contacted, four_week_message.created_at)
+
+    @patch("modules.text_processor.Texter.send")
+    def test_remind_assigns_message_sent_at_to_now_pregnancy(self, texting_mock):
+        with freeze_time(FAKE_NOW):
+            tr = text_reminder_object("03/7/2017", language="Hindi", preg_signup=True, preg_update=False) # 2 weeks, 0 days ago
+            tr.remind()
+            two_week_message = Message.objects.filter(contact=tr.contact, direction="Outgoing").first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), two_week_message.sent_at)
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), two_week_message.sent_at)
+
+        with freeze_time(FAKE_NOW):
+            tr2 = text_reminder_object("19/6/2017", language="Hindi", preg_signup=True, preg_update=False)
+            tr2.remind()
+            four_week_message = Message.objects.filter(contact=tr2.contact, direction="Outgoing").first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), four_week_message.sent_at)
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), four_week_message.sent_at)
+
+    @patch("modules.text_processor.Texter.send")
+    def test_remind_assigns_message_sent_at_to_now_standard(self, texting_mock):
+        with freeze_time(datetime(2017, 7, 17, 0, 0)):
+            tr3 = text_reminder_object("12/6/2017", preg_signup=True, preg_update=False) # 6 weeks, 7 days ago
+            tr3.remind()
+            six_week_message1 = Message.objects.filter(contact=tr3.contact, direction="Outgoing").first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), six_week_message1.sent_at)
+
+            tr4 = text_reminder_object("6/6/2017", preg_signup=True, preg_update=True) # 6 weeks, 1 days ago
+            tr4.remind()
+            six_week_message2 = Message.objects.filter(contact=tr4.contact, direction="Outgoing").first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), six_week_message2.sent_at)
+            
+            tr5 = text_reminder_object("15/5/2017", preg_signup=True, preg_update=True) # 10 weeks, 7 days ago
+            tr5.remind()
+            ten_week_message1 = Message.objects.filter(contact=tr5.contact, direction="Outgoing").first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), ten_week_message1.sent_at)
+            
+            tr6 = text_reminder_object("9/5/2017", preg_signup=True, preg_update=True) # 10 weeks, 1 days ago
+            tr6.remind()
+            ten_week_message2 = Message.objects.filter(contact=tr6.contact, direction="Outgoing").first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), ten_week_message2.sent_at)
+
+            tr7 = text_reminder_object("17/4/2017", preg_signup=True, preg_update=True) # 14 weeks, 7 days ago
+            tr7.remind()
+            fourteen_week_message1 = Message.objects.filter(contact=tr7.contact, direction="Outgoing").first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), fourteen_week_message1.sent_at)
+
+            tr8 = text_reminder_object("11/4/2017", preg_signup=True, preg_update=True) # 14 weeks, 1 days ago
+            tr8.remind()
+            fourteen_week_message2 = Message.objects.filter(contact=tr8.contact, direction="Outgoing").first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), fourteen_week_message2.sent_at)
+
+            tr9 = text_reminder_object("24/10/2016", preg_signup=True, preg_update=True) # # 9 months, 7 days ago
+            tr9.remind()
+            nine_months_message1 = Message.objects.filter(contact=tr9.contact, direction="Outgoing").first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), nine_months_message1.sent_at)
+
+            tr10 = text_reminder_object("18/10/2016", preg_signup=True, preg_update=True) # # 9 months, 1 days ago
+            tr10.remind()
+            nine_months_message2 = Message.objects.filter(contact=tr10.contact, direction="Outgoing").first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), nine_months_message2.sent_at)
+
+            tr11 = text_reminder_object("24/3/2016", preg_signup=True, preg_update=True) # 16 months, 7 days ago
+            tr11.remind()
+            sixteen_months_message1 = Message.objects.filter(contact=tr11.contact, direction="Outgoing").first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), sixteen_months_message1.sent_at)
+
+            tr12 = text_reminder_object("18/3/2016", preg_signup=True, preg_update=True) # 16 months, 1 days ago
+            tr12.remind()
+            sixteen_months_message2 = Message.objects.filter(contact=tr12.contact, direction="Outgoing").first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), sixteen_months_message2.sent_at)
+
+            tr13 = text_reminder_object("24/7/2012", preg_signup=True, preg_update=True) # 5 years, 7 days ago
+            tr13.remind()
+            five_years_message1 = Message.objects.filter(contact=tr13.contact, direction="Outgoing").first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), five_years_message1.sent_at)
+
+            tr14 = text_reminder_object("18/7/2012", preg_signup=True, preg_update=True) # 5 years, 1 days ago
+            tr14.remind()
+            five_years_message2 = Message.objects.filter(contact=tr14.contact, direction="Outgoing").first()
+            self.assertEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), five_years_message2.sent_at)
+        
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), six_week_message1.sent_at)
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), six_week_message2.sent_at)
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), ten_week_message1.sent_at)
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), ten_week_message2.sent_at)
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), fourteen_week_message1.sent_at)
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), fourteen_week_message2.sent_at)
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), nine_months_message1.sent_at)
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), nine_months_message2.sent_at)
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), sixteen_months_message1.sent_at)
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), sixteen_months_message2.sent_at)
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), five_years_message1.sent_at)
+        self.assertNotEqual(datetime.now().replace(tzinfo=timezone.get_default_timezone()), five_years_message2.sent_at)

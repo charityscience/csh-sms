@@ -1,6 +1,7 @@
 import logging
 import string
 
+from datetime import datetime
 from django.utils import timezone
 from django.core.exceptions import MultipleObjectsReturned
 
@@ -126,8 +127,8 @@ class TextProcessor(object):
         date = date_string_to_date(date) if date and date_is_valid(date) else None
         return (keyword, child_name, date)
 
-    def write_to_database(self, message):
-        keyword, child_name, date = self.get_data_from_message(message)
+    def write_to_database(self, message, date):
+        keyword, child_name, date_entered = self.get_data_from_message(message)
         inferred_language = "Hindi" if keyword and keyword[0] not in string.ascii_lowercase else "English"
         language = self.language or inferred_language
 
@@ -150,7 +151,9 @@ class TextProcessor(object):
                                               direction="Incoming")
 
         contact = Contact.objects.get(pk=incoming.contact.id)
-        contact.last_heard_from = incoming.time
+        contact.last_heard_from = incoming.created_at
+        incoming.received_at = date
+        incoming.save()
         contact.save()
         self.get_contacts()
         return incoming
@@ -208,12 +211,13 @@ class TextProcessor(object):
                                               body=response_text_message,
                                               direction="Outgoing")
         contact = Contact.objects.get(pk=outgoing.contact.id)
-        contact.last_contacted = outgoing.time
+        contact.last_contacted = outgoing.created_at
         contact.save()
         self.get_contacts()
         Texter().send(message=response_text_message,
                       phone_number=self.phone_number)
         outgoing.is_processed = True
+        outgoing.sent_at = datetime.now().replace(tzinfo=timezone.get_default_timezone())
         outgoing.save()
         message.is_processed = True
         message.save()

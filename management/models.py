@@ -131,8 +131,16 @@ class Message(models.Model):
     # Message direction is Incoming or Outgoing
     direction = models.CharField(max_length=10)
     
-    time = models.DateTimeField(auto_now_add=True)
     is_processed = models.BooleanField(default=False, blank=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    received_at = models.DateTimeField(auto_now=False,
+                                        auto_now_add=False,
+                                        blank=True,
+                                        null=True)
+    sent_at = models.DateTimeField(auto_now=False,
+                                    auto_now_add=False,
+                                    blank=True,
+                                    null=True)
 
     def __str__(self):
         return self.body
