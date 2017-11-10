@@ -128,7 +128,7 @@ class TextProcessor(object):
         return (keyword, child_name, date)
 
     def write_to_database(self, message, date):
-        keyword, child_name, date = self.get_data_from_message(message)
+        keyword, child_name, date_entered = self.get_data_from_message(message)
         inferred_language = "Hindi" if keyword and keyword[0] not in string.ascii_lowercase else "English"
         language = self.language or inferred_language
 
