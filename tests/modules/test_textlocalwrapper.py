@@ -1,11 +1,13 @@
 import mock
 import json
 from mock import patch
+from freezegun import freeze_time
 from django.test import TestCase
+from datetime import datetime
 
 from modules.textlocalwrapper import TextLocal
 from modules.i18n import hindi_remind, hindi_information, msg_subscribe
-
+from modules.date_helper import datetime_from_date_string
 
 class MockResponse():
     def __init__(self, read_value):
@@ -20,20 +22,77 @@ class TextLocalInboxesTests(TestCase):
         textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
         self.assertIsInstance(textlocal, TextLocal)
 
-
-    def test_is_message_new(self):
+    @freeze_time(datetime(2017, 7, 30, 15, 0, 0))
+    def test_is_message_new_with_isnew_true_or_falsey(self):
         textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
-        new_message = {'number': '910987654321', 'message': 'New message',
-            'isNew': True}
-        old_message = {'number': '910987654321', 'message': 'Old message',
-            'isNew': None}
+        new_message_with_new_flag = {'number': '910987654321', 'message': 'New message',
+            'isNew': True, 'date': '2017-07-30 06:52:09'}
+        new_message_with_no_new_flag = {'number': '910987654321', 'message': 'New message',
+            'isNew': None, 'date': '2017-07-30 06:52:09'}
+        old_message_with_new_flag = {'number': '910987654321', 'message': 'Old message',
+            'isNew': True, 'date': '2017-07-29 06:52:09'}
+        old_message_with_no_new_flag = {'number': '910987654321', 'message': 'Old message',
+            'isNew': None, 'date': '2017-07-29 06:52:09'}
+        self.assertTrue(textlocal.is_message_new(new_message_with_new_flag))
+        self.assertTrue(textlocal.is_message_new(new_message_with_no_new_flag))
+        self.assertFalse(textlocal.is_message_new(old_message_with_new_flag))
+        self.assertFalse(textlocal.is_message_new(old_message_with_no_new_flag))
 
-        self.assertTrue(textlocal.is_message_new(new_message))
-        self.assertFalse(textlocal.is_message_new(old_message))
+    @freeze_time(datetime(2017, 7, 30, 15, 0, 0))
+    def test_is_message_new_with_dates_within_one_day(self):
+        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
+        same_time = {'number': '910987654321', 'message': 'New message',
+            'isNew': True, 'date': '2017-07-30 15:00:00'}
+        one_second_before = {'number': '910987654321', 'message': 'New message',
+                    'isNew': True, 'date': '2017-07-30 14:59:59'}
+        one_minute_before = {'number': '910987654321', 'message': 'New message',
+                    'isNew': True, 'date': '2017-07-30 14:59:00'}
+        one_hour_before = {'number': '910987654321', 'message': 'New message',
+                    'isNew': True, 'date': '2017-07-30 14:00:00'}
+        twelve_hours_before = {'number': '910987654321', 'message': 'New message',
+            'isNew': True, 'date': '2017-07-30 03:00:00'}
+        twenty_four_hours_before = {'number': '910987654321', 'message': 'New message',
+            'isNew': True, 'date': '2017-07-29 15:00:00'}
 
+        self.assertTrue(textlocal.is_message_new(same_time))
+        self.assertTrue(textlocal.is_message_new(one_second_before))
+        self.assertTrue(textlocal.is_message_new(one_minute_before))
+        self.assertTrue(textlocal.is_message_new(one_hour_before))
+        self.assertTrue(textlocal.is_message_new(twelve_hours_before))
+        self.assertTrue(textlocal.is_message_new(twenty_four_hours_before))
 
+    @freeze_time(datetime(2017, 7, 30, 15, 0, 0))
+    def test_is_message_new_with_dates_before_one_day(self):
+        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
+        twenty_four_hours_one_second_before = {'number': '910987654321', 'message': 'New message',
+                    'isNew': True, 'date': '2017-07-29 14:59:59'}
+        twenty_four_hours_five_minutes_before = {'number': '910987654321', 'message': 'New message',
+                    'isNew': True, 'date': '2017-07-29 14:55:00'}
+        twenty_five_hours_before = {'number': '910987654321', 'message': 'New message',
+                    'isNew': True, 'date': '2017-07-29 14:00:00'}
+        thirty_six_hours_before = {'number': '910987654321', 'message': 'New message',
+            'isNew': True, 'date': '2017-07-29 03:00:00'}
+        forty_eight_hours_before = {'number': '910987654321', 'message': 'New message',
+            'isNew': True, 'date': '2017-07-28 15:00:00'}
+        one_week_before = {'number': '910987654321', 'message': 'New message',
+            'isNew': True, 'date': '2017-07-23 15:00:00'}
+        one_month_before = {'number': '910987654321', 'message': 'New message',
+            'isNew': True, 'date': '2017-06-30 15:00:00'}
+        one_year_before = {'number': '910987654321', 'message': 'New message',
+            'isNew': True, 'date': '2016-07-30 15:00:00'}
+        
+        self.assertFalse(textlocal.is_message_new(twenty_four_hours_one_second_before))
+        self.assertFalse(textlocal.is_message_new(twenty_four_hours_five_minutes_before))
+        self.assertFalse(textlocal.is_message_new(twenty_five_hours_before))
+        self.assertFalse(textlocal.is_message_new(thirty_six_hours_before))
+        self.assertFalse(textlocal.is_message_new(forty_eight_hours_before))
+        self.assertFalse(textlocal.is_message_new(one_week_before))
+        self.assertFalse(textlocal.is_message_new(one_month_before))
+        self.assertFalse(textlocal.is_message_new(one_year_before))
+
+    @freeze_time(datetime(2017, 9, 6, 22, 0, 0))
     @patch("modules.textlocalwrapper.request")
-    def test_new_messages_by_number(self, mock_request):
+    def test_new_messages_by_number_returns_message_and_datetime(self, mock_request):
         textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
         old_message = {'number': '910987654321', 'message': 'Old message', 'date': '2017-08-05 21:12:07', 'isNew': None}
         new_message = {'number': '910987654321', 'message': 'New message', 'date': '2017-09-06 12:12:07', 'isNew': True}
@@ -42,10 +101,14 @@ class TextLocalInboxesTests(TestCase):
         fake_num_message_dict = textlocal.new_messages_by_number()
         self.assertIsInstance(fake_num_message_dict, dict)
         self.assertIsInstance(fake_num_message_dict['910987654321'], list)
-        self.assertFalse(old_message['message'] in fake_num_message_dict['910987654321'])
-        self.assertTrue(new_message['message'] in fake_num_message_dict['910987654321'])
-        self.assertTrue(new_message2['message'] in fake_num_message_dict['910987654321'])
-
+        old_message_datetime = datetime_from_date_string(old_message['date'], "%Y-%m-%d %H:%M:%S")
+        new_message_datetime = datetime_from_date_string(new_message['date'], "%Y-%m-%d %H:%M:%S")
+        new_message2_datetime = datetime_from_date_string(new_message2['date'], "%Y-%m-%d %H:%M:%S")
+        self.assertFalse((old_message['message'], old_message_datetime) in fake_num_message_dict['910987654321'])
+        self.assertIsInstance(fake_num_message_dict['910987654321'][0], tuple)
+        self.assertIsInstance(fake_num_message_dict['910987654321'][1], tuple)
+        self.assertTrue((new_message['message'], new_message_datetime) in fake_num_message_dict['910987654321'])
+        self.assertTrue((new_message2['message'], new_message2_datetime) in fake_num_message_dict['910987654321'])
 
     @patch("modules.textlocalwrapper.request")
     def test_get_primary_inbox_messages(self, mock_request):
@@ -61,17 +124,6 @@ class TextLocalInboxesTests(TestCase):
         self.assertEqual(textlocal.get_primary_inbox_messages(), [{'id': '000000024', 'number': 1112223334, 'message': 'Testy test', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'}])
         mock_request.urlopen.return_value = MockResponse(read_value=json.dumps({'inbox_id': 10001, 'num_messages': 0, 'min_time': 1010101101, 'max_time': 101010101101, 'sort_order': 'asc', 'sort_field': 'date', 'start': 0, 'limit': 1000, 'messages': []}).encode('latin1'))
         self.assertEqual(textlocal.get_primary_inbox_messages(), [])
-
-
-    def test_is_message_new(self):
-        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
-        new_message = {'number': '910987654321', 'message': 'New message',
-            'isNew': True}
-        old_message = {'number': '910987654321', 'message': 'Old message',
-            'isNew': None}
-        self.assertTrue(textlocal.is_message_new(new_message))
-        self.assertFalse(textlocal.is_message_new(old_message))
-
 
     def test_doesnt_correct_corrupted_unicode_matches_english(self):
         textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')

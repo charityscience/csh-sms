@@ -4,7 +4,7 @@ import string
 
 from six import unichr
 from six.moves.urllib import request, parse
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from cshsms.settings import TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID, TEXTLOCAL_SENDERNAME
 from modules.date_helper import datetime_from_date_string
@@ -54,7 +54,9 @@ class TextLocal(object):
          
 
     def is_message_new(self, message):
-        return True if message['isNew'] == True else False
+        date_of_message = datetime_from_date_string(message['date'], "%Y-%m-%d %H:%M:%S")
+        margin = timedelta(hours=24)
+        return True if datetime.now() - margin <= date_of_message else False
 
     def new_messages_by_number(self):
         all_messages = self.get_primary_inbox_messages()
@@ -62,7 +64,8 @@ class TextLocal(object):
         num_message_dict = {}
         for message in corrected_messages:
             if self.is_message_new(message):
-                num_message_dict.setdefault(message['number'], []).append(message['message'])
+                date_of_message = datetime_from_date_string(message['date'], "%Y-%m-%d %H:%M:%S")
+                num_message_dict.setdefault(message['number'], []).append((message['message'], date_of_message))
         return num_message_dict
 
     def send_message(self, apikey, phone_numbers, sender, message):
