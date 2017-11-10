@@ -588,7 +588,7 @@ class TextProcessorProcessTests(TestCase):
     @patch("modules.text_processor.Texter.send")
     def test_keyword_failure(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1111")
-        message_object = t.write_to_database("JLORN COACHZ 25-11-2012")
+        message_object = t.write_to_database(("JLORN COACHZ 25-11-2012", FAKE_NOW.replace(tzinfo=timezone.get_default_timezone())))
         response = t.process(message_object)
         self.assertEqual(response, msg_failure("English"))
         logging_mock.assert_called_with("Keyword `jlorn` in message `JLORN COACHZ 25-11-2012` was not understood by the system.")
@@ -598,7 +598,8 @@ class TextProcessorProcessTests(TestCase):
     @patch("modules.text_processor.Texter.send")
     def test_keyword_failure_hindi(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1111")
-        message_object = t.write_to_database(u'\u0906\u0930 \u0906\u0930\u0935 25-11-2012')
+        message_object = t.write_to_database((u'\u0906\u0930 \u0906\u0930\u0935 25-11-2012',
+                                                FAKE_NOW.replace(tzinfo=timezone.get_default_timezone())))
         response = t.process(message_object)
         self.assertEqual(response, msg_failure("Hindi"))
         logging_mock.assert_called_with(u'Keyword `\u0906\u0930` in message `\u0906\u0930 \u0906\u0930\u0935 25-11-2012` was not understood by the system.')
@@ -608,7 +609,7 @@ class TextProcessorProcessTests(TestCase):
     @patch("modules.text_processor.Texter.send")
     def test_keyword_failed_date_english(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1111")
-        message = t.write_to_database("JOIN PAULA 25:11:2012")
+        message = t.write_to_database(("JOIN PAULA 25:11:2012", FAKE_NOW.replace(tzinfo=timezone.get_default_timezone())))
         response = t.process(message)
         self.assertEqual(response, msg_failed_date("English"))
         logging_mock.assert_called_with("Date in message `JOIN PAULA 25:11:2012` is invalid.")
@@ -619,7 +620,7 @@ class TextProcessorProcessTests(TestCase):
     def test_keyword_failed_date_hindi(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1111")
         invalid_text_message = hindi_remind() + " Sai 11,09,2013"
-        message_object = t.write_to_database(invalid_text_message)
+        message_object = t.write_to_database((invalid_text_message, FAKE_NOW.replace(tzinfo=timezone.get_default_timezone())))
         response = t.process(message_object)
         self.assertEqual(response, msg_failed_date("Hindi"))
         logging_mock.assert_called_with("Date in message " + quote(invalid_text_message) + " is invalid.")
@@ -630,7 +631,7 @@ class TextProcessorProcessTests(TestCase):
     def test_keyword_failed_date_hindi_with_hindi_name(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1111")
         invalid_text_message = hindi_remind() + u' \u0906\u0930\u0935 11,09,2013'
-        message_object = t.write_to_database(invalid_text_message)
+        message_object = t.write_to_database((invalid_text_message, FAKE_NOW.replace(tzinfo=timezone.get_default_timezone())))
         response = t.process(message_object)
         self.assertEqual(response, msg_failed_date("Hindi"))
         logging_mock.assert_called_with("Date in message " + quote(invalid_text_message) + " is invalid.")
