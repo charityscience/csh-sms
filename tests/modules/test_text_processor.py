@@ -120,7 +120,7 @@ class TextProcessorProcessTests(TestCase):
         t = TextProcessor(phone_number="1-111-1111")
         self.assertFalse(Contact.objects.filter(name="Paula", phone_number="1-111-1111").exists())
         self.assertFalse(t.get_contacts().exists())
-        join_message = t.write_to_database(("JOIN PAULA 25-11-2012", FAKE_NOW.replace(tzinfo=timezone.get_default_timezone())))
+        join_message = t.write_to_database(message="JOIN PAULA 25-11-2012", date=FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()))
         response = t.process(join_message)
         self.assertEqual(response, msg_subscribe("English").format(name="Paula"))
         logging_mock.assert_called_with("Subscribing `JOIN PAULA 25-11-2012`...")
@@ -137,8 +137,8 @@ class TextProcessorProcessTests(TestCase):
         t = TextProcessor(phone_number="1-112-1111")
         self.assertFalse(Contact.objects.filter(name="Sai", phone_number="1-112-1111").exists())
         self.assertFalse(t.get_contacts().exists())
-        message = t.write_to_database((hindi_remind() + " Sai 11/09/2013",
-                                        FAKE_NOW.replace(tzinfo=timezone.get_default_timezone())))
+        message = t.write_to_database(message=hindi_remind() + " Sai 11/09/2013",
+                                        date=FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()))
         response = t.process(message)
         self.assertEqual(response, msg_subscribe("Hindi").format(name="Sai"))
         texting_mock.assert_called_once_with(message=response, phone_number="1-112-1111")
@@ -153,7 +153,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertFalse(Contact.objects.filter(name=u'\u0906\u0930\u0935',
                                                 phone_number="1-112-1112").exists())
         self.assertFalse(t.get_contacts().exists())
-        message_object = t.write_to_database((message, FAKE_NOW.replace(tzinfo=timezone.get_default_timezone())))
+        message_object = t.write_to_database(message=message, date=FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()))
         response = t.process(message_object)
         expected_response = msg_subscribe('Hindi').format(name=u'\u0906\u0930\u0935')
         self.assertEqual(response, expected_response)
@@ -169,7 +169,7 @@ class TextProcessorProcessTests(TestCase):
         self.assertFalse(Contact.objects.filter(name=msg_placeholder_child("English"),
                                                 phone_number="1-111-1113").exists())
         self.assertFalse(t.get_contacts().exists())
-        message_object = t.write_to_database(("JOIN 25-11-2012", FAKE_NOW.replace(tzinfo=timezone.get_default_timezone())))
+        message_object = t.write_to_database(message="JOIN 25-11-2012", date=FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()))
         response = t.process(message_object)
         self.assertEqual(response, msg_subscribe("English").format(name=msg_placeholder_child("English")))
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1113")
@@ -184,8 +184,8 @@ class TextProcessorProcessTests(TestCase):
         self.assertFalse(Contact.objects.filter(name=msg_placeholder_child("Hindi"),
                                                 phone_number="1-112-1113").exists())
         self.assertFalse(t.get_contacts().exists())
-        message_object = t.write_to_database((hindi_remind() + " 25-11-2012",
-                                                FAKE_NOW.replace(tzinfo=timezone.get_default_timezone())))
+        message_object = t.write_to_database(message=hindi_remind() + " 25-11-2012",
+                                                date=FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()))
         response = t.process(message_object)
         self.assertEqual(response,
                          msg_subscribe("Hindi").format(name=msg_placeholder_child("Hindi")))
@@ -199,8 +199,8 @@ class TextProcessorProcessTests(TestCase):
     def test_subscribe_with_too_long_name(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1111")
         long_name = "".join(["name" for _ in range(20)]) # length 100
-        long_name_join = t.write_to_database(("JOIN " + long_name + " 25-11-2012",
-                                                FAKE_NOW.replace(tzinfo=timezone.get_default_timezone())))
+        long_name_join = t.write_to_database(message="JOIN " + long_name + " 25-11-2012",
+                                                date=FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()))
         response = t.process(long_name_join)
         self.assertEqual(response, msg_failure("English"))
         self.assertFalse(Contact.objects.filter(name=long_name.title(), phone_number="1-111-1111").exists())
@@ -210,9 +210,10 @@ class TextProcessorProcessTests(TestCase):
     @patch("modules.text_processor.Texter.send")
     def test_unsubscribe_english(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1112")
-        join_message = t.write_to_database(("JOIN Roland 12/11/2017", datetime(2017, 8, 9, 0, 5, 10).replace(tzinfo=timezone.get_default_timezone())))
+        join_message = t.write_to_database(message="JOIN Roland 12/11/2017",
+                                            date=datetime(2017, 8, 9, 0, 5, 10).replace(tzinfo=timezone.get_default_timezone()))
         t.process(join_message)
-        end_message = t.write_to_database(("END", datetime(2017, 8, 10, 0, 5, 10).replace(tzinfo=timezone.get_default_timezone())))
+        end_message = t.write_to_database(message="END", date=datetime(2017, 8, 10, 0, 5, 10).replace(tzinfo=timezone.get_default_timezone()))
         response = t.process(end_message)
         self.assertTrue(t.get_contacts().first().cancelled)
         self.assertEqual(response, msg_unsubscribe("English"))
@@ -231,7 +232,7 @@ class TextProcessorProcessTests(TestCase):
                                language_preference="Hindi",
                                method_of_sign_up="Text")
         t = TextProcessor(phone_number="1-112-1112")
-        end_message = t.write_to_database(("END", FAKE_NOW.replace(tzinfo=timezone.get_default_timezone())))
+        end_message = t.write_to_database(message="END", date=FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()))
         response = t.process(end_message)
         self.assertTrue(t.get_contacts().first().cancelled)
         self.assertEqual(response, msg_unsubscribe("Hindi"))
@@ -243,7 +244,7 @@ class TextProcessorProcessTests(TestCase):
     def test_unsubscribe_as_first_message(self, texting_mock, logging_info_mock):
         self.assertFalse(Contact.objects.filter(phone_number="1-111-1112").exists())
         t = TextProcessor(phone_number="1-111-1112")
-        end_message = t.write_to_database(("END", FAKE_NOW.replace(tzinfo=timezone.get_default_timezone())))
+        end_message = t.write_to_database(message="END", date=FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()))
         self.assertTrue(Contact.objects.filter(phone_number="1-111-1112").exists())
         response = t.process(end_message)
         self.assertTrue(Contact.objects.filter(phone_number="1-111-1112").exists())
@@ -255,14 +256,16 @@ class TextProcessorProcessTests(TestCase):
     def test_subscribe_twice_english(self, texting_mock, logging_info_mock, logging_error_mock):
         t = TextProcessor(phone_number="1-111-1114")
         self.assertFalse(Contact.objects.filter(name="Rose", phone_number="1-111-1114").exists())
-        join_message = t.write_to_database(("JOIN ROSE 25-11-2012", datetime(2016, 10, 30, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        join_message = t.write_to_database(message="JOIN ROSE 25-11-2012",
+                                            date=datetime(2016, 10, 30, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         first_response = t.process(join_message)
         self.assertEqual(first_response, msg_subscribe("English").format(name="Rose"))
         texting_mock.assert_called_with(message=first_response, phone_number="1-111-1114")
         self.assertTrue(Contact.objects.filter(name="Rose", phone_number="1-111-1114").exists())
         self.assertTrue(t.get_contacts().exists())
         t2 = TextProcessor(phone_number="1-111-1114")
-        second_join = t2.write_to_database(("JOIN ROSE 25-11-2012", datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        second_join = t2.write_to_database(message="JOIN ROSE 25-11-2012",
+                                            date=datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         second_response = t2.process(second_join)
         self.assertTrue(t2.get_contacts().exists())
         self.assertEqual(second_response, msg_already_sub("English"))
@@ -280,8 +283,8 @@ class TextProcessorProcessTests(TestCase):
     @patch("modules.text_processor.Texter.send")
     def test_subscribe_twice_hindi(self, texting_mock, logging_info_mock, logging_error_mock):
         t = TextProcessor(phone_number="1-111-1115")
-        join_message = t.write_to_database((hindi_remind() + " SANJIV 25-11-2012",
-                                            datetime(2016, 10, 30, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        join_message = t.write_to_database(message=hindi_remind() + " SANJIV 25-11-2012",
+                                            date=datetime(2016, 10, 30, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         first_response = t.process(join_message)
         self.assertEqual(first_response, msg_subscribe("Hindi").format(name="Sanjiv"))
         texting_mock.assert_called_with(message=first_response, phone_number="1-111-1115")
@@ -289,8 +292,8 @@ class TextProcessorProcessTests(TestCase):
         self.assertTrue(t.get_contacts().exists())
         t2 = TextProcessor(phone_number="1-111-1115")
         self.assertTrue(t2.get_contacts().exists())
-        second_join = t.write_to_database((hindi_remind() + " SANJIV 25-11-2012",
-                                            datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        second_join = t.write_to_database(message=hindi_remind() + " SANJIV 25-11-2012",
+                                            date=datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         second_response = t2.process(second_join)
         self.assertEqual(second_response, msg_already_sub("Hindi"))
         texting_mock.assert_called_with(message=second_response, phone_number="1-111-1115")
@@ -306,14 +309,16 @@ class TextProcessorProcessTests(TestCase):
     def test_subscribe_twice_doesnt_change_preg_update_english(self, texting_mock, logging_info_mock, logging_error_mock):
         t = TextProcessor(phone_number="1-111-1114")
         self.assertFalse(Contact.objects.filter(name="Rose", phone_number="1-111-1114").exists())
-        join_message = t.write_to_database(("JOIN ROSE 25-11-2012", datetime(2016, 10, 30, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        join_message = t.write_to_database(message="JOIN ROSE 25-11-2012",
+                                            date=datetime(2016, 10, 30, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         first_response = t.process(join_message)
         self.assertEqual(first_response, msg_subscribe("English").format(name="Rose"))
         texting_mock.assert_called_with(message=first_response, phone_number="1-111-1114")
         self.assertTrue(Contact.objects.filter(name="Rose", phone_number="1-111-1114", preg_update=False).exists())
         self.assertTrue(t.get_contacts().exists())
         t2 = TextProcessor(phone_number="1-111-1114")
-        second_join = t2.write_to_database(("JOIN ROSE 25-11-2012", datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        second_join = t2.write_to_database(message="JOIN ROSE 25-11-2012",
+                                            date=datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         second_response = t2.process(second_join)
         self.assertTrue(t2.get_contacts().exists())
         self.assertEqual(second_response, msg_already_sub("English"))
@@ -328,8 +333,8 @@ class TextProcessorProcessTests(TestCase):
     @patch("modules.text_processor.Texter.send")
     def test_subscribe_twice_doesnt_change_preg_update_hindi(self, texting_mock, logging_info_mock, logging_error_mock):
         t = TextProcessor(phone_number="1-111-1115")
-        join_message = t.write_to_database((hindi_remind() + " SANJIV 25-11-2012",
-                                            datetime(2016, 10, 30, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        join_message = t.write_to_database(message=hindi_remind() + " SANJIV 25-11-2012",
+                                            date=datetime(2016, 10, 30, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         first_response = t.process(join_message)
         self.assertEqual(first_response, msg_subscribe("Hindi").format(name="Sanjiv"))
         texting_mock.assert_called_with(message=first_response, phone_number="1-111-1115")
@@ -337,8 +342,8 @@ class TextProcessorProcessTests(TestCase):
         self.assertTrue(t.get_contacts().exists())
         t2 = TextProcessor(phone_number="1-111-1115")
         self.assertTrue(t2.get_contacts().exists())
-        second_join = t.write_to_database((hindi_remind() + " SANJIV 25-11-2012",
-                                            datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        second_join = t.write_to_database(message=hindi_remind() + " SANJIV 25-11-2012",
+                                            date=datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         second_response = t2.process(second_join)
         self.assertEqual(second_response, msg_already_sub("Hindi"))
         texting_mock.assert_called_with(message=second_response, phone_number="1-111-1115")
@@ -352,16 +357,16 @@ class TextProcessorProcessTests(TestCase):
     def test_text_in_pregnancy_birthdate_update_english(self, texting_mock):
         t = TextProcessor(phone_number="1-111-1114")
         self.assertFalse(Contact.objects.filter(name="Rose", phone_number="1-111-1114").exists())
-        join_message = t.write_to_database(("JOIN ROSE 25-10-2012",
-                                            datetime(2016, 10, 30, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        join_message = t.write_to_database(message="JOIN ROSE 25-10-2012",
+                                            date=datetime(2016, 10, 30, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         first_response = t.process(join_message)
         self.assertEqual(first_response, msg_subscribe("English").format(name="Rose"))
         texting_mock.assert_called_with(message=first_response, phone_number="1-111-1114")
         self.assertTrue(Contact.objects.filter(name="Rose", phone_number="1-111-1114", date_of_birth=datetime(2012, 10, 25, 0, 0), preg_update=False).exists())
         self.assertTrue(t.get_contacts().exists())
         t2 = TextProcessor(phone_number="1-111-1114")
-        born_update = t2.write_to_database(("BORN ROSE 25-11-2012",
-                                            datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        born_update = t2.write_to_database(message="BORN ROSE 25-11-2012",
+                                            date=datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         second_response = t2.process(born_update)
         self.assertTrue(t2.get_contacts().exists())
         self.assertEqual(second_response, msg_subscribe("English").format(name="Rose"))
@@ -381,8 +386,8 @@ class TextProcessorProcessTests(TestCase):
         t3 = TextProcessor(phone_number="910003456789")
         self.assertTrue(t3.get_contacts().exists())
         self.assertTrue(Contact.objects.filter(name="Tina", phone_number="910003456789", language_preference="English", date_of_birth=datetime(2017, 7, 10, 0, 0), preg_signup=True, preg_update=False).exists())
-        born_update = t3.write_to_database(("BORN Tina 25-07-2017",
-                                            FAKE_NOW.replace(tzinfo=timezone.get_default_timezone())))
+        born_update = t3.write_to_database(message="BORN Tina 25-07-2017",
+                                            date=FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()))
         existing_contact_update = t3.process(born_update)
         self.assertEqual(existing_contact_update, msg_subscribe("English").format(name="Tina"))
         texting_mock.assert_called_with(message=existing_contact_update, phone_number="910003456789")
@@ -396,16 +401,16 @@ class TextProcessorProcessTests(TestCase):
     def test_text_in_pregnancy_birthdate_update_hindi(self, texting_mock):
         t = TextProcessor(phone_number="1-111-1114")
         self.assertFalse(Contact.objects.filter(name="Sanjiv", phone_number="1-111-1114").exists())
-        join_message = t.write_to_database((hindi_remind() + " Sanjiv 25-10-2012",
-                                            datetime(2016, 10, 30, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        join_message = t.write_to_database(message=hindi_remind() + " Sanjiv 25-10-2012",
+                                            date=datetime(2016, 10, 30, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         first_response = t.process(join_message)
         self.assertEqual(first_response, msg_subscribe("Hindi").format(name="Sanjiv"))
         texting_mock.assert_called_with(message=first_response, phone_number="1-111-1114")
         self.assertTrue(Contact.objects.filter(name="Sanjiv", phone_number="1-111-1114", date_of_birth=datetime(2012, 10, 25, 0, 0), preg_update=False).exists())
         self.assertTrue(t.get_contacts().exists())
         t2 = TextProcessor(phone_number="1-111-1114")
-        born_update = t2.write_to_database((hindi_born() + " Sanjiv 25-11-2012",
-                                            datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        born_update = t2.write_to_database(message=hindi_born() + " Sanjiv 25-11-2012",
+                                            date=datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         second_response = t2.process(born_update)
         self.assertTrue(t2.get_contacts().exists())
         self.assertEqual(second_response, msg_subscribe("Hindi").format(name="Sanjiv"))
@@ -437,16 +442,16 @@ class TextProcessorProcessTests(TestCase):
     @patch("modules.text_processor.Texter.send")
     def test_preg_updates_with_opposite_language_keep_original_language_hindi(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1111")
-        join_message = t.write_to_database((hindi_remind() + " Aarav 25-11-2012",
-                                            datetime(2016, 10, 30, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        join_message = t.write_to_database(message=hindi_remind() + " Aarav 25-11-2012",
+                                            date=datetime(2016, 10, 30, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         response = t.process(join_message)
         logging_mock.assert_called_with("Subscribing " + quote(join_message.body) + "...")
         texting_mock.assert_called_once_with(message=response, phone_number="1-111-1111")
         contact = Contact.objects.filter(name="Aarav", phone_number="1-111-1111").first()
         self.assertEqual("Hindi", contact.language_preference)
 
-        born_message = t.write_to_database(("BORN Aarav 25-11-2012",
-                                            datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        born_message = t.write_to_database(message="BORN Aarav 25-11-2012",
+                                            date=datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         born_response = t.process(born_message)
         texting_mock.assert_called_with(message=born_response, phone_number="1-111-1111")
         contact = Contact.objects.filter(name="Aarav", phone_number="1-111-1111").first()
@@ -459,16 +464,16 @@ class TextProcessorProcessTests(TestCase):
         t = TextProcessor(phone_number="1-111-1120")
         self.assertFalse(Contact.objects.filter(name="Peter", phone_number="1-111-1120").exists())
         self.assertFalse(Contact.objects.filter(name="Ben", phone_number="1-111-1120").exists())
-        peter_join = t.write_to_database(("JOIN PETER 11-12-2016",
-                                        datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        peter_join = t.write_to_database(message="JOIN PETER 11-12-2016",
+                                        date=datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         first_response = t.process(peter_join)
         self.assertEqual(first_response, msg_subscribe("English").format(name="Peter"))
         texting_mock.assert_called_with(message=first_response, phone_number="1-111-1120")
         self.assertTrue(Contact.objects.filter(name="Peter", phone_number="1-111-1120").exists())
         self.assertEqual(Contact.objects.filter(phone_number="1-111-1120").count(), 1)
         t2 = TextProcessor(phone_number="1-111-1120")
-        ben_join = t2.write_to_database(("JOIN BEN 4-10-2016",
-                                        datetime(2016, 10, 31, 10, 10, 5).replace(tzinfo=timezone.get_default_timezone())))
+        ben_join = t2.write_to_database(message="JOIN BEN 4-10-2016",
+                                        date=datetime(2016, 10, 31, 10, 10, 5).replace(tzinfo=timezone.get_default_timezone()))
         second_response = t2.process(ben_join)
         self.assertEqual(second_response, msg_subscribe("English").format(name="Ben"))
         texting_mock.assert_called_with(message=second_response, phone_number="1-111-1120")
@@ -483,16 +488,16 @@ class TextProcessorProcessTests(TestCase):
     def test_subscribe_then_cancel(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1116")
         self.assertFalse(Contact.objects.filter(name="Rob", phone_number="1-111-1116").exists())
-        sub_message = t.write_to_database(("JOIN ROB 25-11-2012",
-                                            datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        sub_message = t.write_to_database(message="JOIN ROB 25-11-2012",
+                                            date=datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         t.process(sub_message)
         contacts = Contact.objects.filter(name="Rob", phone_number="1-111-1116")
         self.assertTrue(contacts.exists())
         self.assertEqual(contacts.count(), 1)
         self.assertFalse(contacts.first().cancelled)
         t2 = TextProcessor(phone_number="1-111-1116")
-        end_message = t.write_to_database(("END",
-                                            datetime(2016, 11, 28, 10, 5, 5, 10).replace(tzinfo=timezone.get_default_timezone())))
+        end_message = t.write_to_database(message="END",
+                                            date=datetime(2016, 11, 28, 10, 5, 5, 10).replace(tzinfo=timezone.get_default_timezone()))
         t2.process(end_message)
         contacts = Contact.objects.filter(name="Rob", phone_number="1-111-1116")
         self.assertTrue(contacts.exists())
@@ -506,22 +511,22 @@ class TextProcessorProcessTests(TestCase):
     def test_subscribe_then_cancel_then_subscribe(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1117")
         self.assertFalse(Contact.objects.filter(name="Cheyenne", phone_number="1-111-1117").exists())
-        join_message = t.write_to_database(("JOIN CHEYENNE 25-11-2012",
-                                            datetime(2016, 10, 29, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        join_message = t.write_to_database(message="JOIN CHEYENNE 25-11-2012",
+                                            date=datetime(2016, 10, 29, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         t.process(join_message)
         contacts = Contact.objects.filter(name="Cheyenne", phone_number="1-111-1117")
         self.assertTrue(contacts.exists())
         self.assertFalse(contacts.first().cancelled)
         t2 = TextProcessor(phone_number="1-111-1117")
-        end_message = t2.write_to_database(("END",
-                                            datetime(2016, 10, 30, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        end_message = t2.write_to_database(message="END",
+                                            date=datetime(2016, 10, 30, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         t2.process(end_message)
         contacts = Contact.objects.filter(name="Cheyenne", phone_number="1-111-1117")
         self.assertTrue(contacts.exists())
         self.assertTrue(contacts.first().cancelled)
         t3 = TextProcessor(phone_number="1-111-1117")
-        join_again_message = t3.write_to_database(("JOIN CHEYENNE 25-11-2012",
-                                                    datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        join_again_message = t3.write_to_database(message="JOIN CHEYENNE 25-11-2012",
+                                                    date=datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         t3.process(join_again_message)
         contacts = Contact.objects.filter(name="Cheyenne", phone_number="1-111-1117")
         self.assertTrue(contacts.exists())
@@ -535,22 +540,22 @@ class TextProcessorProcessTests(TestCase):
     def test_subscribe_then_cancel_then_update_dob(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1118")
         self.assertFalse(Contact.objects.filter(name="Cheyenne", phone_number="1-111-1118").exists())
-        join_message = t.write_to_database(("JOIN CHEYENNE 25-11-2012",
-                                            datetime(2016, 10, 29, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        join_message = t.write_to_database(message="JOIN CHEYENNE 25-11-2012",
+                                            date=datetime(2016, 10, 29, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         t.process(join_message)
         contacts = Contact.objects.filter(name="Cheyenne", phone_number="1-111-1118")
         self.assertTrue(contacts.exists())
         self.assertEqual(contacts.first().date_of_birth, datetime(2012, 11, 25, 0, 0).date())
         t2 = TextProcessor(phone_number="1-111-1118")
-        end_message = t2.write_to_database(("END",
-                                            datetime(2016, 10, 30, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        end_message = t2.write_to_database(message="END",
+                                            date=datetime(2016, 10, 30, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         t2.process(end_message)
         contacts = Contact.objects.filter(name="Cheyenne", phone_number="1-111-1118")
         self.assertTrue(contacts.exists())
         self.assertEqual(contacts.first().date_of_birth, datetime(2012, 11, 25, 0, 0).date())
         t3 = TextProcessor(phone_number="1-111-1118")
-        join_again_message = t3.write_to_database(("JOIN CHEYENNE 25-12-2012",
-                                                    datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        join_again_message = t3.write_to_database(message="JOIN CHEYENNE 25-12-2012",
+                                                    date=datetime(2016, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         t3.process(join_again_message)
         contacts = Contact.objects.filter(name="Cheyenne", phone_number="1-111-1118")
         self.assertTrue(contacts.exists())
@@ -564,20 +569,20 @@ class TextProcessorProcessTests(TestCase):
     def test_subscribe_then_cancel_then_update_language(self, texting_mock, logging_mock):
         t = TextProcessor(phone_number="1-111-1118")
         self.assertFalse(Contact.objects.filter(name="Larissa", phone_number="1-111-1118").exists())
-        join_message = t.write_to_database(("JOIN LARISSA 25-11-2012",
-                                            datetime(2017, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        join_message = t.write_to_database(message="JOIN LARISSA 25-11-2012",
+                                            date=datetime(2017, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         first_response = t.process(join_message)
         self.assertEqual(first_response, msg_subscribe("English").format(name="Larissa"))
         contacts = Contact.objects.filter(name="Larissa", phone_number="1-111-1118")
         self.assertTrue(contacts.exists())
         self.assertEqual(contacts.first().language_preference, "English")
         t2 = TextProcessor(phone_number="1-111-1118")
-        end_message = t2.write_to_database(("END",
-                                            datetime(2017, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        end_message = t2.write_to_database(message="END",
+                                            date=datetime(2017, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         t2.process(end_message)
         t3 = TextProcessor(phone_number="1-111-1118")
-        resub_message = t.write_to_database((hindi_remind() + " LARISSA 25-11-2012",
-                                            datetime(2017, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone())))
+        resub_message = t.write_to_database(message=hindi_remind() + " LARISSA 25-11-2012",
+                                            date=datetime(2017, 10, 31, 10, 5, 5).replace(tzinfo=timezone.get_default_timezone()))
         third_response = t.process(resub_message)
         self.assertEqual(third_response, msg_subscribe("Hindi").format(name="Larissa"))
         contacts = Contact.objects.filter(name="Larissa", phone_number="1-111-1118")
