@@ -68,7 +68,7 @@ class TextLocal(object):
                 num_message_dict.setdefault(message['number'], []).append((message['message'], date_of_message))
         return num_message_dict
 
-    def send_message(self, apikey, phone_numbers, sender, message):
+    def send_message(self, message, phone_numbers):
         send_url = "https://api.textlocal.in/send/?"
         if not isinstance(message, str):
             message = message.encode('utf-8')

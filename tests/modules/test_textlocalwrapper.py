@@ -227,10 +227,8 @@ class TextLocalInboxesTests(TestCase):
         tl = TextLocal(apikey='mock_key',
                         primary_id='mock_id',
                         sendername='mock_sendername')
-        response = tl.send_message(apikey="mock_key",
-                                    phone_numbers='0000000',
-                                    sender="mock_sender",
-                                    message='Test')
+        response = tl.send_message(message='Test',
+                                    phone_numbers='0000000')
         self.assertEqual(response['message'], 'yay')
 
     @patch("modules.textlocalwrapper.request")
@@ -242,8 +240,6 @@ class TextLocalInboxesTests(TestCase):
         tl = TextLocal(apikey='mock_key',
                         primary_id='mock_id',
                         sendername='mock_sendername')
-        response = tl.send_message(apikey="mock_key",
-                                    phone_numbers='0000000',
-                                    sender="mock_sender",
-                                    message='Test')
+        response = tl.send_message(message='Test',
+                                    phone_numbers='0000000')
         self.assertEqual(response['message'], hindi_remind())
