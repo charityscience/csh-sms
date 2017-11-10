@@ -1,6 +1,8 @@
 import mock
 from mock import patch, call
 from django.test import TestCase
+from django.utils import timezone
+from datetime import datetime
 
 from management.models import Contact, Message
 from modules.i18n import msg_subscribe, msg_unsubscribe, hindi_remind
@@ -11,9 +13,9 @@ class TextProcessorJobTests(TestCase):
     @patch("modules.text_reminder.Texter.send")
     @patch("jobs.text_processor_job.Texter.read_inbox")
     def test_check_and_process_registrations(self, mocked_texter_read, mocked_texter_send, mocked_logger):
-        mocked_texter_read.return_value = {'1-111-1111': ["JOIN ROLAND 29/5/2017"],
-                                           '1-112-1111': [hindi_remind() + " SAI 29/5/2017",
-                                                          "END"]}
+        mocked_texter_read.return_value = {'1-111-1111': [("JOIN ROLAND 29/5/2017", datetime(2017, 8, 1, 15, 20, 20).replace(tzinfo=timezone.get_default_timezone()))],
+                                           '1-112-1111': [(hindi_remind() + " SAI 29/5/2017", datetime(2017, 8, 1, 15, 20, 20).replace(tzinfo=timezone.get_default_timezone())),
+                                                          ("END", datetime(2017, 8, 1, 17, 20, 20).replace(tzinfo=timezone.get_default_timezone()))]}
         text_processor_job.check_and_process_registrations()
 
         # All incoming messages are recorded in DB
