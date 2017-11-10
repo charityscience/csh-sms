@@ -1515,6 +1515,93 @@ class TextProcessorProcessTests(TestCase):
         self.assertEqual(fail_two.received_at, datetime(2017, 6, 6, 0, 5).replace(tzinfo=timezone.get_default_timezone()))
         self.assertEqual(2, Contact.objects.all().count())
 
+    @patch("modules.text_processor.Texter.send")
+    def test_incoming_messages_not_assigned_sent_at_english(self, texting_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-1111").first()))
+        incoming = t.write_to_database(message="JOIN Marshall 20-10-2017", date=datetime(2017, 6, 5, 10, 15).replace(tzinfo=timezone.get_default_timezone()))
+        t.process(incoming)
+        self.assertIsInstance(incoming, Message)
+        self.assertIsNone(incoming.sent_at)
+        contact = Contact.objects.get(phone_number=t.phone_number)
+        born = t.write_to_database(message="BORN Marshall 20-10-2017", date=datetime(2017, 6, 8, 10, 15).replace(tzinfo=timezone.get_default_timezone()))
+        t.process(born)
+        self.assertIsInstance(born, Message)
+        self.assertIsNone(born.sent_at)
+        t.write_to_database(message="END", date=datetime(2017, 6, 6, 0, 5).replace(tzinfo=timezone.get_default_timezone()))
+        end_message = Message.objects.get(body="END", direction="Incoming")
+        t.process(end_message)
+        self.assertIsInstance(end_message, Message)
+        self.assertIsNone(end_message.sent_at)
+        self.assertEqual(1, Contact.objects.all().count())
+        
+    @patch("modules.text_processor.Texter.send")
+    def test_incoming_messages_not_assigned_sent_at_hindi(self, texting_mock):
+        t = TextProcessor(phone_number="1-111-1111")
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-1111").first()))
+        incoming = t.write_to_database(message=hindi_remind() + " Marshall 20-10-2017",
+                                    date=datetime(2017, 6, 5, 10, 15).replace(tzinfo=timezone.get_default_timezone()))
+        t.process(incoming)
+        self.assertIsInstance(incoming, Message)
+        self.assertIsNone(incoming.sent_at)
+        born = t.write_to_database(message=hindi_born() + " Marshall 20-10-2017",
+                                    date=datetime(2017, 6, 8, 10, 15).replace(tzinfo=timezone.get_default_timezone()))
+        t.process(born)
+        self.assertIsInstance(born, Message)
+        self.assertIsNone(born.sent_at)
+        t.write_to_database(message="END", date=datetime(2017, 6, 10, 0, 5).replace(tzinfo=timezone.get_default_timezone()))
+        end_message = Message.objects.get(body="END", direction="Incoming")
+        t.process(end_message)
+        self.assertIsInstance(end_message, Message)
+        self.assertIsNone(end_message.sent_at)
+        self.assertEqual(1, Contact.objects.all().count())
+
+    @patch("logging.error")
+    @patch("modules.text_processor.Texter.send")
+    def test_incoming_messages_not_assigned_sent_at_for_failures(self, texting_mock, logging_error):
+        t = TextProcessor(phone_number="1-111-1111")
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-1111").first()))
+        incoming = t.write_to_database(message="JOIN Marshall 20-10-2017",
+                                        date=datetime(2017, 6, 5, 10, 15).replace(tzinfo=timezone.get_default_timezone()))
+        t.process(incoming)
+        self.assertIsInstance(incoming, Message)
+        self.assertIsNone(incoming.sent_at)
+        fail_incoming = t.write_to_database(message="NOT READABLE",
+                                        date=datetime(2017, 6, 8, 10, 15).replace(tzinfo=timezone.get_default_timezone()))
+        t.process(fail_incoming)
+        self.assertIsInstance(fail_incoming, Message)
+        self.assertIsNone(fail_incoming.sent_at)
+        fail_two = t.write_to_database(message="---ASDFad",
+                            date=datetime(2017, 6, 6, 0, 5).replace(tzinfo=timezone.get_default_timezone()))
+        t.process(fail_two)
+        self.assertIsInstance(fail_two, Message)
+        self.assertIsNone(fail_two.sent_at)
+        
+        empty_fail = t.write_to_database(message=" ",
+                            date=datetime(2017, 6, 6, 0, 45).replace(tzinfo=timezone.get_default_timezone()))
+        t.process(empty_fail)
+        self.assertIsInstance(empty_fail, Message)
+        self.assertIsNone(empty_fail.sent_at)
+        self.assertEqual(1, Contact.objects.all().count())
+
+        t2 = TextProcessor(phone_number="1-111-2222")
+        self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-2222").first()))
+        incoming = t2.write_to_database(message=hindi_information() + " Marshall 20-10-2017",
+                                        date=datetime(2017, 6, 5, 10, 15).replace(tzinfo=timezone.get_default_timezone()))
+        t2.process(incoming)
+        self.assertIsInstance(incoming, Message)
+        self.assertIsNone(incoming.sent_at)
+        fail_incoming = t2.write_to_database(message=u"\u0936\u093f\u0936",
+                                            date=datetime(2017, 6, 8, 10, 15).replace(tzinfo=timezone.get_default_timezone()))
+        t2.process(fail_incoming)
+        self.assertIsInstance(fail_incoming, Message)
+        self.assertIsNone(fail_incoming.sent_at)
+        fail_two = t.write_to_database(message=u"\u0940\u091c\u093f", date=datetime(2017, 6, 6, 0, 5).replace(tzinfo=timezone.get_default_timezone()))
+        t2.process(fail_two)
+        self.assertIsInstance(fail_two, Message)
+        self.assertIsNone(fail_two.sent_at)
+        self.assertEqual(2, Contact.objects.all().count())
+
     def test_processing_updates_message_is_processed_hindi(self):
         t2 = TextProcessor(phone_number="1-111-1111")
         self.assertFalse(Message.objects.filter(contact=Contact.objects.filter(phone_number="1-111-1111").first()))
