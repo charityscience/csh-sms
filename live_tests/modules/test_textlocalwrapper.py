@@ -48,23 +48,11 @@ class TextLocalInboxesTests(TestCase):
                                 sendername=TEXTLOCAL_SENDERNAME)
         logging.info("sending text - English")
         texter = Texter()
-        texter.send(message="This is a live test message.", phone_number=TEXTLOCAL_PHONENUMBER)
+        texter.send(message=msg_already_sub("English"), phone_number=TEXTLOCAL_PHONENUMBER)
         logging.info("sleeping three minutes before reading text")
         time.sleep(180)
         logging.info("reading text")
         new_message_dict = textlocal.new_messages_by_number()
-        self.assertTrue("This is a live test message." in new_message_dict[0])
+        self.assertTrue(msg_already_sub("English") in new_message_dict[0][0])
+        self.assertIsInstance(new_message_dict[0][1], datetime)
 
-    def test_new_messages_by_number_hindi(self):
-        textlocal = TextLocal(apikey=TEXTLOCAL_API,
-                                primary_id=TEXTLOCAL_PRIMARY_ID,
-                                sendername=TEXTLOCAL_SENDERNAME)
-        logging.info("sending text - Hindi")
-        texter = Texter()
-        hindi_message = hindi_remind() + ' ' + msg_placeholder_child('Hindi')
-        texter.send(message=hindi_message, phone_number=TEXTLOCAL_PHONENUMBER)
-        logging.info("sleeping three minutes before reading hindi text")
-        time.sleep(180)
-        logging.info("reading text")
-        new_message_dict = textlocal.new_messages_by_number()
-        self.assertTrue(hindi_message in new_message_dict[0])
