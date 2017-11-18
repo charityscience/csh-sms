@@ -33,10 +33,10 @@ class TextLocalInboxesTests(TestCase):
             'isNew': True, 'date': '2017-07-29 06:52:09'}
         old_message_with_no_new_flag = {'number': '910987654321', 'message': 'Old message',
             'isNew': None, 'date': '2017-07-29 06:52:09'}
-        self.assertTrue(textlocal.is_message_new(new_message_with_new_flag))
-        self.assertTrue(textlocal.is_message_new(new_message_with_no_new_flag))
-        self.assertFalse(textlocal.is_message_new(old_message_with_new_flag))
-        self.assertFalse(textlocal.is_message_new(old_message_with_no_new_flag))
+        self.assertTrue(textlocal.is_message_new(message=new_message_with_new_flag, date_key_name="date"))
+        self.assertTrue(textlocal.is_message_new(message=new_message_with_no_new_flag, date_key_name="date"))
+        self.assertFalse(textlocal.is_message_new(message=old_message_with_new_flag, date_key_name="date"))
+        self.assertFalse(textlocal.is_message_new(message=old_message_with_no_new_flag, date_key_name="date"))
 
     @freeze_time(datetime(2017, 7, 30, 15, 0, 0))
     def test_is_message_new_with_dates_within_one_day(self):
@@ -54,12 +54,12 @@ class TextLocalInboxesTests(TestCase):
         twenty_four_hours_before = {'number': '910987654321', 'message': 'New message',
             'isNew': True, 'date': '2017-07-29 15:00:00'}
 
-        self.assertTrue(textlocal.is_message_new(same_time))
-        self.assertTrue(textlocal.is_message_new(one_second_before))
-        self.assertTrue(textlocal.is_message_new(one_minute_before))
-        self.assertTrue(textlocal.is_message_new(one_hour_before))
-        self.assertTrue(textlocal.is_message_new(twelve_hours_before))
-        self.assertTrue(textlocal.is_message_new(twenty_four_hours_before))
+        self.assertTrue(textlocal.is_message_new(message=same_time, date_key_name="date"))
+        self.assertTrue(textlocal.is_message_new(message=one_second_before, date_key_name="date"))
+        self.assertTrue(textlocal.is_message_new(message=one_minute_before, date_key_name="date"))
+        self.assertTrue(textlocal.is_message_new(message=one_hour_before, date_key_name="date"))
+        self.assertTrue(textlocal.is_message_new(message=twelve_hours_before, date_key_name="date"))
+        self.assertTrue(textlocal.is_message_new(message=twenty_four_hours_before, date_key_name="date"))
 
     @freeze_time(datetime(2017, 7, 30, 15, 0, 0))
     def test_is_message_new_with_dates_before_one_day(self):
@@ -81,14 +81,14 @@ class TextLocalInboxesTests(TestCase):
         one_year_before = {'number': '910987654321', 'message': 'New message',
             'isNew': True, 'date': '2016-07-30 15:00:00'}
         
-        self.assertFalse(textlocal.is_message_new(twenty_four_hours_one_second_before))
-        self.assertFalse(textlocal.is_message_new(twenty_four_hours_five_minutes_before))
-        self.assertFalse(textlocal.is_message_new(twenty_five_hours_before))
-        self.assertFalse(textlocal.is_message_new(thirty_six_hours_before))
-        self.assertFalse(textlocal.is_message_new(forty_eight_hours_before))
-        self.assertFalse(textlocal.is_message_new(one_week_before))
-        self.assertFalse(textlocal.is_message_new(one_month_before))
-        self.assertFalse(textlocal.is_message_new(one_year_before))
+        self.assertFalse(textlocal.is_message_new(message=twenty_four_hours_one_second_before, date_key_name="date"))
+        self.assertFalse(textlocal.is_message_new(message=twenty_four_hours_five_minutes_before, date_key_name="date"))
+        self.assertFalse(textlocal.is_message_new(message=twenty_five_hours_before, date_key_name="date"))
+        self.assertFalse(textlocal.is_message_new(message=thirty_six_hours_before, date_key_name="date"))
+        self.assertFalse(textlocal.is_message_new(message=forty_eight_hours_before, date_key_name="date"))
+        self.assertFalse(textlocal.is_message_new(message=one_week_before, date_key_name="date"))
+        self.assertFalse(textlocal.is_message_new(message=one_month_before, date_key_name="date"))
+        self.assertFalse(textlocal.is_message_new(message=one_year_before, date_key_name="date"))
 
     @freeze_time(datetime(2017, 9, 6, 22, 0, 0))
     @patch("modules.textlocalwrapper.request")

@@ -60,19 +60,26 @@ class TextLocal(object):
         return ' '.join(fixed_message)
          
 
-    def is_message_new(self, message):
-        date_of_message = datetime_from_date_string(message['date'], "%Y-%m-%d %H:%M:%S")
+    def is_message_new(self, message, date_key_name):
+        date_of_message = datetime_from_date_string(message[date_key_name], "%Y-%m-%d %H:%M:%S")
         margin = timedelta(hours=24)
         return True if datetime.now() - margin <= date_of_message else False
+
+    def add_to_num_message_dict(self, num_message_dict, message, message_key_name, date_key_name):
+        date_of_message = datetime_from_date_string(message[date_key_name], "%Y-%m-%d %H:%M:%S")
+        num_message_dict.setdefault(str(message['number']), []).append((message[message_key_name], date_of_message))
+        return num_message_dict
 
     def new_messages_by_number(self):
         all_messages = self.get_primary_inbox_messages()
         corrected_messages = self.correct_unicode(messages=all_messages, key_name="message")
         num_message_dict = {}
         for message in corrected_messages:
-            if self.is_message_new(message):
-                date_of_message = datetime_from_date_string(message['date'], "%Y-%m-%d %H:%M:%S")
-                num_message_dict.setdefault(message['number'], []).append((message['message'], date_of_message))
+            if self.is_message_new(message=message, date_key_name="date"):
+                num_message_dict = self.add_to_num_message_dict(num_message_dict=num_message_dict,
+                                                                message=message,
+                                                                message_key_name="message",
+                                                                date_key_name="date")
         return num_message_dict
 
     def api_send_messages_by_number(self):
@@ -80,8 +87,11 @@ class TextLocal(object):
         corrected_messages = self.correct_unicode(messages=all_messages, key_name="content")
         num_message_dict = {}
         for message in corrected_messages:
-            date_of_message = datetime_from_date_string(message['datetime'], "%Y-%m-%d %H:%M:%S")
-            num_message_dict.setdefault(str(message['number']), []).append((message['content'], date_of_message))
+            if self.is_message_new(message=message, date_key_name="datetime"):
+                num_message_dict = self.add_to_num_message_dict(num_message_dict=num_message_dict,
+                                                                message=message,
+                                                                message_key_name="content",
+                                                                date_key_name="datetime")
         return num_message_dict
 
     def send_message(self, message, phone_numbers):
