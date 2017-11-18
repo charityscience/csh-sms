@@ -45,14 +45,9 @@ class TextLocal(object):
     def get_api_send_history_messages(self):
         return self.get_api_send_history()['messages']
 
-    def correct_unicode(self, messages):
+    def correct_unicode(self, messages, key_name):
         for message in messages:
-            message['message'] = self.correct_corrupted_unicode_matches(message['message'])
-        return messages
-
-    def correct_unicode_send(self, messages):
-        for message in messages:
-            message['content'] = self.correct_corrupted_unicode_matches(message['content'])
+            message[key_name] = self.correct_corrupted_unicode_matches(message[key_name])
         return messages
 
     def correct_corrupted_unicode_matches(self, message):
@@ -72,7 +67,7 @@ class TextLocal(object):
 
     def new_messages_by_number(self):
         all_messages = self.get_primary_inbox_messages()
-        corrected_messages = self.correct_unicode(all_messages)
+        corrected_messages = self.correct_unicode(messages=all_messages, key_name="message")
         num_message_dict = {}
         for message in corrected_messages:
             if self.is_message_new(message):
@@ -82,7 +77,7 @@ class TextLocal(object):
 
     def api_send_messages_by_number(self):
         all_messages = self.get_api_send_history_messages()
-        corrected_messages = self.correct_unicode_send(all_messages)
+        corrected_messages = self.correct_unicode(messages=all_messages, key_name="content")
         num_message_dict = {}
         for message in corrected_messages:
             date_of_message = datetime_from_date_string(message['datetime'], "%Y-%m-%d %H:%M:%S")

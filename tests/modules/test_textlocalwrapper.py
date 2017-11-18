@@ -162,7 +162,7 @@ class TextLocalInboxesTests(TestCase):
         textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
         mock_primary_inbox_messages.return_value = [{'id': '000000024', 'number': 1112223334, 'message': 'Testy test', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': 'Example message testy', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}]
-        messages = textlocal.correct_unicode(textlocal.get_primary_inbox_messages())
+        messages = textlocal.correct_unicode(messages=textlocal.get_primary_inbox_messages(), key_name="message")
         self.assertIsInstance(messages, list)
         self.assertEqual(messages, [{'id': '000000024', 'number': 1112223334, 'message': 'Testy test', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': 'Example message testy', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}])
@@ -170,7 +170,7 @@ class TextLocalInboxesTests(TestCase):
         mock_primary_inbox_messages.return_value = [{'id': '000000024', 'number': 1112223334, 'message': 'Join Tina 10-09-10', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': 'Remind Tina 09-12-10', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': 'Remind Tina 10-12-09', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}]
-        messages = textlocal.correct_unicode(textlocal.get_primary_inbox_messages())
+        messages = textlocal.correct_unicode(messages=textlocal.get_primary_inbox_messages(), key_name="message")
         self.assertEqual(messages, [{'id': '000000024', 'number': 1112223334, 'message': 'Join Tina 10-09-10', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': 'Remind Tina 09-12-10', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': 'Remind Tina 10-12-09', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}])
@@ -178,7 +178,7 @@ class TextLocalInboxesTests(TestCase):
         mock_primary_inbox_messages.return_value = [{'id': '000000024', 'number': 1112223334, 'message': 'Join Tina 10/09/10', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': 'Remind Tina 09/12/10', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': 'Remind Tina 10/12/09', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}]
-        messages = textlocal.correct_unicode(textlocal.get_primary_inbox_messages())
+        messages = textlocal.correct_unicode(messages=textlocal.get_primary_inbox_messages(), key_name="message")
         self.assertEqual(messages, [{'id': '000000024', 'number': 1112223334, 'message': 'Join Tina 10/09/10', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': 'Remind Tina 09/12/10', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': 'Remind Tina 10/12/09', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}])
@@ -189,21 +189,21 @@ class TextLocalInboxesTests(TestCase):
         textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
         mock_primary_inbox_messages.return_value = [{'id': '000000024', 'number': 1112223334, 'message': '0907 test', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': 'Example message testy', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}]
-        messages = textlocal.correct_unicode(textlocal.get_primary_inbox_messages())
+        messages = textlocal.correct_unicode(messages=textlocal.get_primary_inbox_messages(), key_name="message")
         self.assertIsInstance(messages, list)
         self.assertEqual(messages, [{'id': '000000024', 'number': 1112223334, 'message': u'\u0907 test', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': 'Example message testy', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}])
 
         mock_primary_inbox_messages.return_value = [{'id': '000000024', 'number': 1112223334, 'message': 'Example message two', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': '09B7 test', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}]
-        messages = textlocal.correct_unicode(textlocal.get_primary_inbox_messages())
+        messages = textlocal.correct_unicode(messages=textlocal.get_primary_inbox_messages(), key_name="message")
         self.assertEqual(messages, [{'id': '000000024', 'number': 1112223334, 'message': 'Example message two', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': u'\u09B7 test', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}])
 
         mock_primary_inbox_messages.return_value = [{'id': '000000024', 'number': 1112223334, 'message': u'\u0938\u094d\u092e\u0930\u0923 Tina 10-09-10', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': '0938094d092e09300923 Tina 09-12-10', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': '09070924094d0924093f0932093e Tina 10-12-09', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}]
-        messages = textlocal.correct_unicode(textlocal.get_primary_inbox_messages())
+        messages = textlocal.correct_unicode(messages=textlocal.get_primary_inbox_messages(), key_name="message")
         self.assertEqual(messages, [{'id': '000000024', 'number': 1112223334, 'message': u'\u0938\u094d\u092e\u0930\u0923 Tina 10-09-10', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': hindi_remind() + ' Tina 09-12-10', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': hindi_information() + ' Tina 10-12-09', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}])
@@ -212,7 +212,7 @@ class TextLocalInboxesTests(TestCase):
             {'id': '00000449', 'number': 0, 'message': 'Remind Tina 09/12/10', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': '09070924094d0924093f0932093e 090609300935 10/12/09', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': '09070924094d0924093f 0932093e 09070924094D 10-12-09', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}]
-        messages = textlocal.correct_unicode(textlocal.get_primary_inbox_messages())
+        messages = textlocal.correct_unicode(messages=textlocal.get_primary_inbox_messages(), key_name="message")
         self.assertEqual(messages, [{'id': '000000024', 'number': 1112223334, 'message': 'Join Tina 10/09/10', 'date': '2017-07-30 06:52:09', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': 'Remind Tina 09/12/10', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': hindi_information() + u' \u0906\u0930\u0935 10/12/09', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'},
