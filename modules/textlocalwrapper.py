@@ -28,6 +28,11 @@ class TextLocal(object):
         messages_url = 'https://api.textlocal.in/get_messages/?'
         return self.get_url_response(request_url=messages_url, params=params)
 
+    def get_api_send_history(self):
+        params = {'apikey': self.apikey}
+        api_send_history_url = 'https://api.textlocal.in/get_history_api/?'
+        return self.get_url_response(request_url=api_send_history_url, params=params)
+
 
     def get_url_response(self, request_url, params):
         f = request.urlopen(request_url + parse.urlencode(params))
@@ -37,10 +42,17 @@ class TextLocal(object):
     def get_primary_inbox_messages(self):
         return self.get_primary_inbox()['messages']
 
+    def get_api_send_history_messages(self):
+        return self.get_api_send_history()['messages']
 
     def correct_unicode(self, messages):
         for message in messages:
             message['message'] = self.correct_corrupted_unicode_matches(message['message'])
+        return messages
+
+    def correct_unicode_send(self, messages):
+        for message in messages:
+            message['content'] = self.correct_corrupted_unicode_matches(message['content'])
         return messages
 
     def correct_corrupted_unicode_matches(self, message):
@@ -66,6 +78,15 @@ class TextLocal(object):
             if self.is_message_new(message):
                 date_of_message = datetime_from_date_string(message['date'], "%Y-%m-%d %H:%M:%S")
                 num_message_dict.setdefault(message['number'], []).append((message['message'], date_of_message))
+        return num_message_dict
+
+    def api_send_messages_by_number(self):
+        all_messages = self.get_api_send_history_messages()
+        corrected_messages = self.correct_unicode_send(all_messages)
+        num_message_dict = {}
+        for message in corrected_messages:
+            date_of_message = datetime_from_date_string(message['datetime'], "%Y-%m-%d %H:%M:%S")
+            num_message_dict.setdefault(str(message['number']), []).append((message['content'], date_of_message))
         return num_message_dict
 
     def send_message(self, message, phone_numbers):
