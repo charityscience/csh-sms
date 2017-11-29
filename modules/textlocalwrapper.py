@@ -5,9 +5,10 @@ import string
 from six import unichr
 from six.moves.urllib import request, parse
 from datetime import timedelta, datetime
+from django.utils import timezone
 
 from cshsms.settings import TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID, TEXTLOCAL_SENDERNAME
-from modules.date_helper import datetime_from_date_string
+from modules.date_helper import datetime_string_ymd_to_datetime
 
 
 class TextLocal(object):
@@ -61,12 +62,12 @@ class TextLocal(object):
          
 
     def is_message_new(self, message, date_key_name):
-        date_of_message = datetime_from_date_string(message[date_key_name], "%Y-%m-%d %H:%M:%S")
+        date_of_message = datetime_string_ymd_to_datetime(message[date_key_name])
         margin = timedelta(hours=24)
-        return True if datetime.now() - margin <= date_of_message else False
+        return True if datetime.now().replace(tzinfo=timezone.get_default_timezone()) - margin <= date_of_message else False
 
     def add_to_num_message_dict(self, num_message_dict, message, message_key_name, date_key_name):
-        date_of_message = datetime_from_date_string(message[date_key_name], "%Y-%m-%d %H:%M:%S")
+        date_of_message = datetime_string_ymd_to_datetime(message[date_key_name])
         num_message_dict.setdefault(str(message['number']), []).append((message[message_key_name], date_of_message))
         return num_message_dict
 

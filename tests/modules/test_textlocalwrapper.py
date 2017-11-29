@@ -4,6 +4,7 @@ from mock import patch
 from freezegun import freeze_time
 from django.test import TestCase
 from datetime import datetime
+from django.utils import timezone
 
 from modules.textlocalwrapper import TextLocal
 from modules.i18n import hindi_remind, hindi_information, msg_subscribe
@@ -122,9 +123,9 @@ class TextLocalInboxesTests(TestCase):
         fake_num_message_dict = textlocal.new_messages_by_number()
         self.assertIsInstance(fake_num_message_dict, dict)
         self.assertIsInstance(fake_num_message_dict['910987654321'], list)
-        old_message_datetime = datetime_from_date_string(old_message['date'], "%Y-%m-%d %H:%M:%S")
-        new_message_datetime = datetime_from_date_string(new_message['date'], "%Y-%m-%d %H:%M:%S")
-        new_message2_datetime = datetime_from_date_string(new_message2['date'], "%Y-%m-%d %H:%M:%S")
+        old_message_datetime = datetime_from_date_string(old_message['date'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.get_default_timezone())
+        new_message_datetime = datetime_from_date_string(new_message['date'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.get_default_timezone())
+        new_message2_datetime = datetime_from_date_string(new_message2['date'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.get_default_timezone())
         self.assertFalse((old_message['message'], old_message_datetime) in fake_num_message_dict['910987654321'])
         self.assertIsInstance(fake_num_message_dict['910987654321'][0], tuple)
         self.assertIsInstance(fake_num_message_dict['910987654321'][1], tuple)
@@ -142,9 +143,9 @@ class TextLocalInboxesTests(TestCase):
         fake_num_message_dict = textlocal.new_api_send_messages_by_number()
         self.assertIsInstance(fake_num_message_dict, dict)
         self.assertIsInstance(fake_num_message_dict['910987654321'], list)
-        old_message_datetime = datetime_from_date_string(old_message['datetime'], "%Y-%m-%d %H:%M:%S")
-        new_message_datetime = datetime_from_date_string(new_message['datetime'], "%Y-%m-%d %H:%M:%S")
-        new_message2_datetime = datetime_from_date_string(new_message2['datetime'], "%Y-%m-%d %H:%M:%S")
+        old_message_datetime = datetime_from_date_string(old_message['datetime'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.get_default_timezone())
+        new_message_datetime = datetime_from_date_string(new_message['datetime'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.get_default_timezone())
+        new_message2_datetime = datetime_from_date_string(new_message2['datetime'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.get_default_timezone())
         self.assertFalse((old_message['content'], old_message_datetime) in fake_num_message_dict['910987654321'])
         self.assertIsInstance(fake_num_message_dict['910987654321'][0], tuple)
         self.assertIsInstance(fake_num_message_dict['910987654321'][1], tuple)
@@ -158,7 +159,7 @@ class TextLocalInboxesTests(TestCase):
                                                 message=new_message,
                                                 message_key_name="message",
                                                 date_key_name="date")
-        num_message_dict = {'910987654321': [('New message', datetime(2017, 9, 6, 12, 12, 7))]}
+        num_message_dict = {'910987654321': [('New message', datetime(2017, 9, 6, 12, 12, 7).replace(tzinfo=timezone.get_default_timezone()))]}
         self.assertEqual(result, num_message_dict)
 
     def test_add_to_num_message_dict_with_existing_dict(self):
@@ -173,8 +174,8 @@ class TextLocalInboxesTests(TestCase):
                                                 message=new_message2,
                                                 message_key_name="message",
                                                 date_key_name="date")
-        two_adds_dict = {'910987654321': [('New message', datetime(2017, 9, 6, 12, 12, 7)),
-                                            ('Newer message', datetime(2017, 9, 6, 21, 12, 7))]}
+        two_adds_dict = {'910987654321': [('New message', datetime(2017, 9, 6, 12, 12, 7).replace(tzinfo=timezone.get_default_timezone())),
+                                            ('Newer message', datetime(2017, 9, 6, 21, 12, 7).replace(tzinfo=timezone.get_default_timezone()))]}
         self.assertEqual(second_add_result, two_adds_dict)
 
     def test_add_to_num_message_dict_with_different_keynames(self):
@@ -190,8 +191,8 @@ class TextLocalInboxesTests(TestCase):
                                                 message=new_message2,
                                                 message_key_name="content",
                                                 date_key_name="datetime")
-        two_adds_dict = {'910987654321': [('New message', datetime(2017, 9, 6, 12, 12, 7)),
-                                            ('Newer message', datetime(2017, 9, 6, 21, 12, 7))]}
+        two_adds_dict = {'910987654321': [('New message', datetime(2017, 9, 6, 12, 12, 7).replace(tzinfo=timezone.get_default_timezone())),
+                                            ('Newer message', datetime(2017, 9, 6, 21, 12, 7).replace(tzinfo=timezone.get_default_timezone()))]}
         self.assertEqual(second_add_result, two_adds_dict)
 
         message_date_result = textlocal.add_to_num_message_dict(num_message_dict={},
@@ -199,13 +200,13 @@ class TextLocalInboxesTests(TestCase):
                                                                 message_key_name="message",
                                                                 date_key_name="date")
 
-        num_message_dict = {'910987654321': [('New message', datetime(2017, 9, 6, 12, 12, 7))]}
+        num_message_dict = {'910987654321': [('New message', datetime(2017, 9, 6, 12, 12, 7).replace(tzinfo=timezone.get_default_timezone()))]}
         self.assertEqual(message_date_result, num_message_dict)
         content_datetime_result = textlocal.add_to_num_message_dict(num_message_dict={},
                                                                     message=new_message2,
                                                                     message_key_name="content",
                                                                     date_key_name="datetime")
-        num_message_dict2 = {'910987654321': [('Newer message', datetime(2017, 9, 6, 21, 12, 7))]}
+        num_message_dict2 = {'910987654321': [('Newer message', datetime(2017, 9, 6, 21, 12, 7).replace(tzinfo=timezone.get_default_timezone()))]}
         self.assertEqual(content_datetime_result, num_message_dict2)
 
     @patch("modules.textlocalwrapper.request")
