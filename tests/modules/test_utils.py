@@ -2,6 +2,7 @@ from datetime import datetime
 from django.test import TestCase
 from django.utils import timezone
 from freezegun import freeze_time
+from mock import patch
 
 from modules.utils import quote, phone_number_is_valid, remove_nondigit_characters, \
                                 add_country_code_to_phone_number, prepare_phone_number, \
@@ -14,6 +15,8 @@ from modules.date_helper import date_string_to_date, date_is_valid, \
 from modules.i18n import hindi_information, hindi_remind, hindi_born, \
                             subscribe_keywords
 from six import u
+
+FAKE_NOW = datetime(2017, 12, 1, 15, 10, 3)
 
 class QuoteTests(TestCase):
     def test_quote(self):
@@ -593,6 +596,46 @@ class DatetimeStringToDatetimeTests(TestCase):
                             datetime_string_ymd_to_datetime("2025-11-30 23:05:04"))
         self.assertEqual(datetime(2016, 2, 29, 12, 5, 4).replace(tzinfo=timezone.get_default_timezone()),
                             datetime_string_ymd_to_datetime("2016-02-29 12:05:04"))
+
+    @freeze_time(FAKE_NOW)
+    @patch("logging.error")
+    def test_invalid_datetimes_for_datetime_string_ymd_to_datetime(self, logging_error_mock):
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017/11-30 23:45:45"))
+        logging_error_mock.assert_called_with("Invalid datetime entry for message: " + quote("2017/11-30 23:45:45"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2016-11/30 23:45:45"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()), 
+                        datetime_string_ymd_to_datetime("2018-11-3023:45:45"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017-09-30 23-45:45"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017-11-08 23:45-45"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017-10-10 23/45:45"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017-09-09 23:45:45pm"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017-11-30 11:45:45 pm"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017-41-30 23:04:45"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017-11-36 23:45:04"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017-11-30 25:05:04"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017-11-30 05:95:04"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2025-11-30 23:05:94"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("20E5-11-30 23:05:94"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime(""))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("   "))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017-02-29 12:05:04"))
+        self.assertEqual(17, logging_error_mock.call_count)
 
 class DateToDateStringTests(TestCase):
     def test_dates_get_converted_to_date_strings(self):
