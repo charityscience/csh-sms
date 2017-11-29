@@ -39,6 +39,27 @@ class TextLocalInboxesTests(TestCase):
         self.assertFalse(textlocal.is_message_new(message=old_message_with_no_new_flag, date_key_name="date"))
 
     @freeze_time(datetime(2017, 7, 30, 15, 0, 0))
+    def test_is_message_new_with_different_keynames(self):
+        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
+        new_message_with_date_key = {'number': '910987654321', 'message': 'New message',
+            'isNew': True, 'date': '2017-07-30 06:52:09'}
+        new_message_with_datetime_key = {'number': '910987654321', 'message': 'New message',
+            'isNew': None, 'datetime': '2017-07-30 06:52:09'}
+        old_message_with_date_key = {'number': '910987654321', 'message': 'Old message',
+            'isNew': True, 'date': '2017-07-29 06:52:09'}
+        old_message_with_datetime_key = {'number': '910987654321', 'message': 'Old message',
+            'isNew': None, 'datetime': '2017-07-29 06:52:09'}
+        self.assertTrue(textlocal.is_message_new(message=new_message_with_date_key, date_key_name="date"))
+        self.assertTrue(textlocal.is_message_new(message=new_message_with_datetime_key, date_key_name="datetime"))
+        with self.assertRaises(KeyError):
+            textlocal.is_message_new(message=new_message_with_date_key, date_key_name="datetime")
+        with self.assertRaises(KeyError):
+            textlocal.is_message_new(message=new_message_with_datetime_key, date_key_name="date")
+            
+        self.assertFalse(textlocal.is_message_new(message=old_message_with_date_key, date_key_name="date"))
+        self.assertFalse(textlocal.is_message_new(message=old_message_with_datetime_key, date_key_name="datetime"))
+
+    @freeze_time(datetime(2017, 7, 30, 15, 0, 0))
     def test_is_message_new_with_dates_within_one_day(self):
         textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
         same_time = {'number': '910987654321', 'message': 'New message',
