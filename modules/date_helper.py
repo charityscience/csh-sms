@@ -63,6 +63,13 @@ def try_parsing_gen_date(date_string):
 def datetime_string_mdy_to_datetime(date_string):
 	return  datetime_from_date_string(date_string, "%m/%d/%Y %I:%M:%S %p").replace(tzinfo=timezone.get_default_timezone())
 
+def datetime_string_ymd_to_datetime(date_string):
+		try:
+			return datetime_from_date_string(date_string, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.get_default_timezone())
+		except ValueError:
+			logging.error("Invalid datetime entry for message: " + quote(date_string))
+			return datetime.now().replace(tzinfo=timezone.get_default_timezone())
+
 def datetime_from_date_string(date_string, date_format):
 	return datetime.strptime(date_string.strip(), date_format)
 
