@@ -1,6 +1,7 @@
 from datetime import datetime
 from django.test import TestCase
 from django.utils import timezone
+from freezegun import freeze_time
 
 from modules.utils import quote, phone_number_is_valid, remove_nondigit_characters, \
                                 add_country_code_to_phone_number, prepare_phone_number, \
@@ -9,7 +10,7 @@ from modules.date_helper import date_string_to_date, date_is_valid, \
                                 date_to_date_string, date_string_dmy_to_date, \
                                 date_string_mdy_to_date, date_string_ymd_to_date, \
                                 try_parsing_partner_date, try_parsing_gen_date, \
-                                datetime_string_mdy_to_datetime
+                                datetime_string_mdy_to_datetime, datetime_string_ymd_to_datetime
 from modules.i18n import hindi_information, hindi_remind, hindi_born, \
                             subscribe_keywords
 from six import u
@@ -558,6 +559,40 @@ class DatetimeStringToDatetimeTests(TestCase):
             self.assertEqual(datetime_string_mdy_to_datetime("6/20/2017 6:50:10 PMt"))
         with self.assertRaises(ValueError):
             self.assertEqual(datetime_string_mdy_to_datetime("2/29/2017 6:50:10 PM"))
+
+    def test_datetime_string_ymd_to_datetime(self):
+        self.assertEqual(datetime(2017, 11, 30, 23, 45, 45).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-11-30 23:45:45"))
+        self.assertEqual(datetime(2016, 11, 30, 23, 45, 45).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2016-11-30 23:45:45"))
+        self.assertEqual(datetime(2018, 11, 30, 23, 45, 45).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2018-11-30 23:45:45"))
+        self.assertEqual(datetime(2017, 9, 30, 23, 45, 45).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-09-30 23:45:45"))
+        self.assertEqual(datetime(2017, 11, 8, 23, 45, 45).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-11-08 23:45:45"))
+        self.assertEqual(datetime(2017, 10, 10, 23, 45, 45).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-10-10 23:45:45"))
+        self.assertEqual(datetime(2017, 9, 9, 23, 45, 45).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-09-09 23:45:45"))
+        self.assertEqual(datetime(2017, 11, 30, 11, 45, 45).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-11-30 11:45:45"))
+        self.assertEqual(datetime(2017, 11, 30, 23, 4, 45).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-11-30 23:04:45"))
+        self.assertEqual(datetime(2017, 11, 30, 23, 45, 4).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-11-30 23:45:04"))
+        self.assertEqual(datetime(2017, 11, 30, 23, 5, 4).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-11-30 23:05:04"))
+        self.assertEqual(datetime(2017, 11, 30, 5, 5, 4).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-11-30 05:05:04"))
+        self.assertEqual(datetime(2017, 11, 30, 5, 5, 4).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-11-30 05:05:04 "))
+        self.assertEqual(datetime(2017, 11, 30, 5, 5, 4).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("  2017-11-30 05:05:04  "))
+        self.assertEqual(datetime(2025, 11, 30, 23, 5, 4).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2025-11-30 23:05:04"))
+        self.assertEqual(datetime(2016, 2, 29, 12, 5, 4).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2016-02-29 12:05:04"))
 
 class DateToDateStringTests(TestCase):
     def test_dates_get_converted_to_date_strings(self):
