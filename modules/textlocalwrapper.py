@@ -82,7 +82,7 @@ class TextLocal(object):
                                                                 date_key_name="date")
         return num_message_dict
 
-    def api_send_messages_by_number(self):
+    def new_api_send_messages_by_number(self):
         all_messages = self.get_api_send_history_messages()
         corrected_messages = self.correct_unicode(messages=all_messages, key_name="content")
         num_message_dict = {}
