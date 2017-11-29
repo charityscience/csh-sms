@@ -55,7 +55,7 @@ class TextLocalInboxesTests(TestCase):
             textlocal.is_message_new(message=new_message_with_date_key, date_key_name="datetime")
         with self.assertRaises(KeyError):
             textlocal.is_message_new(message=new_message_with_datetime_key, date_key_name="date")
-            
+
         self.assertFalse(textlocal.is_message_new(message=old_message_with_date_key, date_key_name="date"))
         self.assertFalse(textlocal.is_message_new(message=old_message_with_datetime_key, date_key_name="datetime"))
 
@@ -150,6 +150,63 @@ class TextLocalInboxesTests(TestCase):
         self.assertIsInstance(fake_num_message_dict['910987654321'][1], tuple)
         self.assertTrue((new_message['content'], new_message_datetime) in fake_num_message_dict['910987654321'])
         self.assertTrue((new_message2['content'], new_message2_datetime) in fake_num_message_dict['910987654321'])
+
+    def test_add_to_num_message_dict_with_empty_dict(self):
+        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
+        new_message = {'number': '910987654321', 'message': 'New message', 'date': '2017-09-06 12:12:07', 'isNew': True}
+        result = textlocal.add_to_num_message_dict(num_message_dict={},
+                                                message=new_message,
+                                                message_key_name="message",
+                                                date_key_name="date")
+        num_message_dict = {'910987654321': [('New message', datetime(2017, 9, 6, 12, 12, 7))]}
+        self.assertEqual(result, num_message_dict)
+
+    def test_add_to_num_message_dict_with_existing_dict(self):
+        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
+        new_message = {'number': '910987654321', 'message': 'New message', 'date': '2017-09-06 12:12:07', 'isNew': True}
+        new_message2 = {'number': '910987654321', 'message': 'Newer message', 'date': '2017-09-06 21:12:07', 'isNew': True}
+        first_add_result = textlocal.add_to_num_message_dict(num_message_dict={},
+                                                message=new_message,
+                                                message_key_name="message",
+                                                date_key_name="date")
+        second_add_result = textlocal.add_to_num_message_dict(num_message_dict=first_add_result,
+                                                message=new_message2,
+                                                message_key_name="message",
+                                                date_key_name="date")
+        two_adds_dict = {'910987654321': [('New message', datetime(2017, 9, 6, 12, 12, 7)),
+                                            ('Newer message', datetime(2017, 9, 6, 21, 12, 7))]}
+        self.assertEqual(second_add_result, two_adds_dict)
+
+    def test_add_to_num_message_dict_with_different_keynames(self):
+        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
+        new_message = {'number': '910987654321', 'message': 'New message', 'date': '2017-09-06 12:12:07', 'isNew': True}
+        new_message2 = {'number': '910987654321', 'content': 'Newer message', 'datetime': '2017-09-06 21:12:07', 'isNew': True}
+
+        first_add_result = textlocal.add_to_num_message_dict(num_message_dict={},
+                                                message=new_message,
+                                                message_key_name="message",
+                                                date_key_name="date")
+        second_add_result = textlocal.add_to_num_message_dict(num_message_dict=first_add_result,
+                                                message=new_message2,
+                                                message_key_name="content",
+                                                date_key_name="datetime")
+        two_adds_dict = {'910987654321': [('New message', datetime(2017, 9, 6, 12, 12, 7)),
+                                            ('Newer message', datetime(2017, 9, 6, 21, 12, 7))]}
+        self.assertEqual(second_add_result, two_adds_dict)
+
+        message_date_result = textlocal.add_to_num_message_dict(num_message_dict={},
+                                                                message=new_message,
+                                                                message_key_name="message",
+                                                                date_key_name="date")
+
+        num_message_dict = {'910987654321': [('New message', datetime(2017, 9, 6, 12, 12, 7))]}
+        self.assertEqual(message_date_result, num_message_dict)
+        content_datetime_result = textlocal.add_to_num_message_dict(num_message_dict={},
+                                                                    message=new_message2,
+                                                                    message_key_name="content",
+                                                                    date_key_name="datetime")
+        num_message_dict2 = {'910987654321': [('Newer message', datetime(2017, 9, 6, 21, 12, 7))]}
+        self.assertEqual(content_datetime_result, num_message_dict2)
 
     @patch("modules.textlocalwrapper.request")
     def test_get_primary_inbox_messages(self, mock_request):
