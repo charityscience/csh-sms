@@ -50,20 +50,6 @@ class TextLocalInboxesTests(TestCase):
         self.assertTrue(api_send_history_messages)
         self.assertIsInstance(api_send_history_messages, list)
 
-    def test_new_messages_by_number(self):
-        textlocal = TextLocal(apikey=TEXTLOCAL_API,
-                                primary_id=TEXTLOCAL_PRIMARY_ID,
-                                sendername=TEXTLOCAL_SENDERNAME)
-        logging.info("sending text - English")
-        texter = Texter()
-        texter.send(message=msg_already_sub("English"), phone_number=TEXTLOCAL_PHONENUMBER)
-        logging.info("sleeping three minutes before reading text")
-        time.sleep(180)
-        logging.info("reading text")
-        new_message_dict = textlocal.new_messages_by_number()
-        self.assertTrue(msg_already_sub("English") in new_message_dict[0][0])
-        self.assertIsInstance(new_message_dict[0][1], datetime)
-
     def test_new_api_send_messages_by_number(self):
         textlocal = TextLocal(apikey=TEXTLOCAL_API,
                                 primary_id=TEXTLOCAL_PRIMARY_ID,
