@@ -19,7 +19,9 @@ class TextLocalInboxesTests(TestCase):
         self.assertIsInstance(textlocal, TextLocal)
         
     def test_get_all_inboxes(self):
-        textlocal = TextLocal(TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID)
+        textlocal = TextLocal(apikey=TEXTLOCAL_API,
+                                primary_id=TEXTLOCAL_PRIMARY_ID,
+                                sendername=TEXTLOCAL_SENDERNAME)
         response = textlocal.get_all_inboxes()
         self.assertIsInstance(response, dict)
         self.assertGreaterEqual(int(response['num_inboxes']), 1)
