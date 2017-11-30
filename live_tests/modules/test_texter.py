@@ -56,7 +56,7 @@ class TexterGetInboxesTests(TestCase):
         t = Texter()
         send_status = t.send(message=join_text,
                              phone_number=TEXTLOCAL_PHONENUMBER)
-        self.assertTrue('SuccessFully' in send_status[0]['responseCode'])
+        self.assertTrue('success' in send_status['status'])
         logging.info("sleeping three minutes before reading the text")
         time.sleep(180)
         logging.info("reading text")
@@ -146,7 +146,7 @@ class TexterGetInboxesTests(TestCase):
         logging.info("sending cancel text")
         send_status = t.send(message='END',
                              phone_number=TEXTLOCAL_PHONENUMBER)
-        self.assertTrue("SuccessFully" in send_status[0]["responseCode"])
+        self.assertTrue('success' in send_status['status'])
         logging.info("sleeping three minutes before checking for confirmation")
         time.sleep(180)
         logging.info("checking cancellation text can be processed")
@@ -252,7 +252,7 @@ class TexterGetInboxesTests(TestCase):
         born_text = born_keyword + " " + person_name + " " + date_to_date_string(born_date)
         send_status = t.send(message=born_text,
                              phone_number=TEXTLOCAL_PHONENUMBER)
-        self.assertTrue('SuccessFully' in send_status[0]['responseCode'])
+        self.assertTrue('success' in send_status['status'])
         logging.info("sleeping three minutes before reading the text")
         time.sleep(180)
         logging.info("reading born text")
