@@ -827,17 +827,17 @@ class AsciiMessageTests(TestCase):
         self.assertFalse(is_not_ascii("~!@#$%^&*()_+=-`\\{}][\":;'?><,./'"))
         self.assertFalse(is_not_ascii(u'\u0000\u0001\u0002\u0003\u0004'))
         self.assertFalse(is_not_ascii(u'\u005B\u005C\u005D\u005E\u005F\u0060'))
-        self.assertFalse(is_not_ascii(u'\u007A\u007B\u007C\u007D\u007E\u007F'))
+        self.assertFalse(is_not_ascii(u'\u007A\u007B\u007C\u007D\u007E\u007F')) # last characters in ASCII set
 
     def test_is_not_ascii_with_nonascii_text(self):
         self.assertTrue(is_not_ascii(u'\u04FA'))
-        self.assertTrue(is_not_ascii(u'\u0080'))
+        self.assertTrue(is_not_ascii(u'\u0080')) # First character after ASCII set
         self.assertTrue(is_not_ascii(u'Ascii string start \u04FA'))
         self.assertTrue(is_not_ascii(u'\u04FA Ascii string end'))
         self.assertTrue(is_not_ascii(u'\u04FA Ascii string mid \u00BB'))
         self.assertTrue(is_not_ascii(u'\u04FA Ascii string mid one \u00BB Ascii string end'))
         self.assertTrue(is_not_ascii(u'\u04FA Ascii string mid one \u00BB Ascii string mid two \u00BC'))
-        self.assertTrue(is_not_ascii(u'\u00BA\u00BB\u00BC\u00BD\u00BE\u00BF'))
+        self.assertTrue(is_not_ascii(u'\u00BA\u00BB\u00BC\u00BD\u00BE\u00BF')) # First characters after ASCII set
         self.assertTrue(is_not_ascii(u'\u04FA\u04FB\u04FC\u04FD\u04FE\u04FF'))
         self.assertTrue(is_not_ascii(u'\u00BA\u00BB\u00BC\u00BD\u00BE\u00BF' * 5))
 
