@@ -9,6 +9,7 @@ from django.utils import timezone
 
 from cshsms.settings import TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID, TEXTLOCAL_SENDERNAME
 from modules.date_helper import datetime_string_ymd_to_datetime
+from modules.utils import is_not_ascii
 
 
 class TextLocal(object):
@@ -97,12 +98,16 @@ class TextLocal(object):
 
     def send_message(self, message, phone_numbers):
         send_url = "https://api.textlocal.in/send/?"
+        unicode_used = 'false'
         if not isinstance(message, str):
             message = message.encode('utf-8')
+        if is_not_ascii(message):
+            unicode_used = 'true'
         data = parse.urlencode({'numbers': phone_numbers,
                                 'message': message,
                                 'sender': self.sendername,
-                                'apikey': self.apikey})
+                                'apikey': self.apikey,
+                                'unicode': unicode_used})
         data = data.encode('utf-8')
         # Avoid triggering bot errors by setting a user agent
         user_agent = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'}
