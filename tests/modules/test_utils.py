@@ -831,6 +831,7 @@ class AsciiMessageTests(TestCase):
 
     def test_is_not_ascii_with_nonascii_text(self):
         self.assertTrue(is_not_ascii(u'\u04FA'))
+        self.assertTrue(is_not_ascii(u'\u0080'))
         self.assertTrue(is_not_ascii(u'Ascii string start \u04FA'))
         self.assertTrue(is_not_ascii(u'\u04FA Ascii string end'))
         self.assertTrue(is_not_ascii(u'\u04FA Ascii string mid \u00BB'))
