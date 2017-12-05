@@ -22,6 +22,10 @@ class TexterGetInboxesTests(TestCase):
         inbox_dict = Texter().read_inbox()
         self.assertIsInstance(inbox_dict, dict)
 
+    def test_read_api_outbox(self):
+        inbox_dict = Texter().read_api_outbox()
+        self.assertIsInstance(inbox_dict, dict)
+
     def test_full_e2e_english_signup_and_cancel_flow(self):
         logging.info("running e2e full flow for sign up + cancel in English...")
         self.run_e2e_flow_for_language(language="English",
