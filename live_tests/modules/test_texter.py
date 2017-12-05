@@ -64,7 +64,7 @@ class TexterGetInboxesTests(TestCase):
         logging.info("sleeping three minutes before reading the text")
         time.sleep(180)
         logging.info("reading text")
-        new_messages = t.read_api_outbox()[0]  # TODO: Match to job
+        new_messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]  # TODO: Match to job
         tp = TextProcessor(TEXTLOCAL_PHONENUMBER)
         processed = False
         logging.info("checking text can be processed")
@@ -99,9 +99,9 @@ class TexterGetInboxesTests(TestCase):
         logging.info("sleeping three minutes before checking for subscription text")
         time.sleep(180)
         logging.info("checking subscription text")
-        messages = t.read_api_outbox()[0]
+        messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
         self.assertTrue(len(messages) >= 1)
-        self.assertTrue(all([m in msg_subscribe(language).format(name=person_name) for m in messages]))
+        self.assertTrue(all([m in msg_subscribe(language).format(name=person_name) for m in messages[0]]))
         logging.info("checking person can be reminded at the correct times")
         tr = TextReminder(contact)
 
@@ -126,9 +126,9 @@ class TexterGetInboxesTests(TestCase):
         logging.info("sleeping three minutes before checking for reminder text")
         time.sleep(180)
         logging.info("checking for reminder text")
-        messages = t.read_api_outbox()[0]
+        messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
         self.assertTrue(len(messages) >= 1)
-        self.assertTrue(all([m in six_week_reminder_seven_days(language).format(name=person_name) for m in messages]))
+        self.assertTrue(all([m in six_week_reminder_seven_days(language).format(name=person_name) for m in messages[0]]))
 
         logging.info("One day before the six week mark...")
         with freeze_time(subscribe_date + relativedelta(weeks = 6) - relativedelta(days = 1)):
@@ -140,9 +140,9 @@ class TexterGetInboxesTests(TestCase):
         logging.info("sleeping three minutes before checking for reminder text")
         time.sleep(180)
         logging.info("checking for reminder text")
-        messages = t.read_api_outbox()[0]
+        messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
         self.assertTrue(len(messages) >= 1)
-        self.assertTrue(all([m in six_week_reminder_one_day(language).format(name=person_name) for m in messages]))
+        self.assertTrue(all([m in six_week_reminder_one_day(language).format(name=person_name) for m in messages[0]]))
 
         logging.info("checking contact is not yet cancelled")
         contact = tp.get_contacts().first()
@@ -155,7 +155,8 @@ class TexterGetInboxesTests(TestCase):
         logging.info("sleeping three minutes before checking for confirmation")
         time.sleep(180)
         logging.info("checking cancellation text can be processed")
-        self.assertEqual(t.read_api_outbox()[0][0], "END")
+        messages_by_number = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
+        self.assertEqual(messages_by_number[0][0], "END")
         self.assertEqual(0, Message.objects.filter(contact=Contact.objects.get(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER),
         											direction="Incoming",
         											body="END").count())
@@ -170,7 +171,7 @@ class TexterGetInboxesTests(TestCase):
         logging.info("sleeping four minutes before checking for confirmation")
         time.sleep(240)
         logging.info("checking person is cancelled")
-        messages = t.read_api_outbox()[0]
+        messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
         self.assertTrue(len(messages) >= 1)
         self.assertTrue(all([m in msg_unsubscribe(language) for m in messages]))
         contact = tp.get_contacts().first()
@@ -210,9 +211,9 @@ class TexterGetInboxesTests(TestCase):
         time.sleep(180)
         logging.info("checking subscription text")
         t = Texter()
-        messages = t.read_api_outbox()[0]
+        messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
         self.assertTrue(len(messages) >= 1)
-        self.assertTrue(all([m in msg_subscribe(language).format(name=person_name) for m in messages]))
+        self.assertTrue(all([m in msg_subscribe(language).format(name=person_name) for m in messages[0]]))
         logging.info("checking contact object is created")
         self.assertTrue(Contact.objects.filter(name=person_name,
                                                phone_number=TEXTLOCAL_PHONENUMBER).exists())
@@ -236,9 +237,9 @@ class TexterGetInboxesTests(TestCase):
         logging.info("sleeping three minutes before checking for reminder text")
         time.sleep(180)
         logging.info("checking for born reminder text")
-        messages = t.read_api_outbox()[0]
+        messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
         self.assertTrue(len(messages) >= 1)
-        self.assertTrue(all([m in verify_pregnant_signup_birthdate(language) for m in messages]))
+        self.assertTrue(all([m in verify_pregnant_signup_birthdate(language) for m in messages[0]]))
 
         logging.info("Four weeks after...")
         with freeze_time(subscribe_date + relativedelta(weeks = 4)):
@@ -250,9 +251,9 @@ class TexterGetInboxesTests(TestCase):
         logging.info("sleeping three minutes before checking for reminder text")
         time.sleep(180)
         logging.info("checking for born reminder text")
-        messages = t.read_api_outbox()[0]
+        messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
         self.assertTrue(len(messages) >= 1)
-        self.assertTrue(all([m in verify_pregnant_signup_birthdate(language) for m in messages]))
+        self.assertTrue(all([m in verify_pregnant_signup_birthdate(language) for m in messages[0]]))
 
         logging.info("sending born text")
         born_date = datetime(2017, 10, 30).date()
@@ -263,7 +264,7 @@ class TexterGetInboxesTests(TestCase):
         logging.info("sleeping three minutes before reading the text")
         time.sleep(180)
         logging.info("reading born text")
-        new_messages = t.read_api_outbox()[0]  # TODO: Match to job
+        new_messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]  # TODO: Match to job
         processed = False
         logging.info("checking text can be processed")
         self.assertEqual(0, Message.objects.filter(contact=Contact.objects.get(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER),
@@ -285,9 +286,9 @@ class TexterGetInboxesTests(TestCase):
         logging.info("sleeping four minutes before checking for subscription text")
         time.sleep(240)
         logging.info("checking subscription text")
-        messages = t.read_api_outbox()[0]
+        messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
         self.assertTrue(len(messages) >= 1)
-        self.assertTrue(all([m in msg_subscribe(language).format(name=person_name) for m in messages]))
+        self.assertTrue(all([m in msg_subscribe(language).format(name=person_name) for m in messages[0]]))
 
         logging.info("checking preg_update flag, preg_signup flag, and DOB")
         self.assertTrue(contact.preg_signup)
@@ -320,6 +321,6 @@ class TexterGetInboxesTests(TestCase):
         logging.info("sleeping three minutes before checking for reminder text")
         time.sleep(180)
         logging.info("checking for reminder text")
-        messages = t.read_api_outbox()[0]
+        messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
         self.assertTrue(len(messages) >= 1)
-        self.assertTrue(all([m in six_week_reminder_seven_days(language).format(name=person_name) for m in messages]))
+        self.assertTrue(all([m in six_week_reminder_seven_days(language).format(name=person_name) for m in messages[0]]))
