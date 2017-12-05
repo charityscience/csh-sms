@@ -90,3 +90,27 @@ class TextLocalInboxesTests(TestCase):
         self.assertEqual(fr["messages"][0]["recipient"], int(TEXTLOCAL_PHONENUMBER))
         self.assertTrue(msg_unsubscribe("English") in message_list_by_phonenumber[0][0])
         self.assertIsInstance(message_list_by_phonenumber[0][1], datetime)
+
+    def test_send_message_hindi(self):
+        textlocal = TextLocal(apikey=TEXTLOCAL_API,
+                                primary_id=TEXTLOCAL_PRIMARY_ID,
+                                sendername=TEXTLOCAL_SENDERNAME)
+        logging.info("sending transactional message - Hindi")
+        fr = textlocal.send_message(message=msg_unsubscribe("Hindi"),
+                                    phone_numbers=TEXTLOCAL_PHONENUMBER)
+        texter = Texter()
+        logging.info("sleeping three minutes before reading the inbox")
+        time.sleep(180)
+        logging.info("reading the inbox")
+        new_message_dict = textlocal.new_api_send_messages_by_number()
+        message_list_by_phonenumber = new_message_dict[TEXTLOCAL_PHONENUMBER]
+        self.assertTrue(fr)
+        self.assertIsInstance(fr, dict)
+        self.assertTrue(fr['message'])
+        self.assertEqual(fr['status'], "success")
+        self.assertTrue(fr["messages"])
+        self.assertTrue(fr["messages"][0]["recipient"])
+        self.assertEqual(fr["messages"][0]["recipient"], int(TEXTLOCAL_PHONENUMBER))
+        response_unicode_encoded = textlocal.response_unicode_encoder(message_list_by_phonenumber[0][0])
+        self.assertEqual(msg_unsubscribe("Hindi"), response_unicode_encoded)
+        self.assertIsInstance(message_list_by_phonenumber[0][1], datetime)

@@ -7,8 +7,10 @@ from datetime import datetime
 from django.utils import timezone
 
 from modules.textlocalwrapper import TextLocal
-from modules.i18n import hindi_remind, hindi_information, msg_subscribe
+from modules.i18n import hindi_remind, hindi_information, msg_subscribe, msg_unsubscribe, \
+                            msg_already_sub, six_week_reminder_one_day
 from modules.date_helper import datetime_from_date_string
+import six
 
 class MockResponse():
     def __init__(self, read_value):
@@ -316,6 +318,18 @@ class TextLocalInboxesTests(TestCase):
             {'id': '00000449', 'number': 0, 'message': 'Remind Tina 09/12/10', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': hindi_information() + u' \u0906\u0930\u0935 10/12/09', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'},
             {'id': '00000449', 'number': 0, 'message': u'\u0907\u0924\u094d\u0924\u093f \u0932\u093e \u0907\u0924\u094D 10-12-09', 'date': '2017-08-05 21:12:07', 'isNew': None, 'status': '?'}])
+
+    def test_response_unicode_encoder(self):
+        textlocal = TextLocal(apikey='mock_key', primary_id='mock_id', sendername='mock_sendername')
+        hindi_unsub_response = "@U0906092A091509400020093809260938094D092F0924093E00200938092E093E092A094D092400200915093000200926094000200917092F0940002009390948002E"
+        unsub_correction = textlocal.response_unicode_encoder(hindi_unsub_response)
+        self.assertEqual(msg_unsubscribe("Hindi"), unsub_correction)
+        hindi_already_sub_response = "@U0906092A0020092A093909320947002009380947002009390940002009380940002E090F0938002E091A00200938094D0935093E0938094D0925094D092F00200938094D092E093009230020092A094D0930093E092A094D09240020091509300928094700200915094700200932093F090F0020092A0902091C09400915094309240020093909480902002E"
+        already_sub_correction = textlocal.response_unicode_encoder(hindi_already_sub_response)
+        self.assertEqual(msg_already_sub("Hindi"), already_sub_correction)
+        hindi_six_week_one_day_response_name_erin = "@U09050917093209470020003100200926093F09280020092E094709020020004500720069006E0020091509400020091C093C09300942093009400020091F09400915093E0915093009230020090509350936094D092F0020091509300935093E090F0901002E"
+        six_week_one_day_response = textlocal.response_unicode_encoder(hindi_six_week_one_day_response_name_erin)
+        self.assertEqual(six_week_reminder_one_day("Hindi").format(name="Erin"), six_week_one_day_response)
 
     @patch("modules.textlocalwrapper.request")
     def test_send_message(self, mock_request):
