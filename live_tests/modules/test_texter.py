@@ -74,8 +74,8 @@ class TexterGetInboxesTests(TestCase):
         textlocal = TextLocal(apikey=TEXTLOCAL_API, primary_id=TEXTLOCAL_PRIMARY_ID, sendername=TEXTLOCAL_SENDERNAME)
         for text in new_messages:
             body_of_text = text[0]
-            if language is not "English":
-                body_of_text = textlocal.response_unicode_encoder()
+            if language is not "English" and text.startswith("@U"):
+                body_of_text = textlocal.response_unicode_encoder(body_of_text)
             if body_of_text == join_text:
                 processed = True
                 message_object = tp.write_to_database(message=body_of_text, date=text[1])
@@ -108,9 +108,16 @@ class TexterGetInboxesTests(TestCase):
         time.sleep(180)
         logging.info("checking subscription text")
         messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
-        list_of_texts = [m[0] for m in messages]
         self.assertTrue(len(messages) >= 1)
-        self.assertTrue(all([m in msg_subscribe(language).format(name=person_name) for m in list_of_texts]))
+        if language is not "English":
+            for index, text in enumerate(messages):
+                if text[0].startswith("@U"):
+                    messages[index][0] = textlocal.response_unicode_encoder(text[0])
+        thirty_minutes_ago = datetime.now().replace(tzinfo=timezone.get_default_timezone()) - relativedelta(minutes=30)
+        selected_texts = [(m[0], m[1]) for m in messages if m[1] > thirty_minutes_ago]
+        self.assertTrue(len(selected_texts) >= 1)
+        list_of_text_bodies = [m[0] for m in selected_texts]
+        self.assertTrue(msg_subscribe(language).format(name=person_name) in list_of_text_bodies)
         logging.info("checking person can be reminded at the correct times")
         tr = TextReminder(contact)
 
@@ -136,9 +143,16 @@ class TexterGetInboxesTests(TestCase):
         time.sleep(180)
         logging.info("checking for reminder text")
         messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
-        list_of_texts = [m[0] for m in messages]
         self.assertTrue(len(messages) >= 1)
-        self.assertTrue(all([m in six_week_reminder_seven_days(language).format(name=person_name) for m in list_of_texts]))
+        if language is not "English":
+            for index, text in enumerate(messages):
+                if text[0].startswith("@U"):
+                    messages[index][0] = textlocal.response_unicode_encoder(text[0])
+        thirty_minutes_ago = datetime.now().replace(tzinfo=timezone.get_default_timezone()) - relativedelta(minutes=30)
+        selected_texts = [(m[0], m[1]) for m in messages if m[1] > thirty_minutes_ago]
+        self.assertTrue(len(selected_texts) >= 1)
+        list_of_text_bodies = [m[0] for m in selected_texts]
+        self.assertTrue(six_week_reminder_seven_days(language).format(name=person_name) in list_of_text_bodies)
 
         logging.info("One day before the six week mark...")
         with freeze_time(subscribe_date + relativedelta(weeks = 6) - relativedelta(days = 1)):
@@ -151,9 +165,16 @@ class TexterGetInboxesTests(TestCase):
         time.sleep(180)
         logging.info("checking for reminder text")
         messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
-        list_of_texts = [m[0] for m in messages]
         self.assertTrue(len(messages) >= 1)
-        self.assertTrue(all([m in six_week_reminder_one_day(language).format(name=person_name) for m in list_of_texts]))
+        if language is not "English":
+            for index, text in enumerate(messages):
+                if text[0].startswith("@U"):
+                    messages[index][0] = textlocal.response_unicode_encoder(text[0])
+        thirty_minutes_ago = datetime.now().replace(tzinfo=timezone.get_default_timezone()) - relativedelta(minutes=30)
+        selected_texts = [(m[0], m[1]) for m in messages if m[1] > thirty_minutes_ago]
+        self.assertTrue(len(selected_texts) >= 1)
+        list_of_text_bodies = [m[0] for m in selected_texts]
+        self.assertTrue(six_week_reminder_one_day(language).format(name=person_name) in list_of_text_bodies)
 
         logging.info("checking contact is not yet cancelled")
         contact = tp.get_contacts().first()
@@ -183,9 +204,16 @@ class TexterGetInboxesTests(TestCase):
         time.sleep(240)
         logging.info("checking person is cancelled")
         messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
-        list_of_texts = [m[0] for m in messages]
         self.assertTrue(len(messages) >= 1)
-        self.assertTrue(all([m in msg_unsubscribe(language) for m in list_of_texts]))
+        if language is not "English":
+            for index, text in enumerate(messages):
+                if text[0].startswith("@U"):
+                    messages[index][0] = textlocal.response_unicode_encoder(text[0])
+        thirty_minutes_ago = datetime.now().replace(tzinfo=timezone.get_default_timezone()) - relativedelta(minutes=30)
+        selected_texts = [(m[0], m[1]) for m in messages if m[1] > thirty_minutes_ago]
+        self.assertTrue(len(selected_texts) >= 1)
+        list_of_text_bodies = [m[0] for m in selected_texts]
+        self.assertTrue(msg_unsubscribe(language) in list_of_text_bodies)
         contact = tp.get_contacts().first()
         self.assertTrue(contact.cancelled)
 
@@ -224,9 +252,16 @@ class TexterGetInboxesTests(TestCase):
         logging.info("checking subscription text")
         t = Texter()
         messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
-        list_of_texts = [m[0] for m in messages]
         self.assertTrue(len(messages) >= 1)
-        self.assertTrue(all([m in msg_subscribe(language).format(name=person_name) for m in list_of_texts]))
+        if language is not "English":
+            for index, text in enumerate(messages):
+                if text[0].startswith("@U"):
+                    messages[index][0] = textlocal.response_unicode_encoder(text[0])
+        thirty_minutes_ago = datetime.now().replace(tzinfo=timezone.get_default_timezone()) - relativedelta(minutes=30)
+        selected_texts = [(m[0], m[1]) for m in messages if m[1] > thirty_minutes_ago]
+        self.assertTrue(len(selected_texts) >= 1)
+        list_of_text_bodies = [m[0] for m in selected_texts]
+        self.assertTrue(msg_subscribe(language).format(name=person_name) in list_of_text_bodies)
         logging.info("checking contact object is created")
         self.assertTrue(Contact.objects.filter(name=person_name,
                                                phone_number=TEXTLOCAL_PHONENUMBER).exists())
@@ -251,9 +286,16 @@ class TexterGetInboxesTests(TestCase):
         time.sleep(180)
         logging.info("checking for born reminder text")
         messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
-        list_of_texts = [m[0] for m in messages]
         self.assertTrue(len(messages) >= 1)
-        self.assertTrue(all([m in verify_pregnant_signup_birthdate(language) for m in list_of_texts]))
+        if language is not "English":
+            for index, text in enumerate(messages):
+                if text[0].startswith("@U"):
+                    messages[index][0] = textlocal.response_unicode_encoder(text[0])
+        thirty_minutes_ago = datetime.now().replace(tzinfo=timezone.get_default_timezone()) - relativedelta(minutes=30)
+        selected_texts = [(m[0], m[1]) for m in messages if m[1] > thirty_minutes_ago]
+        self.assertTrue(len(selected_texts) >= 1)
+        list_of_text_bodies = [m[0] for m in selected_texts]
+        self.assertTrue(verify_pregnant_signup_birthdate(language) in list_of_text_bodies)
 
         logging.info("Four weeks after...")
         with freeze_time(subscribe_date + relativedelta(weeks = 4)):
@@ -266,9 +308,16 @@ class TexterGetInboxesTests(TestCase):
         time.sleep(180)
         logging.info("checking for born reminder text")
         messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
-        list_of_texts = [m[0] for m in messages]
         self.assertTrue(len(messages) >= 1)
-        self.assertTrue(all([m in verify_pregnant_signup_birthdate(language) for m in list_of_texts]))
+        if language is not "English":
+            for index, text in enumerate(messages):
+                if text[0].startswith("@U"):
+                    messages[index][0] = textlocal.response_unicode_encoder(text[0])
+        thirty_minutes_ago = datetime.now().replace(tzinfo=timezone.get_default_timezone()) - relativedelta(minutes=30)
+        selected_texts = [(m[0], m[1]) for m in messages if m[1] > thirty_minutes_ago]
+        self.assertTrue(len(selected_texts) >= 1)
+        list_of_text_bodies = [m[0] for m in selected_texts]
+        self.assertTrue(verify_pregnant_signup_birthdate(language) in list_of_text_bodies)
 
         logging.info("sending born text")
         born_date = datetime(2017, 10, 30).date()
@@ -288,8 +337,8 @@ class TexterGetInboxesTests(TestCase):
         textlocal = TextLocal(apikey=TEXTLOCAL_API, primary_id=TEXTLOCAL_PRIMARY_ID, sendername=TEXTLOCAL_SENDERNAME)
         for text in new_messages:
             body_of_text = text[0]
-            if language is not "English":
-                body_of_text = textlocal.response_unicode_encoder()
+            if language is not "English" and text.startswith("@U"):
+                body_of_text = textlocal.response_unicode_encoder(body_of_text)
             if body_of_text == born_text:
                 processed = True
                 message_object = tp.write_to_database(message=body_of_text, date=text[1])
@@ -308,9 +357,16 @@ class TexterGetInboxesTests(TestCase):
         time.sleep(240)
         logging.info("checking subscription text")
         messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
-        list_of_texts = [m[0] for m in messages]
         self.assertTrue(len(messages) >= 1)
-        self.assertTrue(all([m in msg_subscribe(language).format(name=person_name) for m in list_of_texts]))
+        if language is not "English":
+            for index, text in enumerate(messages):
+                if text[0].startswith("@U"):
+                    messages[index][0] = textlocal.response_unicode_encoder(text[0])
+        thirty_minutes_ago = datetime.now().replace(tzinfo=timezone.get_default_timezone()) - relativedelta(minutes=30)
+        selected_texts = [(m[0], m[1]) for m in messages if m[1] > thirty_minutes_ago]
+        self.assertTrue(len(selected_texts) >= 1)
+        list_of_text_bodies = [m[0] for m in selected_texts]
+        self.assertTrue(msg_subscribe(language).format(name=person_name) in list_of_text_bodies)
 
         logging.info("checking preg_update flag, preg_signup flag, and DOB")
         self.assertTrue(contact.preg_signup)
@@ -344,6 +400,13 @@ class TexterGetInboxesTests(TestCase):
         time.sleep(180)
         logging.info("checking for reminder text")
         messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
-        list_of_texts = [m[0] for m in messages]
         self.assertTrue(len(messages) >= 1)
-        self.assertTrue(all([m in six_week_reminder_seven_days(language).format(name=person_name) for m in list_of_texts]))
+        if language is not "English":
+            for index, text in enumerate(messages):
+                if text[0].startswith("@U"):
+                    messages[index][0] = textlocal.response_unicode_encoder(text[0])
+        thirty_minutes_ago = datetime.now().replace(tzinfo=timezone.get_default_timezone()) - relativedelta(minutes=30)
+        selected_texts = [(m[0], m[1]) for m in messages if m[1] > thirty_minutes_ago]
+        self.assertTrue(len(selected_texts) >= 1)
+        list_of_text_bodies = [m[0] for m in selected_texts]
+        self.assertTrue(six_week_reminder_seven_days(language).format(name=person_name) in list_of_text_bodies)
