@@ -10,6 +10,7 @@ from freezegun import freeze_time
 from cshsms.settings import TEXTLOCAL_PHONENUMBER
 from management.models import Contact, Group, Message
 from modules.texter import Texter
+from modules.textlocalwrapper import TextLocal
 from modules.text_reminder import TextReminder
 from modules.text_processor import TextProcessor
 from modules.date_helper import date_to_date_string
@@ -70,19 +71,25 @@ class TexterGetInboxesTests(TestCase):
         processed = False
         logging.info("checking text can be processed")
         self.assertFalse(Contact.objects.filter(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER))
+        textlocal = TextLocal(apikey=TEXTLOCAL_API, primary_id=TEXTLOCAL_PRIMARY_ID, sendername=TEXTLOCAL_SENDERNAME)
         for text in new_messages:
-            if text[0] == join_text:
+            body_of_text = text[0]
+            if language is not "English":
+                body_of_text = textlocal.response_unicode_encoder()
+            if body_of_text == join_text:
                 processed = True
-                message_object = tp.write_to_database(message=text[0], date=text[1])
+                message_object = tp.write_to_database(message=body_of_text, date=text[1])
                 tp.process(message_object)
         self.assertTrue(processed)
         logging.info("checking message objects are created")
         self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER),
         											direction="Incoming",
-        											body=join_text).count())
+        											body=join_text,
+                                                    is_processed=True).count())
         self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER),
         											direction="Outgoing",
-        											body=msg_subscribe(language).format(name=person_name)).count())
+        											body=msg_subscribe(language).format(name=person_name),
+                                                    is_processed=True).count())
 
         logging.info("checking contact object is created")
         self.assertTrue(Contact.objects.filter(name=person_name,
@@ -278,18 +285,24 @@ class TexterGetInboxesTests(TestCase):
         self.assertEqual(0, Message.objects.filter(contact=Contact.objects.get(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER),
                                                     direction="Incoming",
                                                     body=born_text).count())
+        textlocal = TextLocal(apikey=TEXTLOCAL_API, primary_id=TEXTLOCAL_PRIMARY_ID, sendername=TEXTLOCAL_SENDERNAME)
         for text in new_messages:
-            if text[0] == born_text:
+            body_of_text = text[0]
+            if language is not "English":
+                body_of_text = textlocal.response_unicode_encoder()
+            if body_of_text == born_text:
                 processed = True
-                message_object = tp.write_to_database(message=text[0], date=text[1])
+                message_object = tp.write_to_database(message=body_of_text, date=text[1])
                 tp.process(message_object)
         self.assertTrue(processed)
         self.assertEqual(1, Message.objects.filter(contact=Contact.objects.get(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER),
                                                     direction="Incoming",
-                                                    body=born_text).count())
+                                                    body=born_text,
+                                                    is_processed=True).count())
         self.assertEqual(2, Message.objects.filter(contact=Contact.objects.get(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER),
                                                     direction="Outgoing",
-                                                    body=msg_subscribe(language).format(name=person_name)).count())
+                                                    body=msg_subscribe(language).format(name=person_name),
+                                                    is_processed=True).count())
 
         logging.info("sleeping four minutes before checking for subscription text")
         time.sleep(240)
