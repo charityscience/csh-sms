@@ -7,7 +7,8 @@ from django.test import TestCase
 from django.utils import timezone
 from freezegun import freeze_time
 
-from cshsms.settings import TEXTLOCAL_PHONENUMBER
+from cshsms.settings import TEXTLOCAL_API, TEXTLOCAL_PRIMARY_ID, TEXTLOCAL_SENDERNAME, \
+                            TEXTLOCAL_PHONENUMBER
 from management.models import Contact, Group, Message
 from modules.texter import Texter
 from modules.textlocalwrapper import TextLocal
