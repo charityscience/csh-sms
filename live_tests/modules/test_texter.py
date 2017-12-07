@@ -71,7 +71,7 @@ class TexterGetInboxesTests(TestCase):
         logging.info("checking text can be processed")
         self.assertFalse(Contact.objects.filter(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER))
         for text in new_messages:
-            if text[0][0] == join_text:
+            if text[0] == join_text:
                 processed = True
                 message_object = tp.write_to_database(message=text[0], date=text[1])
                 tp.process(message_object)
@@ -279,7 +279,7 @@ class TexterGetInboxesTests(TestCase):
                                                     direction="Incoming",
                                                     body=born_text).count())
         for text in new_messages:
-            if text[0][0] == born_text:
+            if text[0] == born_text:
                 processed = True
                 message_object = tp.write_to_database(message=text[0], date=text[1])
                 tp.process(message_object)
