@@ -57,6 +57,18 @@ class TexterGetInboxesTests(TestCase):
                                                join_keyword=hindi_remind(),
                                                born_keyword=hindi_born())
 
+    def decode_nonenglish_messages(self, language, messages, textlocal_object):
+        if language is not "English":
+            for index, text in enumerate(messages):
+                if text[0].startswith("@U"):
+                    messages[index][0] = textlocal_object.response_unicode_encoder(text[0])
+
+        return messages
+
+    def messages_within_timeframe(self, messages, timeframe_in_minutes):
+        datetime_in_past = datetime.now().replace(tzinfo=timezone.get_default_timezone()) - relativedelta(minutes=timeframe_in_minutes)
+        return [(m[0], m[1]) for m in messages if m[1] > datetime_in_past]
+
 
     def run_e2e_flow_for_language(self, language, person_name, join_keyword):
         logging.info("sending text")
