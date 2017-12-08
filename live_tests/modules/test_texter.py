@@ -73,7 +73,9 @@ class TexterGetInboxesTests(TestCase):
         logging.info("checking text can be processed")
         self.assertFalse(Contact.objects.filter(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER))
         textlocal = TextLocal(apikey=TEXTLOCAL_API, primary_id=TEXTLOCAL_PRIMARY_ID, sendername=TEXTLOCAL_SENDERNAME)
-        for text in new_messages:
+        thirty_minutes_ago = datetime.now().replace(tzinfo=timezone.get_default_timezone()) - relativedelta(minutes=30)
+        selected_texts = [(m[0], m[1]) for m in new_messages if m[1] > thirty_minutes_ago]
+        for text in selected_texts:
             body_of_text = text[0]
             if language is not "English" and text.startswith("@U"):
                 body_of_text = textlocal.response_unicode_encoder(body_of_text)
