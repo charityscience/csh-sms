@@ -17,6 +17,8 @@ from modules.text_processor import TextProcessor
 from modules.date_helper import date_to_date_string
 from modules.i18n import msg_subscribe, msg_unsubscribe, hindi_remind, \
                          six_week_reminder_one_day, six_week_reminder_seven_days, \
+                         ten_week_reminder_seven_days, ten_week_reminder_one_day \
+                         fourteen_week_reminder_seven_days, fourteen_week_reminder_one_day \
                          msg_placeholder_child, hindi_born, verify_pregnant_signup_birthdate
 
 
@@ -127,15 +129,48 @@ class TexterGetInboxesTests(TestCase):
         logging.info("Two days after...")
         with freeze_time(subscribe_date + relativedelta(days = 2)):
             self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
-                                                    body=msg_subscribe(language).format(name=person_name)).count())
+                                                    body=six_week_reminder_seven_days(language).format(name=person_name)).count())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=six_week_reminder_one_day(language).format(name=person_name)).count())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=ten_week_reminder_seven_days(language).format(name=person_name)).count())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=ten_week_reminder_one_day(language).format(name=person_name)).count())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=fourten_week_reminder_seven_days(language).format(name=person_name)).count())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=fourten_week_reminder_one_day(language).format(name=person_name)).count())
             self.assertFalse(tr.remind())
             self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
-                                                    body=msg_subscribe(language).format(name=person_name)).count())
+                                                    body=six_week_reminder_seven_days(language).format(name=person_name)).count())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=six_week_reminder_one_day(language).format(name=person_name)).count())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=ten_week_reminder_seven_days(language).format(name=person_name)).count())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=ten_week_reminder_one_day(language).format(name=person_name)).count())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=fourten_week_reminder_seven_days(language).format(name=person_name)).count())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=fourten_week_reminder_one_day(language).format(name=person_name)).count())
             self.assertEqual(tr.why_not_remind_reasons(),
                              ["Contact has no reminders for today's date."])
-        logging.info("sleeping three minutes before checking for reminder text")
+        logging.info("sleeping three minutes before checking for lack of a reminder text")
         time.sleep(180)
-        self.assertEqual(t.read_api_outbox(), {})
+        messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
+        if language is not "English":
+            for index, text in enumerate(messages):
+                if text[0].startswith("@U"):
+                    messages[index][0] = textlocal.response_unicode_encoder(text[0])
+        thirty_minutes_ago = datetime.now().replace(tzinfo=timezone.get_default_timezone()) - relativedelta(minutes=30)
+        selected_texts = [(m[0], m[1]) for m in messages if m[1] > thirty_minutes_ago]
+        list_of_text_bodies = [m[0] for m in selected_texts]
+        self.assertFalse(six_week_reminder_seven_days(language).format(name=person_name) in list_of_text_bodies)
+        self.assertFalse(six_week_reminder_one_day(language).format(name=person_name) in list_of_text_bodies)
+        self.assertFalse(ten_week_reminder_seven_days(language).format(name=person_name) in list_of_text_bodies)
+        self.assertFalse(ten_week_reminder_one_day(language).format(name=person_name) in list_of_text_bodies)
+        self.assertFalse(fourten_week_reminder_seven_days(language).format(name=person_name) in list_of_text_bodies)
+        self.assertFalse(fourten_week_reminder_one_day(language).format(name=person_name) in list_of_text_bodies)
 
         logging.info("Seven days before the six week mark...")
         with freeze_time(subscribe_date + relativedelta(weeks = 6) - relativedelta(days = 7)): 
@@ -232,7 +267,15 @@ class TexterGetInboxesTests(TestCase):
             self.assertEqual(tr.why_not_remind_reasons(), ["Contact is cancelled."])
         logging.info("sleeping three minutes before checking for lack of reminder text")
         time.sleep(180)
-        self.assertEqual(t.read_api_outbox(), {})
+        messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
+        if language is not "English":
+            for index, text in enumerate(messages):
+                if text[0].startswith("@U"):
+                    messages[index][0] = textlocal.response_unicode_encoder(text[0])
+        ten_minutes_ago = datetime.now().replace(tzinfo=timezone.get_default_timezone()) - relativedelta(minutes=10)
+        selected_texts = [(m[0], m[1]) for m in messages if m[1] > ten_minutes_ago]
+        list_of_text_bodies = [m[0] for m in selected_texts]
+        self.assertFalse(six_week_reminder_one_day(language).format(name=person_name) in list_of_text_bodies)
 
 
     def run_preg_update_flow_for_language(self, language, person_name, join_keyword, born_keyword):
@@ -381,18 +424,51 @@ class TexterGetInboxesTests(TestCase):
         self.assertEqual(contact.date_of_birth, born_date)
         tr = TextReminder(contact)
 
-        logging.info("Seven days before the six week mark after first texting...")
-        with freeze_time(subscribe_date + relativedelta(weeks = 6) - relativedelta(days = 7)): 
-            self.assertEqual(2, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
-                                                        body=msg_subscribe(language).format(name=person_name)).count())
-            self.assertFalse(tr.remind())  # ...cannot be reminded
-            self.assertEqual(2, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
-                                                        body=msg_subscribe(language).format(name=person_name)).count())
+        logging.info("Two days after...")
+        with freeze_time(subscribe_date + relativedelta(days = 2)):
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=six_week_reminder_seven_days(language).format(name=person_name)).count())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=six_week_reminder_one_day(language).format(name=person_name)).count())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=ten_week_reminder_seven_days(language).format(name=person_name)).count())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=ten_week_reminder_one_day(language).format(name=person_name)).count())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=fourten_week_reminder_seven_days(language).format(name=person_name)).count())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=fourten_week_reminder_one_day(language).format(name=person_name)).count())
+            self.assertFalse(tr.remind())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=six_week_reminder_seven_days(language).format(name=person_name)).count())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=six_week_reminder_one_day(language).format(name=person_name)).count())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=ten_week_reminder_seven_days(language).format(name=person_name)).count())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=ten_week_reminder_one_day(language).format(name=person_name)).count())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=fourten_week_reminder_seven_days(language).format(name=person_name)).count())
+            self.assertEqual(0, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
+                                                    body=fourten_week_reminder_one_day(language).format(name=person_name)).count())
             self.assertEqual(tr.why_not_remind_reasons(),
                              ["Contact has no reminders for today's date."])
-        logging.info("sleeping three minutes before checking for lack of reminder text")
+        logging.info("sleeping three minutes before checking for lack of a reminder text")
         time.sleep(180)
-        self.assertEqual(t.read_api_outbox(), {})
+        messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
+        if language is not "English":
+            for index, text in enumerate(messages):
+                if text[0].startswith("@U"):
+                    messages[index][0] = textlocal.response_unicode_encoder(text[0])
+        thirty_minutes_ago = datetime.now().replace(tzinfo=timezone.get_default_timezone()) - relativedelta(minutes=30)
+        selected_texts = [(m[0], m[1]) for m in messages if m[1] > thirty_minutes_ago]
+        list_of_text_bodies = [m[0] for m in selected_texts]
+        self.assertFalse(six_week_reminder_seven_days(language).format(name=person_name) in list_of_text_bodies)
+        self.assertFalse(six_week_reminder_one_day(language).format(name=person_name) in list_of_text_bodies)
+        self.assertFalse(ten_week_reminder_seven_days(language).format(name=person_name) in list_of_text_bodies)
+        self.assertFalse(ten_week_reminder_one_day(language).format(name=person_name) in list_of_text_bodies)
+        self.assertFalse(fourten_week_reminder_seven_days(language).format(name=person_name) in list_of_text_bodies)
+        self.assertFalse(fourten_week_reminder_one_day(language).format(name=person_name) in list_of_text_bodies)
 
         logging.info("Seven days before the six week mark after birth...")
         with freeze_time(born_date + relativedelta(weeks = 6) - relativedelta(days = 7)): 
