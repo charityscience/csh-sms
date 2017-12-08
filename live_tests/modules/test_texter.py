@@ -18,7 +18,7 @@ from modules.date_helper import date_to_date_string
 from modules.i18n import msg_subscribe, msg_unsubscribe, hindi_remind, \
                          six_week_reminder_one_day, six_week_reminder_seven_days, \
                          ten_week_reminder_seven_days, ten_week_reminder_one_day \
-                         fourteen_week_reminder_seven_days, fourteen_week_reminder_one_day \
+                         fourteen_week_reminder_seven_days, fourteen_week_reminder_one_day, \
                          msg_placeholder_child, hindi_born, verify_pregnant_signup_birthdate
 
 
