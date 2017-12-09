@@ -229,11 +229,11 @@ class TexterGetInboxesTests(TestCase):
         with freeze_time(subscribe_date + relativedelta(weeks = 6) - relativedelta(days = 1)):
             self.assertEqual(2, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
                                                     body=msg_subscribe(language).format(name=person_name)).exclude(
-                                                    msg_unsubscribe(language)).count())
+                                                    body=msg_unsubscribe(language)).count())
             self.assertFalse(tr.remind())  # ...cannot be reminded
             self.assertEqual(2, Message.objects.filter(contact=tr.contact, direction="Outgoing").exclude(
                                                     body=msg_subscribe(language).format(name=person_name)).exclude(
-                                                    msg_unsubscribe(language)).count())
+                                                    body=msg_unsubscribe(language)).count())
             self.assertEqual(tr.why_not_remind_reasons(), ["Contact is cancelled."])
         logging.info("sleeping three minutes before checking for lack of reminder text")
         time.sleep(180)
