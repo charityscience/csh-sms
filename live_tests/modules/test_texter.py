@@ -88,7 +88,7 @@ class TexterGetInboxesTests(TestCase):
         self.assertFalse(Contact.objects.filter(name=person_name, phone_number=TEXTLOCAL_PHONENUMBER))
         textlocal = TextLocal(apikey=TEXTLOCAL_API, primary_id=TEXTLOCAL_PRIMARY_ID, sendername=TEXTLOCAL_SENDERNAME)
         decoded_messages = self.decode_nonenglish_messages(language=language, messages=new_messages, textlocal_object=textlocal)
-        selected_texts = self.messages_within_timeframe(messages=decoded_messages, timeframe_in_minutes=30)
+        selected_texts = self.messages_within_timeframe(messages=decoded_messages, timeframe_in_minutes=10)
         for text in selected_texts:
             body_of_text = text[0]
             if body_of_text == join_text:
@@ -267,7 +267,7 @@ class TexterGetInboxesTests(TestCase):
         self.assertTrue(len(messages) >= 1)
         textlocal = TextLocal(apikey=TEXTLOCAL_API, primary_id=TEXTLOCAL_PRIMARY_ID, sendername=TEXTLOCAL_SENDERNAME)
         decoded_messages = self.decode_nonenglish_messages(language=language, messages=messages, textlocal_object=textlocal)
-        selected_texts = self.messages_within_timeframe(messages=decoded_messages, timeframe_in_minutes=30)
+        selected_texts = self.messages_within_timeframe(messages=decoded_messages, timeframe_in_minutes=10)
         self.assertTrue(len(selected_texts) >= 1)
         list_of_text_bodies = [m[0] for m in selected_texts]
         self.assertTrue(msg_subscribe(language).format(name=person_name) in list_of_text_bodies)
