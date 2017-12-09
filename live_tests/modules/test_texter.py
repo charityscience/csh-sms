@@ -59,9 +59,11 @@ class TexterGetInboxesTests(TestCase):
 
     def decode_nonenglish_messages(self, language, messages, textlocal_object):
         if language is not "English":
-            for index, text in enumerate(messages):
-                if text[0].startswith("@U"):
-                    messages[index][0] = textlocal_object.response_unicode_encoder(text[0])
+            for index, text_tuple in enumerate(messages):
+                list_message = list(text_tuple)
+                if list_message[0].startswith("@U"):
+                    list_message[0] = textlocal_object.response_unicode_encoder(text[0])
+                    messages[index] = tuple(list_message)
 
         return messages
 
