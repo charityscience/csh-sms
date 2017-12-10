@@ -62,7 +62,7 @@ class TexterGetInboxesTests(TestCase):
             for index, text_tuple in enumerate(messages):
                 list_message = list(text_tuple)
                 if list_message[0].startswith("@U"):
-                    list_message[0] = textlocal_object.response_unicode_encoder(text[0])
+                    list_message[0] = textlocal_object.response_unicode_encoder(text_tuple[0])
                     messages[index] = tuple(list_message)
 
         return messages
