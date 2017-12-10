@@ -428,7 +428,7 @@ class TexterGetInboxesTests(TestCase):
         logging.info("checking for reminder text")
         messages = t.read_api_outbox()[TEXTLOCAL_PHONENUMBER]
         self.assertTrue(len(messages) >= 1)
-        decoded_messages = self.decode_nonenglish_messages(language=language, messages=new_messages, textlocal_object=textlocal)
+        decoded_messages = self.decode_nonenglish_messages(language=language, messages=messages, textlocal_object=textlocal)
         selected_texts = self.messages_within_timeframe(messages=decoded_messages, timeframe_in_minutes=30)
         self.assertTrue(len(selected_texts) >= 1)
         list_of_text_bodies = [m[0] for m in selected_texts]
