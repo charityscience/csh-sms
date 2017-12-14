@@ -2,7 +2,7 @@ import json
 import re
 import string
 
-from six import unichr
+from six import unichr, u
 from six.moves.urllib import request, parse
 from datetime import timedelta, datetime
 from django.utils import timezone
@@ -60,6 +60,13 @@ class TextLocal(object):
             else:
                 fixed_message.append(message_part)
         return ' '.join(fixed_message)
+
+    def response_unicode_encoder(self, message):
+        removed_at = message.replace("@U", "\\u")
+        front_substring = removed_at[:6] + "\\u"
+        back_substring = removed_at[6:]
+        back_substring = "\\u".join(re.findall("....", back_substring))
+        return (front_substring + back_substring).encode("utf-8").decode("unicode-escape")
          
 
     def is_message_new(self, message, date_key_name):
