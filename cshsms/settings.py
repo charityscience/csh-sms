@@ -18,11 +18,13 @@ import os
 if not os.getenv('IS_TRAVIS', False):
     from cshsms.settings_secret import SECRET_KEY, DATABASES, REMOTE, TEXTLOCAL_API, \
                                        TEXTLOCAL_PRIMARY_ID, TEXTLOCAL_PHONENUMBER, \
-                                       HSPSMS_API, HSPSMS_USERNAME, HSPSMS_SENDERNAME
+                                       HSPSMS_API, HSPSMS_USERNAME, HSPSMS_SENDERNAME, \
+                                       TEXTLOCAL_SENDERNAME
 else:
     from cshsms.settings_travis import SECRET_KEY, DATABASES, REMOTE, TEXTLOCAL_API, \
                                        TEXTLOCAL_PRIMARY_ID, TEXTLOCAL_PHONENUMBER, \
-                                       HSPSMS_API, HSPSMS_USERNAME, HSPSMS_SENDERNAME
+                                       HSPSMS_API, HSPSMS_USERNAME, HSPSMS_SENDERNAME, \
+                                       TEXTLOCAL_SENDERNAME
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

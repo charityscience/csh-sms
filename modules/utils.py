@@ -49,3 +49,6 @@ def keywords_without_word(language, word):
 	if word in new_keys:
 		new_keys.remove(word)
 	return new_keys
+
+def is_not_ascii(message):
+	return any(ord(char) >= 128 for char in message)

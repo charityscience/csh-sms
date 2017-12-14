@@ -1,18 +1,30 @@
 from datetime import datetime
 from django.test import TestCase
 from django.utils import timezone
+from freezegun import freeze_time
+from mock import patch
 
 from modules.utils import quote, phone_number_is_valid, remove_nondigit_characters, \
                                 add_country_code_to_phone_number, prepare_phone_number, \
-                                keywords_without_word
+                                keywords_without_word, is_not_ascii
 from modules.date_helper import date_string_to_date, date_is_valid, \
                                 date_to_date_string, date_string_dmy_to_date, \
                                 date_string_mdy_to_date, date_string_ymd_to_date, \
                                 try_parsing_partner_date, try_parsing_gen_date, \
-                                datetime_string_mdy_to_datetime
+                                datetime_string_mdy_to_datetime, datetime_string_ymd_to_datetime
 from modules.i18n import hindi_information, hindi_remind, hindi_born, \
-                            subscribe_keywords
+                            subscribe_keywords, six_week_reminder_seven_days, \
+                            six_week_reminder_one_day, ten_week_reminder_seven_days, \
+                            ten_week_reminder_one_day, fourteen_week_reminder_seven_days, \
+                            fourteen_week_reminder_one_day, nine_month_reminder_seven_days, \
+                            nine_month_reminder_one_day, sixteen_month_reminder_seven_days, \
+                            sixteen_month_reminder_one_day, five_year_reminder_seven_days, \
+                            five_year_reminder_one_day, verify_pregnant_signup_birthdate, \
+                            msg_subscribe, msg_unsubscribe, msg_already_sub, msg_failure, \
+                            msg_failed_date
 from six import u
+
+FAKE_NOW = datetime(2017, 12, 1, 15, 10, 3)
 
 class QuoteTests(TestCase):
     def test_quote(self):
@@ -559,6 +571,80 @@ class DatetimeStringToDatetimeTests(TestCase):
         with self.assertRaises(ValueError):
             self.assertEqual(datetime_string_mdy_to_datetime("2/29/2017 6:50:10 PM"))
 
+    def test_datetime_string_ymd_to_datetime(self):
+        self.assertEqual(datetime(2017, 11, 30, 23, 45, 45).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-11-30 23:45:45"))
+        self.assertEqual(datetime(2016, 11, 30, 23, 45, 45).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2016-11-30 23:45:45"))
+        self.assertEqual(datetime(2018, 11, 30, 23, 45, 45).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2018-11-30 23:45:45"))
+        self.assertEqual(datetime(2017, 9, 30, 23, 45, 45).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-09-30 23:45:45"))
+        self.assertEqual(datetime(2017, 11, 8, 23, 45, 45).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-11-08 23:45:45"))
+        self.assertEqual(datetime(2017, 10, 10, 23, 45, 45).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-10-10 23:45:45"))
+        self.assertEqual(datetime(2017, 9, 9, 23, 45, 45).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-09-09 23:45:45"))
+        self.assertEqual(datetime(2017, 11, 30, 11, 45, 45).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-11-30 11:45:45"))
+        self.assertEqual(datetime(2017, 11, 30, 23, 4, 45).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-11-30 23:04:45"))
+        self.assertEqual(datetime(2017, 11, 30, 23, 45, 4).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-11-30 23:45:04"))
+        self.assertEqual(datetime(2017, 11, 30, 23, 5, 4).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-11-30 23:05:04"))
+        self.assertEqual(datetime(2017, 11, 30, 5, 5, 4).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-11-30 05:05:04"))
+        self.assertEqual(datetime(2017, 11, 30, 5, 5, 4).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2017-11-30 05:05:04 "))
+        self.assertEqual(datetime(2017, 11, 30, 5, 5, 4).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("  2017-11-30 05:05:04  "))
+        self.assertEqual(datetime(2025, 11, 30, 23, 5, 4).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2025-11-30 23:05:04"))
+        self.assertEqual(datetime(2016, 2, 29, 12, 5, 4).replace(tzinfo=timezone.get_default_timezone()),
+                            datetime_string_ymd_to_datetime("2016-02-29 12:05:04"))
+
+    @freeze_time(FAKE_NOW)
+    @patch("logging.error")
+    def test_invalid_datetimes_for_datetime_string_ymd_to_datetime(self, logging_error_mock):
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017/11-30 23:45:45"))
+        logging_error_mock.assert_called_with("Invalid datetime entry for message: " + quote("2017/11-30 23:45:45"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2016-11/30 23:45:45"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()), 
+                        datetime_string_ymd_to_datetime("2018-11-3023:45:45"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017-09-30 23-45:45"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017-11-08 23:45-45"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017-10-10 23/45:45"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017-09-09 23:45:45pm"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017-11-30 11:45:45 pm"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017-41-30 23:04:45"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017-11-36 23:45:04"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017-11-30 25:05:04"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017-11-30 05:95:04"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2025-11-30 23:05:94"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("20E5-11-30 23:05:94"))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime(""))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("   "))
+        self.assertEqual(FAKE_NOW.replace(tzinfo=timezone.get_default_timezone()),
+                        datetime_string_ymd_to_datetime("2017-02-29 12:05:04"))
+        self.assertEqual(17, logging_error_mock.call_count)
+
 class DateToDateStringTests(TestCase):
     def test_dates_get_converted_to_date_strings(self):
         self.assertEqual(date_to_date_string(datetime(2015, 11, 25, 0, 0).date()), "25/11/2015")
@@ -729,3 +815,88 @@ class KeywordTests(TestCase):
         self.assertEqual(subscribe_keywords("Hindi"), no_english_join_list)
         no_english_born_list = keywords_without_word(language="Hindi", word="born")
         self.assertEqual(subscribe_keywords("Hindi"), no_english_born_list)
+
+class AsciiMessageTests(TestCase):
+    def test_is_not_ascii_with_ascii_text(self):
+        self.assertFalse(is_not_ascii(" "))
+        self.assertFalse(is_not_ascii("   "))
+        self.assertFalse(is_not_ascii(""))
+        self.assertFalse(is_not_ascii("Ascii string here"))
+        self.assertFalse(is_not_ascii("Ascii string here that is really long" * 5))
+        self.assertFalse(is_not_ascii("12234567890"))
+        self.assertFalse(is_not_ascii("~!@#$%^&*()_+=-`\\{}][\":;'?><,./'"))
+        self.assertFalse(is_not_ascii(u'\u0000\u0001\u0002\u0003\u0004'))
+        self.assertFalse(is_not_ascii(u'\u005B\u005C\u005D\u005E\u005F\u0060'))
+        self.assertFalse(is_not_ascii(u'\u007A\u007B\u007C\u007D\u007E\u007F')) # last characters in ASCII set
+
+    def test_is_not_ascii_with_nonascii_text(self):
+        self.assertTrue(is_not_ascii(u'\u04FA'))
+        self.assertTrue(is_not_ascii(u'\u0080')) # First character after ASCII set
+        self.assertTrue(is_not_ascii(u'Ascii string start \u04FA'))
+        self.assertTrue(is_not_ascii(u'\u04FA Ascii string end'))
+        self.assertTrue(is_not_ascii(u'\u04FA Ascii string mid \u00BB'))
+        self.assertTrue(is_not_ascii(u'\u04FA Ascii string mid one \u00BB Ascii string end'))
+        self.assertTrue(is_not_ascii(u'\u04FA Ascii string mid one \u00BB Ascii string mid two \u00BC'))
+        self.assertTrue(is_not_ascii(u'\u00BA\u00BB\u00BC\u00BD\u00BE\u00BF')) # First characters after ASCII set
+        self.assertTrue(is_not_ascii(u'\u04FA\u04FB\u04FC\u04FD\u04FE\u04FF'))
+        self.assertTrue(is_not_ascii(u'\u00BA\u00BB\u00BC\u00BD\u00BE\u00BF' * 5))
+
+    def test_is_not_ascii_with_english_messages(self):
+        self.assertFalse(is_not_ascii("join"))
+        self.assertFalse(is_not_ascii("remind"))
+        self.assertFalse(is_not_ascii("born"))
+        self.assertFalse(is_not_ascii(msg_subscribe("English")))
+        self.assertFalse(is_not_ascii(msg_unsubscribe("English")))
+        self.assertFalse(is_not_ascii(msg_already_sub("English")))
+        self.assertFalse(is_not_ascii(msg_failure("English")))
+        self.assertFalse(is_not_ascii(msg_failed_date("English")))
+        self.assertFalse(is_not_ascii(six_week_reminder_seven_days("English")))
+        self.assertFalse(is_not_ascii(six_week_reminder_one_day("English")))
+        self.assertFalse(is_not_ascii(ten_week_reminder_seven_days("English")))
+        self.assertFalse(is_not_ascii(ten_week_reminder_one_day("English")))
+        self.assertFalse(is_not_ascii(fourteen_week_reminder_seven_days("English")))
+        self.assertFalse(is_not_ascii(fourteen_week_reminder_one_day("English")))
+        self.assertFalse(is_not_ascii(nine_month_reminder_seven_days("English")))
+        self.assertFalse(is_not_ascii(nine_month_reminder_one_day("English")))
+        self.assertFalse(is_not_ascii(sixteen_month_reminder_seven_days("English")))
+        self.assertFalse(is_not_ascii(sixteen_month_reminder_one_day("English")))
+        self.assertFalse(is_not_ascii(five_year_reminder_seven_days("English")))
+        self.assertFalse(is_not_ascii(five_year_reminder_one_day("English")))
+        self.assertFalse(is_not_ascii(verify_pregnant_signup_birthdate("English")))
+    
+    def test_is_not_ascii_with_hindi_messages(self):
+        self.assertTrue(is_not_ascii(hindi_information()))
+        self.assertTrue(is_not_ascii(hindi_remind()))
+        self.assertTrue(is_not_ascii(hindi_born()))
+        self.assertTrue(is_not_ascii(msg_subscribe("Hindi")))
+        self.assertTrue(is_not_ascii(msg_unsubscribe("Hindi")))
+        self.assertTrue(is_not_ascii(msg_already_sub("Hindi")))
+        self.assertTrue(is_not_ascii(msg_failure("Hindi")))
+        self.assertTrue(is_not_ascii(msg_failed_date("Hindi")))
+        self.assertTrue(is_not_ascii(six_week_reminder_seven_days("Hindi")))
+        self.assertTrue(is_not_ascii(six_week_reminder_one_day("Hindi")))
+        self.assertTrue(is_not_ascii(ten_week_reminder_seven_days("Hindi")))
+        self.assertTrue(is_not_ascii(ten_week_reminder_one_day("Hindi")))
+        self.assertTrue(is_not_ascii(fourteen_week_reminder_seven_days("Hindi")))
+        self.assertTrue(is_not_ascii(fourteen_week_reminder_one_day("Hindi")))
+        self.assertTrue(is_not_ascii(nine_month_reminder_seven_days("Hindi")))
+        self.assertTrue(is_not_ascii(nine_month_reminder_one_day("Hindi")))
+        self.assertTrue(is_not_ascii(sixteen_month_reminder_seven_days("Hindi")))
+        self.assertTrue(is_not_ascii(sixteen_month_reminder_one_day("Hindi")))
+        self.assertTrue(is_not_ascii(five_year_reminder_seven_days("Hindi")))
+        self.assertTrue(is_not_ascii(five_year_reminder_one_day("Hindi")))
+        self.assertTrue(is_not_ascii(verify_pregnant_signup_birthdate("Hindi")))
+
+    def test_is_not_ascii_with_gujarati_messages(self):
+        self.assertTrue(is_not_ascii(six_week_reminder_seven_days("Gujarati")))
+        self.assertTrue(is_not_ascii(six_week_reminder_one_day("Gujarati")))
+        self.assertTrue(is_not_ascii(ten_week_reminder_seven_days("Gujarati")))
+        self.assertTrue(is_not_ascii(ten_week_reminder_one_day("Gujarati")))
+        self.assertTrue(is_not_ascii(fourteen_week_reminder_seven_days("Gujarati")))
+        self.assertTrue(is_not_ascii(fourteen_week_reminder_one_day("Gujarati")))
+        self.assertTrue(is_not_ascii(nine_month_reminder_seven_days("Gujarati")))
+        self.assertTrue(is_not_ascii(nine_month_reminder_one_day("Gujarati")))
+        self.assertTrue(is_not_ascii(sixteen_month_reminder_seven_days("Gujarati")))
+        self.assertTrue(is_not_ascii(sixteen_month_reminder_one_day("Gujarati")))
+        self.assertTrue(is_not_ascii(five_year_reminder_seven_days("Gujarati")))
+        self.assertTrue(is_not_ascii(five_year_reminder_one_day("Gujarati")))
